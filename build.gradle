@@ -1,0 +1,28 @@
+plugins {
+    id 'java'
+    id 'antlr'
+}
+
+group = 'modist.antlrdemo'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+generateGrammarSource {
+    arguments += ["-visitor"]
+}
+
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+dependencies {
+    antlr "org.antlr:antlr4:4.13.1" // use ANTLR version 4
+}
+
+test {
+    useJUnitPlatform()
+}
