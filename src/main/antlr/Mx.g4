@@ -38,6 +38,7 @@ expression:
     LPAREN expression RPAREN
     | THIS
     | literal
+    | formatString
     | Identifier // variable
     | expression LBRACK expression RBRACK // array access
     | expression DOT Identifier // member variable or function access
@@ -83,6 +84,11 @@ parExpression: LPAREN expression RPAREN; // condition
 type: (primitive | Identifier) (LBRACK RBRACK)*;
 primitive: INT | BOOL | STRING;
 
+// format string
+formatString:
+    FormatStringAtom
+    | FormatStringBegin expression (FormatStringMiddle expression)* FormatStringEnd;
+
 // LEXER
 
 // keywords
@@ -108,9 +114,18 @@ IntegerLiteral: '0' | [1-9][0-9]*;
 BoolLiteral: 'true' | 'false';
 
 StringLiteral: '"' StringCharacter* '"';
+FormatStringBegin: 'f"' FormatStringCharacter* '$';
+FormatStringEnd: '$' FormatStringCharacter* '"';
+FormatStringMiddle: '$' FormatStringCharacter* '$';
+FormatStringAtom: 'f"' FormatStringCharacter* '"';
 fragment StringCharacter: PrintableCharacter | ' ' | EscapeCharacter;
-fragment PrintableCharacter: [!-~];
+fragment FormatStringCharacter: FormatPrintableCharacter | ' ' | FormatEscapeCharacter;
+fragment PrintableCharacter: [!#-~];
+fragment FormatPrintableCharacter: [!#%-~];
 fragment EscapeCharacter: '\\' [n"\\];
+fragment FormatEscapeCharacter:
+    '\\' [n"\\$]
+    | '$$';
 
 // identifier
 Identifier: [a-zA-Z][a-zA-Z0-9_]*;
