@@ -38,7 +38,7 @@
  *  $ javac *.java
  *  $ grun Java compilationUnit *.java
  */
-grammar Test;
+grammar Java;
 
 // starting point for parsing a java file
 compilationUnit

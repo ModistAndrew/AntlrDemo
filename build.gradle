@@ -1,26 +1,36 @@
 plugins {
     id 'java'
     id 'antlr'
+    id 'application'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 group = 'modist.antlrdemo'
 version = '1.0-SNAPSHOT'
+def mainClass = 'modist.antlrdemo.Compiler'
 
 repositories {
     mavenCentral()
 }
 
-generateGrammarSource {
-    arguments += ["-visitor"]
-}
-
 dependencies {
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
+    antlr "org.antlr:antlr4:4.13.1" // use ANTLR version 4
 }
 
-dependencies {
-    antlr "org.antlr:antlr4:4.13.1" // use ANTLR version 4
+generateGrammarSource {
+    arguments += ["-visitor", "-no-listener"]
+}
+
+application {
+    mainClassName = mainClass
+}
+
+jar {
+    manifest {
+        attributes "Main-Class": mainClass
+    }
 }
 
 test {
