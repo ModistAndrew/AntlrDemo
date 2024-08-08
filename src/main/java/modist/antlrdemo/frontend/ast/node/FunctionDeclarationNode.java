@@ -11,6 +11,7 @@ public class FunctionDeclarationNode extends DeclaratorNode {
     public TypeNode returnType;
     public List<ParameterDeclarationNode> parameters;
     public BlockNode body;
+
     public FunctionDeclarationNode(Position position, String name) {
         super(position, name);
     }

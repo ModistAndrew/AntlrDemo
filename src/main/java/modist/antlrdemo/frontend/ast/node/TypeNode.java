@@ -4,7 +4,7 @@ import modist.antlrdemo.frontend.ast.AstVisitor;
 import modist.antlrdemo.frontend.ast.metadata.Position;
 
 public class TypeNode extends BaseAstNode {
-    public String typeName;
+    public TypeNameNode typeName;
     public int dimension;
     public TypeNode(Position position) {
         super(position);

@@ -9,9 +9,6 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-import java.util.List;
-import java.util.stream.Stream;
-
 public class AstBuilder implements MxVisitor<AstNode> {
     @Override
     public ProgramNode visitProgram(MxParser.ProgramContext ctx) {
@@ -177,16 +174,16 @@ public class AstBuilder implements MxVisitor<AstNode> {
     public ExpressionNode.PostUnary visitPostUnaryExpr(MxParser.PostUnaryExprContext ctx) {
         ExpressionNode.PostUnary postUnaryExpression = new ExpressionNode.PostUnary(new Position(ctx.getStart()));
         postUnaryExpression.expression = visitExpression(ctx.expression());
-        postUnaryExpression.operator = ctx.op.getText();
+        postUnaryExpression.operator = TokenUtil.getPostUnaryOperator(ctx.op);
         return postUnaryExpression;
     }
 
     @Override
     public ExpressionNode.Binary visitBinaryExpr(MxParser.BinaryExprContext ctx) {
         ExpressionNode.Binary binaryExpression = new ExpressionNode.Binary(new Position(ctx.getStart()));
-        binaryExpression.left = visitExpression(ctx.expression(0));
-        binaryExpression.right = visitExpression(ctx.expression(1));
-        binaryExpression.operator = ctx.op.getText();
+        binaryExpression.leftExpression = visitExpression(ctx.expression(0));
+        binaryExpression.rightExpression = visitExpression(ctx.expression(1));
+        binaryExpression.operator = TokenUtil.getBinaryOperator(ctx.op);
         return binaryExpression;
     }
 
@@ -201,7 +198,7 @@ public class AstBuilder implements MxVisitor<AstNode> {
     public ExpressionNode.PreUnary visitPreUnaryExpr(MxParser.PreUnaryExprContext ctx) {
         ExpressionNode.PreUnary preUnaryExpression = new ExpressionNode.PreUnary(new Position(ctx.getStart()));
         preUnaryExpression.expression = visitExpression(ctx.expression());
-        preUnaryExpression.operator = ctx.op.getText();
+        preUnaryExpression.operator = TokenUtil.getPreUnaryOperator(ctx.op);
         return preUnaryExpression;
     }
 
@@ -216,7 +213,7 @@ public class AstBuilder implements MxVisitor<AstNode> {
     @Override
     public ExpressionNode.Literal visitLiteralExpr(MxParser.LiteralExprContext ctx) {
         ExpressionNode.Literal literalExpression = new ExpressionNode.Literal(new Position(ctx.getStart()));
-        literalExpression.literal = ctx.literal.getText();
+        literalExpression.value = TokenUtil.getLiteralEnum(ctx.literal);
         return literalExpression;
     }
 
@@ -246,9 +243,9 @@ public class AstBuilder implements MxVisitor<AstNode> {
     @Override
     public ExpressionNode.Assign visitAssignExpr(MxParser.AssignExprContext ctx) {
         ExpressionNode.Assign assignExpression = new ExpressionNode.Assign(new Position(ctx.getStart()));
-        assignExpression.left = visitExpression(ctx.expression(0));
-        assignExpression.right = visitExpression(ctx.expression(1));
-        assignExpression.operator = ctx.op.getText();
+        assignExpression.leftExpression = visitExpression(ctx.expression(0));
+        assignExpression.rightExpression = visitExpression(ctx.expression(1));
+        assignExpression.operator = TokenUtil.getAssignOperator(ctx.op);
         return assignExpression;
     }
 
@@ -271,7 +268,7 @@ public class AstBuilder implements MxVisitor<AstNode> {
     @Override
     public CreatorNode visitCreator(MxParser.CreatorContext ctx) {
         CreatorNode creator = new CreatorNode(new Position(ctx.getStart()));
-        creator.typeName = ctx.typeName.getText();
+        creator.typeName = visitTypeName(ctx.typeName());
         creator.creatorBody = visitCreatorBody(ctx.creatorBody());
         return creator;
     }
@@ -319,9 +316,16 @@ public class AstBuilder implements MxVisitor<AstNode> {
     @Override
     public TypeNode visitType(MxParser.TypeContext ctx) {
         TypeNode type = new TypeNode(new Position(ctx.getStart()));
-        type.typeName = ctx.typeName.getText();
+        type.typeName = visitTypeName(ctx.typeName());
         type.dimension = ctx.emptyBracketPair().size();
         return type;
+    }
+
+    @Override
+    public TypeNameNode visitTypeName(MxParser.TypeNameContext ctx) {
+        TypeNameNode typeName = new TypeNameNode(new Position(ctx.getStart()));
+        typeName.value = TokenUtil.getTypeNameEnum(ctx.typeNameToken);
+        return typeName;
     }
 
     // unused
@@ -336,20 +340,11 @@ public class AstBuilder implements MxVisitor<AstNode> {
     }
 
     @Override
-    public FormatStringNode.Atom visitAtomFormatString(MxParser.AtomFormatStringContext ctx) {
-        FormatStringNode.Atom atomFormatString = new FormatStringNode.Atom(new Position(ctx.getStart()));
-        atomFormatString.text = ctx.getText();
-        return atomFormatString;
-    }
-
-    @Override
-    public FormatStringNode.Complex visitComplexFormatString(MxParser.ComplexFormatStringContext ctx) {
-        FormatStringNode.Complex complexFormatString = new FormatStringNode.Complex(new Position(ctx.getStart()));
-        complexFormatString.texts =
-                Stream.of(List.of(ctx.FormatStringBegin()), ctx.FormatStringMiddle(), List.of(ctx.FormatStringEnd()))
-                        .flatMap(List::stream).map(TerminalNode::getText).toList();
-        complexFormatString.expressions = ctx.expression().stream().map(this::visitExpression).toList();
-        return complexFormatString;
+    public FormatStringNode visitFormatString(MxParser.FormatStringContext ctx) {
+        FormatStringNode formatString = new FormatStringNode(new Position(ctx.getStart()));
+        formatString.texts = ctx.formatStringToken.stream().map(TokenUtil::unesacpeString).toList();
+        formatString.expressions = ctx.expression().stream().map(this::visitExpression).toList();
+        return formatString;
     }
 
     // convenience method for double dispatch. should not call on self
@@ -363,7 +358,7 @@ public class AstBuilder implements MxVisitor<AstNode> {
     @Override
     public AstNode visitChildren(RuleNode ruleNode) {
         if (ruleNode.getChildCount() != 1) {
-            throw new IllegalArgumentException("RuleNode is not a single child node");
+            throw new IllegalArgumentException("RuleNode is not a single child node, but " + ruleNode.getChildCount());
         }
         return visit(ruleNode.getChild(0));
     }
@@ -374,8 +369,9 @@ public class AstBuilder implements MxVisitor<AstNode> {
         throw new UnsupportedOperationException();
     }
 
+    // unused
     @Override
-    public AstNode visitErrorNode(ErrorNode errorNode) { // TODO: error handling
+    public AstNode visitErrorNode(ErrorNode errorNode) {
         throw new UnsupportedOperationException();
     }
 
@@ -389,9 +385,5 @@ public class AstBuilder implements MxVisitor<AstNode> {
 
     protected ArrayCreatorBodyNode visitArrayCreatorBody(MxParser.ArrayCreatorBodyContext ctx) {
         return (ArrayCreatorBodyNode) visit(ctx);
-    }
-
-    protected FormatStringNode visitFormatString(MxParser.FormatStringContext ctx) {
-        return (FormatStringNode) visit(ctx);
     }
 }

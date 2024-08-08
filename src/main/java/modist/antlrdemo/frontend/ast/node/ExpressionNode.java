@@ -36,7 +36,7 @@ public abstract class ExpressionNode extends BaseAstNode implements ForInitializ
     }
 
     public static class Literal extends ExpressionNode {
-        public String literal;
+        public LiteralEnum value;
 
         public Literal(Position position) {
             super(position);
@@ -45,6 +45,21 @@ public abstract class ExpressionNode extends BaseAstNode implements ForInitializ
         @Override
         public <T> T accept(AstVisitor<T> visitor) {
             return visitor.visit(this);
+        }
+
+        public interface LiteralEnum {
+            record Int(int value) implements LiteralEnum {
+            }
+
+            record Bool(boolean value) implements LiteralEnum {
+            }
+
+            record Str(String value) implements LiteralEnum {
+            }
+
+            enum Null implements LiteralEnum {
+                INSTANCE
+            }
         }
     }
 
@@ -131,7 +146,7 @@ public abstract class ExpressionNode extends BaseAstNode implements ForInitializ
 
     public static class PostUnary extends ExpressionNode {
         public ExpressionNode expression;
-        public String operator;
+        public Operator operator;
 
         public PostUnary(Position position) {
             super(position);
@@ -141,11 +156,15 @@ public abstract class ExpressionNode extends BaseAstNode implements ForInitializ
         public <T> T accept(AstVisitor<T> visitor) {
             return visitor.visit(this);
         }
+
+        public enum Operator {
+            INC, DEC
+        }
     }
 
     public static class PreUnary extends ExpressionNode {
-        public String operator;
         public ExpressionNode expression;
+        public Operator operator;
 
         public PreUnary(Position position) {
             super(position);
@@ -155,12 +174,17 @@ public abstract class ExpressionNode extends BaseAstNode implements ForInitializ
         public <T> T accept(AstVisitor<T> visitor) {
             return visitor.visit(this);
         }
+
+        public enum Operator {
+            INC, DEC, ADD, SUB,
+            NOT, LOGICAL_NOT
+        }
     }
 
     public static class Binary extends ExpressionNode {
-        public ExpressionNode left;
-        public String operator;
-        public ExpressionNode right;
+        public ExpressionNode leftExpression;
+        public ExpressionNode rightExpression;
+        public Operator operator;
 
         public Binary(Position position) {
             super(position);
@@ -169,6 +193,19 @@ public abstract class ExpressionNode extends BaseAstNode implements ForInitializ
         @Override
         public <T> T accept(AstVisitor<T> visitor) {
             return visitor.visit(this);
+        }
+
+        public enum Operator {
+            MUL, DIV, MOD,
+            ADD, SUB,
+            SHL, SHR,
+            GT, LT, GE, LE,
+            NE, EQ,
+            AND,
+            XOR,
+            OR,
+            LOGICAL_AND,
+            LOGICAL_OR
         }
     }
 
@@ -188,9 +225,9 @@ public abstract class ExpressionNode extends BaseAstNode implements ForInitializ
     }
 
     public static class Assign extends ExpressionNode {
-        public ExpressionNode left;
-        public String operator;
-        public ExpressionNode right;
+        public ExpressionNode leftExpression;
+        public ExpressionNode rightExpression;
+        public Operator operator;
 
         public Assign(Position position) {
             super(position);
@@ -199,6 +236,10 @@ public abstract class ExpressionNode extends BaseAstNode implements ForInitializ
         @Override
         public <T> T accept(AstVisitor<T> visitor) {
             return visitor.visit(this);
+        }
+
+        public enum Operator {
+            ASSIGN, ADD_ASSIGN, SUB_ASSIGN, MUL_ASSIGN, DIV_ASSIGN, MOD_ASSIGN, AND_ASSIGN, OR_ASSIGN, XOR_ASSIGN, SHL_ASSIGN, SHR_ASSIGN
         }
     }
 }

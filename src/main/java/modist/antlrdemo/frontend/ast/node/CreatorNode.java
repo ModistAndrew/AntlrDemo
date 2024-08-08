@@ -5,7 +5,7 @@ import modist.antlrdemo.frontend.ast.metadata.Position;
 import org.jetbrains.annotations.Nullable;
 
 public class CreatorNode extends BaseAstNode {
-    public String typeName;
+    public TypeNameNode typeName;
     @Nullable
     public CreatorBodyNode creatorBody;
 

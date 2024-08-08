@@ -1,0 +1,26 @@
+package modist.antlrdemo.frontend.ast.node;
+
+import modist.antlrdemo.frontend.ast.AstVisitor;
+import modist.antlrdemo.frontend.ast.metadata.Position;
+
+public class TypeNameNode extends BaseAstNode {
+    public TypeNameEnum value;
+
+    public TypeNameNode(Position position) {
+        super(position);
+    }
+
+    @Override
+    public <T> T accept(AstVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
+
+    public interface TypeNameEnum {
+        enum Primitive implements TypeNameEnum {
+            INT, BOOL, STRING
+        }
+
+        record Reference(String name) implements TypeNameEnum {
+        }
+    }
+}

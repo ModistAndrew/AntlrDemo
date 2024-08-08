@@ -7,6 +7,7 @@ import java.util.List;
 
 public class ArgumentListNode extends BaseAstNode implements CreatorBodyNode {
     public List<ExpressionNode> arguments;
+
     public ArgumentListNode(Position position) {
         super(position);
     }

@@ -39,7 +39,7 @@ forInitialization: variableDeclarationBody | expression;
 expression
     : LPAREN expression RPAREN # parenExpr
     | THIS # thisExpr
-    | literal=(IntegerLiteral | BoolLiteral | StringLiteral | NULL) # literalExpr
+    | literal=(IntegerLiteral | BooleanLiteral | StringLiteral | NULL) # literalExpr
     | formatString # formatStringExpr
     | Identifier # identifierExpr
     | NEW creator # newExpr
@@ -51,7 +51,7 @@ expression
     | op=(NOT|LOGICAL_NOT) expression # preUnaryExpr
     | expression op=(MUL|DIV|MOD) expression # binaryExpr
     | expression op=(ADD|SUB) expression # binaryExpr
-    | expression op=(LSHIFT|RSHIFT) expression # binaryExpr
+    | expression op=(SHL|SHR) expression # binaryExpr
     | expression op=(GT|LT|GE|LE) expression # binaryExpr
     | expression op=(NE|EQ) expression # binaryExpr
     | expression op=AND expression # binaryExpr
@@ -71,12 +71,12 @@ expression
         | AND_ASSIGN
         | OR_ASSIGN
         | XOR_ASSIGN
-        | LSHIFT_ASSIGN
-        | RSHIFT_ASSIGN
+        | SHL_ASSIGN
+        | SHR_ASSIGN
         )
         expression # assignExpr
     ;
-creator: typeName=(INT | BOOL | STRING | Identifier) creatorBody?; // may omit constructor arguments
+creator: typeName creatorBody?; // may omit constructor arguments
 creatorBody: arrayCreatorBody | argumentList;
 arrayCreatorBody
     : expressionBracketPair+ emptyBracketPair* # emptyArrayCreator
@@ -87,14 +87,15 @@ argumentList: LPAREN (expression (COMMA expression)*)? RPAREN;
 condition: LPAREN expression RPAREN;
 
 // type
-type: typeName=(INT | BOOL | STRING | Identifier) emptyBracketPair*;
+type: typeName emptyBracketPair*;
+typeName: typeNameToken=(INT | BOOL | STRING | Identifier);
 emptyBracketPair: LBRACK RBRACK;
 expressionBracketPair: LBRACK expression RBRACK;
 
 // format string
 formatString
-    : FormatStringAtom # atomFormatString
-    | FormatStringBegin expression (FormatStringMiddle expression)* FormatStringEnd # complexFormatString
+    : formatStringToken+=FormatStringAtom
+    | formatStringToken+=FormatStringBegin expression (formatStringToken+=FormatStringMiddle expression)* formatStringToken+=FormatStringEnd
     ;
 
 // LEXER
@@ -119,7 +120,7 @@ RETURN: 'return';
 // literals
 IntegerLiteral: '0' | [1-9][0-9]*;
 
-BoolLiteral: 'true' | 'false';
+BooleanLiteral: 'true' | 'false';
 
 StringLiteral: '"' StringCharacter* '"';
 FormatStringBegin: 'f"' FormatStringCharacter* '$';
@@ -132,7 +133,7 @@ fragment PrintableCharacter: [!#-~];
 fragment FormatPrintableCharacter: [!#%-~];
 fragment EscapeCharacter: '\\' [n"\\];
 fragment FormatEscapeCharacter
-    : '\\' [n"\\$]
+    : '\\' [n"\\]
     | '$$'
     ;
 
@@ -157,8 +158,8 @@ LOGICAL_AND: '&&';
 LOGICAL_OR: '||';
 LOGICAL_NOT: '!';
 
-RSHIFT: '>>';
-LSHIFT: '<<';
+SHL: '<<';
+SHR: '>>';
 AND: '&';
 OR: '|';
 XOR: '^';
@@ -173,8 +174,8 @@ MOD_ASSIGN: '%=';
 AND_ASSIGN: '&=';
 OR_ASSIGN: '|=';
 XOR_ASSIGN: '^=';
-LSHIFT_ASSIGN: '<<=';
-RSHIFT_ASSIGN: '>>=';
+SHL_ASSIGN: '<<=';
+SHR_ASSIGN: '>>=';
 
 INC: '++';
 DEC: '--';
@@ -196,6 +197,6 @@ LBRACE: '{';
 RBRACE: '}';
 
 // whitespace and comments
-WS: [ \t\n]+ -> skip;
+WhiteSpace: [ \t\n]+ -> skip;
 LineComment: '//' ~[\r\n]* -> skip;
 BlockComment: '/*' .*? '*/' -> skip;

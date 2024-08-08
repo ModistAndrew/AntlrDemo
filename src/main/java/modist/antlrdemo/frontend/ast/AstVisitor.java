@@ -76,6 +76,8 @@ public interface AstVisitor<T> {
 
     T visit(StatementNode.Empty node);
 
+    T visit(TypeNameNode node);
+
     T visit(TypeNode node);
 
     T visit(VariableDeclarationNode node);
