@@ -7,8 +7,8 @@ grammar Mx;
 // PARSER
 
 // program and class
-program: (SEMI | classDeclaration | variableDeclaration | functionDeclaration)*;
-classDeclaration: CLASS Identifier LBRACE (SEMI | variableDeclaration | constructorDeclaration | functionDeclaration)* RBRACE SEMI;
+program: (classDeclaration | variableDeclaration | functionDeclaration)*;
+classDeclaration: CLASS Identifier LBRACE (variableDeclaration | functionDeclaration)* constructorDeclaration? (variableDeclaration | functionDeclaration)* RBRACE;
 
 // function
 functionDeclaration: (VOID | type) Identifier LPAREN (parameterDeclaration (COMMA parameterDeclaration)*)? RPAREN block;
@@ -27,7 +27,6 @@ statement
     | CONTINUE SEMI # continueStmt
     | RETURN expression? SEMI # returnStmt
     | expression SEMI # expressionStmt
-    | SEMI # emptyStmt
     ;
 variableDeclarationBody: type variableDeclarator (COMMA variableDeclarator)*;
 variableDeclaration: variableDeclarationBody SEMI;

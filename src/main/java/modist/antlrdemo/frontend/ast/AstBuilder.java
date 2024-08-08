@@ -22,7 +22,7 @@ public class AstBuilder implements MxVisitor<AstNode> {
     @Override
     public ClassDeclarationNode visitClassDeclaration(MxParser.ClassDeclarationContext ctx) {
         ClassDeclarationNode classDeclaration = new ClassDeclarationNode(new Position(ctx.getStart()), ctx.Identifier().getText());
-        classDeclaration.trySetConstructor(ctx.constructorDeclaration().stream().map(this::visitConstructorDeclaration).toList());
+        classDeclaration.constructor = ctx.constructorDeclaration() != null ? visitConstructorDeclaration(ctx.constructorDeclaration()) : null;
         classDeclaration.functions = ctx.functionDeclaration().stream().map(this::visitFunctionDeclaration).toList();
         classDeclaration.variables = ctx.variableDeclaration().stream().map(this::visitVariableDeclaration).toList();
         return classDeclaration;
@@ -121,11 +121,6 @@ public class AstBuilder implements MxVisitor<AstNode> {
         StatementNode.Expression expressionStatement = new StatementNode.Expression(new Position(ctx.getStart()));
         expressionStatement.expression = visitExpression(ctx.expression());
         return expressionStatement;
-    }
-
-    @Override
-    public StatementNode.Empty visitEmptyStmt(MxParser.EmptyStmtContext ctx) {
-        return new StatementNode.Empty(new Position(ctx.getStart()));
     }
 
     @Override

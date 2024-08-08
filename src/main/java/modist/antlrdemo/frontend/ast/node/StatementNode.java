@@ -132,15 +132,4 @@ public abstract class StatementNode extends BaseAstNode {
             return visitor.visit(this);
         }
     }
-
-    public static class Empty extends StatementNode {
-        public Empty(Position position) {
-            super(position);
-        }
-
-        @Override
-        public <T> T accept(AstVisitor<T> visitor) {
-            return visitor.visit(this);
-        }
-    }
 }
