@@ -1,13 +1,11 @@
 plugins {
     id 'java'
     id 'antlr'
-    id 'application'
     id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 group = 'modist.antlrdemo'
-version = '1.0-SNAPSHOT'
-def mainClass = 'modist.antlrdemo.Compiler'
+version = '0.1'
 
 repositories {
     mavenCentral()
@@ -24,13 +22,9 @@ generateGrammarSource {
     arguments += ["-visitor", "-no-listener"]
 }
 
-application {
-    mainClassName = mainClass
-}
-
 jar {
     manifest {
-        attributes "Main-Class": mainClass
+        attributes "Main-Class": "modist.antlrdemo.Compiler"
     }
 }
 

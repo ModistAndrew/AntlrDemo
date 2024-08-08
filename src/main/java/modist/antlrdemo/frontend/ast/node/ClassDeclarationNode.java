@@ -1,8 +1,9 @@
 package modist.antlrdemo.frontend.ast.node;
 
-import modist.antlrdemo.frontend.CompileException;
+import modist.antlrdemo.frontend.error.CompileException;
 import modist.antlrdemo.frontend.ast.AstVisitor;
 import modist.antlrdemo.frontend.ast.metadata.Position;
+import modist.antlrdemo.frontend.error.SemanticException;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -24,7 +25,7 @@ public class ClassDeclarationNode extends DeclaratorNode {
 
     public void trySetConstructor(List<ConstructorDeclarationNode> constructors) {
         if (constructors.size() > 1) {
-            throw new CompileException(position, "Multiple constructors in class " + name);
+            throw new SemanticException("Multiple constructors in class " + name, position);
         }
         constructor = constructors.isEmpty() ? null : constructors.get(0);
     }
