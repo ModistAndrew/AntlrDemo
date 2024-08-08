@@ -6,15 +6,16 @@ grammar Mx;
 
 // PARSER
 
-// program and class
-program: (classDeclaration | variableDeclaration | functionDeclaration)*;
+// root
+program: (SEMI | classDeclaration | variableDeclaration | functionDeclaration)*;
+
+// class
 classDeclaration: CLASS Identifier classBody SEMI;
-classBody: LBRACE memberDeclaration* RBRACE;
-memberDeclaration: SEMI | variableDeclaration | constructorDeclaration | functionDeclaration;
+classBody: LBRACE (SEMI | variableDeclaration | constructorDeclaration | functionDeclaration)* RBRACE;
 
 // function
 functionDeclaration: returnType Identifier formalParameterList block;
-constructorDeclaration: Identifier formalParameterList block;
+constructorDeclaration: Identifier LPAREN RPAREN block; // constructor has no formal parameters
 formalParameterList: LPAREN (formalParameter (COMMA formalParameter)*)? RPAREN;
 formalParameter: type Identifier;
 block: LBRACE statement* RBRACE;
@@ -23,8 +24,8 @@ block: LBRACE statement* RBRACE;
 statement
     : block # blockStmt
     | variableDeclaration # variableDeclarationStmt
-    | IF condition trueStatement=statement (ELSE falseStatement=statement)? # ifStmt
-    | FOR LPAREN forControl RPAREN statement # forStmt
+    | IF condition ifThenStmt=statement (ELSE ifElseStmt=statement)? # ifStmt
+    | FOR forControl statement # forStmt
     | WHILE condition statement # whileStmt
     | BREAK SEMI # breakStmt
     | CONTINUE SEMI # continueStmt
@@ -36,8 +37,8 @@ variableDeclarationBody: type variableDeclarator (COMMA variableDeclarator)*;
 variableDeclaration: variableDeclarationBody SEMI;
 variableDeclarator: Identifier (ASSIGN variableInitializer)?;
 variableInitializer: arrayInitializer | expression;
-forControl: forInit=forInitialization? SEMI forCondition=expression? SEMI forUpdate=expressions?;
-forInitialization: variableDeclarationBody | expressions;
+forControl: LPAREN forInit=forInitialization? SEMI forCondition=expression? SEMI forUpdate=expression? RPAREN;
+forInitialization: variableDeclarationBody | expression;
 
 // expression
 expression
@@ -47,9 +48,9 @@ expression
     | formatString # formatStringExpr
     | Identifier # identifierExpr
     | NEW creator # newExpr
-    | expression expressionBrackets # arrayAccessExpr
+    | expression expressionBracketPair # arrayAccessExpr
     | expression DOT Identifier # memberAccessExpr
-    | expression arguments # functionCallExpr
+    | expression argumentList # functionCallExpr
     | expression op=(INC|DEC) # postUnaryExpr
     | op=(ADD|SUB|INC|DEC) expression # preUnaryExpr
     | op=(NOT|LOGICAL_NOT) expression # preUnaryExpr
@@ -82,22 +83,21 @@ expression
     ;
 literal: IntegerLiteral | BoolLiteral | StringLiteral | NULL;
 creator: typeName creatorBody?; // may omit constructor arguments
-creatorBody: arrayCreatorBody | arguments;
+creatorBody: arrayCreatorBody | argumentList;
 arrayCreatorBody
-    : emptyBrackets+ arrayInitializer # literalArrayCreator
-    | expressionBrackets+ emptyBrackets* # emptyArrayCreator
+    : expressionBracketPair+ emptyBracketPair* # emptyArrayCreator
+    | emptyBracketPair+ arrayInitializer # literalArrayCreator
     ;
 arrayInitializer: LBRACE (variableInitializer (COMMA variableInitializer)* (COMMA)? )? RBRACE;
-arguments: LPAREN expressions? RPAREN;
-expressions: expression (COMMA expression)*;
+argumentList: LPAREN (expression (COMMA expression)*)? RPAREN;
 condition: LPAREN expression RPAREN;
 
 // type
-type: typeName emptyBrackets*;
+type: typeName emptyBracketPair*;
 typeName: INT | BOOL | STRING | Identifier;
 returnType: VOID | type;
-emptyBrackets: LBRACK RBRACK;
-expressionBrackets: LBRACK expression RBRACK;
+emptyBracketPair: LBRACK RBRACK;
+expressionBracketPair: LBRACK expression RBRACK;
 
 // format string
 formatString
