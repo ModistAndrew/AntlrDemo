@@ -7,9 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ProgramNode extends BaseAstNode {
-    public final List<ClassDeclarationNode> classes = new ArrayList<>();
-    public final List<VariableDeclarationNode> variables = new ArrayList<>();
-    public final List<FunctionDeclarationNode> functions = new ArrayList<>();
+    public List<ClassDeclarationNode> classes;
+    public List<VariableDeclarationNode> variables;
+    public List<FunctionDeclarationNode> functions;
 
     public ProgramNode(Position position) {
         super(position);

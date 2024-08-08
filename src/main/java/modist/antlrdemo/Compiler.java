@@ -1,7 +1,7 @@
 package modist.antlrdemo;
 
 import modist.antlrdemo.frontend.ast.AstBuilder;
-import modist.antlrdemo.frontend.ast.node.AstNode;
+import modist.antlrdemo.frontend.ast.node.ProgramNode;
 import modist.antlrdemo.frontend.grammar.MxLexer;
 import modist.antlrdemo.frontend.grammar.MxParser;
 import org.antlr.v4.runtime.CharStreams;
@@ -16,5 +16,6 @@ public class Compiler {
         MxLexer lexer = new MxLexer(CharStreams.fromStream(input));
         MxParser parser = new MxParser(new CommonTokenStream(lexer));
         AstBuilder astBuilder = new AstBuilder();
+        ProgramNode node = astBuilder.visitProgram(parser.program());
     }
 }

@@ -11,10 +11,9 @@ program: (SEMI | classDeclaration | variableDeclaration | functionDeclaration)*;
 classDeclaration: CLASS Identifier LBRACE (SEMI | variableDeclaration | constructorDeclaration | functionDeclaration)* RBRACE SEMI;
 
 // function
-functionDeclaration: returnType Identifier formalParameterList block;
+functionDeclaration: (VOID | type) Identifier LPAREN (parameterDeclaration (COMMA parameterDeclaration)*)? RPAREN block;
 constructorDeclaration: Identifier LPAREN RPAREN block; // constructor has no formal parameters
-formalParameterList: LPAREN (formalParameter (COMMA formalParameter)*)? RPAREN;
-formalParameter: type Identifier;
+parameterDeclaration: type Identifier;
 block: LBRACE statement* RBRACE;
 
 // statement
@@ -40,7 +39,7 @@ forInitialization: variableDeclarationBody | expression;
 expression
     : LPAREN expression RPAREN # parenExpr
     | THIS # thisExpr
-    | literal # literalExpr
+    | literal=(IntegerLiteral | BoolLiteral | StringLiteral | NULL) # literalExpr
     | formatString # formatStringExpr
     | Identifier # identifierExpr
     | NEW creator # newExpr
@@ -77,8 +76,7 @@ expression
         )
         expression # assignExpr
     ;
-literal: IntegerLiteral | BoolLiteral | StringLiteral | NULL;
-creator: typeName creatorBody?; // may omit constructor arguments
+creator: typeName=(INT | BOOL | STRING | Identifier) creatorBody?; // may omit constructor arguments
 creatorBody: arrayCreatorBody | argumentList;
 arrayCreatorBody
     : expressionBracketPair+ emptyBracketPair* # emptyArrayCreator
@@ -89,9 +87,7 @@ argumentList: LPAREN (expression (COMMA expression)*)? RPAREN;
 condition: LPAREN expression RPAREN;
 
 // type
-type: typeName emptyBracketPair*;
-typeName: INT | BOOL | STRING | Identifier;
-returnType: VOID | type;
+type: typeName=(INT | BOOL | STRING | Identifier) emptyBracketPair*;
 emptyBracketPair: LBRACK RBRACK;
 expressionBracketPair: LBRACK expression RBRACK;
 

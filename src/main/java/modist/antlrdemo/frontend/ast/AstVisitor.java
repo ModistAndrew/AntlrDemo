@@ -48,15 +48,11 @@ public interface AstVisitor<T> {
 
     T visit(ExpressionNode.Assign node);
 
-    T visit(FormalParameterNode node);
-
-    T visit(FormalParameterListNode node);
+    T visit(ParameterDeclarationNode node);
 
     T visit(FormatStringNode node);
 
     T visit(FunctionDeclarationNode node);
-
-    T visit(LiteralNode node);
 
     T visit(ProgramNode node);
 
@@ -79,8 +75,6 @@ public interface AstVisitor<T> {
     T visit(StatementNode.Expression node);
 
     T visit(StatementNode.Empty node);
-
-    T visit(TypeNameNode node);
 
     T visit(TypeNode node);
 

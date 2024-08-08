@@ -36,7 +36,7 @@ public abstract class ExpressionNode extends BaseAstNode implements ForInitializ
     }
 
     public static class Literal extends ExpressionNode {
-        public LiteralNode literal;
+        public String literal;
 
         public Literal(Position position) {
             super(position);
@@ -158,9 +158,9 @@ public abstract class ExpressionNode extends BaseAstNode implements ForInitializ
     }
 
     public static class Binary extends ExpressionNode {
-        public ExpressionNode lhs;
+        public ExpressionNode left;
         public String operator;
-        public ExpressionNode rhs;
+        public ExpressionNode right;
 
         public Binary(Position position) {
             super(position);
@@ -188,9 +188,9 @@ public abstract class ExpressionNode extends BaseAstNode implements ForInitializ
     }
 
     public static class Assign extends ExpressionNode {
-        public ExpressionNode lhs;
+        public ExpressionNode left;
         public String operator;
-        public ExpressionNode rhs;
+        public ExpressionNode right;
 
         public Assign(Position position) {
             super(position);
