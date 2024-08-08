@@ -6,9 +6,9 @@ public interface AstVisitor<T> {
     //TODO: simplify the interface. some AST nodes don't need to be visited.
     T visit(ArgumentListNode node);
 
-    T visit(ArrayCreatorBodyNode.Empty node);
+    T visit(ArrayCreatorNode.Empty node);
 
-    T visit(ArrayCreatorBodyNode.Literal node);
+    T visit(ArrayCreatorNode.Literal node);
 
     T visit(ArrayInitializerNode node);
 

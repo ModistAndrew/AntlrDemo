@@ -5,12 +5,12 @@ import modist.antlrdemo.frontend.ast.metadata.Position;
 
 import java.util.List;
 
-public abstract class ArrayCreatorBodyNode extends BaseAstNode implements CreatorBodyNode {
-    public ArrayCreatorBodyNode(Position position) {
+public abstract class ArrayCreatorNode extends BaseAstNode implements AstNode {
+    public ArrayCreatorNode(Position position) {
         super(position);
     }
 
-    public static class Empty extends ArrayCreatorBodyNode {
+    public static class Empty extends ArrayCreatorNode {
         public List<ExpressionNode> initializedLengths;
         public int emptyDimension;
 
@@ -24,7 +24,7 @@ public abstract class ArrayCreatorBodyNode extends BaseAstNode implements Creato
         }
     }
 
-    public static class Literal extends ArrayCreatorBodyNode {
+    public static class Literal extends ArrayCreatorNode {
         public int dimension;
         public ArrayInitializerNode initializer;
 

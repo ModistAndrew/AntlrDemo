@@ -269,26 +269,21 @@ public class AstBuilder implements MxVisitor<AstNode> {
     public CreatorNode visitCreator(MxParser.CreatorContext ctx) {
         CreatorNode creator = new CreatorNode(new Position(ctx.getStart()));
         creator.typeName = visitTypeName(ctx.typeName());
-        creator.creatorBody = visitCreatorBody(ctx.creatorBody());
+        creator.arrayCreator = ctx.arrayCreator() != null ? visitArrayCreator(ctx.arrayCreator()) : null;
         return creator;
     }
 
     @Override
-    public CreatorBodyNode visitCreatorBody(MxParser.CreatorBodyContext ctx) {
-        return (CreatorBodyNode) visitChildren(ctx);
-    }
-
-    @Override
-    public ArrayCreatorBodyNode.Literal visitLiteralArrayCreator(MxParser.LiteralArrayCreatorContext ctx) {
-        ArrayCreatorBodyNode.Literal literalArrayCreator = new ArrayCreatorBodyNode.Literal(new Position(ctx.getStart()));
+    public ArrayCreatorNode.Literal visitLiteralArrayCreator(MxParser.LiteralArrayCreatorContext ctx) {
+        ArrayCreatorNode.Literal literalArrayCreator = new ArrayCreatorNode.Literal(new Position(ctx.getStart()));
         literalArrayCreator.dimension = ctx.emptyBracketPair().size();
         literalArrayCreator.initializer = visitArrayInitializer(ctx.arrayInitializer());
         return literalArrayCreator;
     }
 
     @Override
-    public ArrayCreatorBodyNode.Empty visitEmptyArrayCreator(MxParser.EmptyArrayCreatorContext ctx) {
-        ArrayCreatorBodyNode.Empty emptyArrayCreator = new ArrayCreatorBodyNode.Empty(new Position(ctx.getStart()));
+    public ArrayCreatorNode.Empty visitEmptyArrayCreator(MxParser.EmptyArrayCreatorContext ctx) {
+        ArrayCreatorNode.Empty emptyArrayCreator = new ArrayCreatorNode.Empty(new Position(ctx.getStart()));
         emptyArrayCreator.initializedLengths = ctx.expressionBracketPair().stream().map(this::visitExpressionBracketPair).toList();
         emptyArrayCreator.emptyDimension = ctx.emptyBracketPair().size();
         return emptyArrayCreator;
@@ -340,6 +335,11 @@ public class AstBuilder implements MxVisitor<AstNode> {
     }
 
     @Override
+    public AstNode visitEmptyParenthesisPair(MxParser.EmptyParenthesisPairContext ctx) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public FormatStringNode visitFormatString(MxParser.FormatStringContext ctx) {
         FormatStringNode formatString = new FormatStringNode(new Position(ctx.getStart()));
         formatString.texts = ctx.formatStringToken.stream().map(TokenUtil::unesacpeString).toList();
@@ -383,7 +383,7 @@ public class AstBuilder implements MxVisitor<AstNode> {
         return (ExpressionNode) visit(ctx);
     }
 
-    protected ArrayCreatorBodyNode visitArrayCreatorBody(MxParser.ArrayCreatorBodyContext ctx) {
-        return (ArrayCreatorBodyNode) visit(ctx);
+    protected ArrayCreatorNode visitArrayCreator(MxParser.ArrayCreatorContext ctx) {
+        return (ArrayCreatorNode) visit(ctx);
     }
 }

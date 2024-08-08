@@ -12,7 +12,7 @@ classDeclaration: CLASS Identifier LBRACE (SEMI | variableDeclaration | construc
 
 // function
 functionDeclaration: (VOID | type) Identifier LPAREN (parameterDeclaration (COMMA parameterDeclaration)*)? RPAREN block;
-constructorDeclaration: Identifier LPAREN RPAREN block; // constructor has no formal parameters
+constructorDeclaration: Identifier emptyParenthesisPair block; // constructor has no formal parameters
 parameterDeclaration: type Identifier;
 block: LBRACE statement* RBRACE;
 
@@ -76,9 +76,8 @@ expression
         )
         expression # assignExpr
     ;
-creator: typeName creatorBody?; // may omit constructor arguments
-creatorBody: arrayCreatorBody | argumentList;
-arrayCreatorBody
+creator: typeName (arrayCreator | emptyParenthesisPair)?; // may omit constructor arguments
+arrayCreator
     : expressionBracketPair+ emptyBracketPair* # emptyArrayCreator
     | emptyBracketPair+ arrayInitializer # literalArrayCreator
     ;
@@ -91,6 +90,7 @@ type: typeName emptyBracketPair*;
 typeName: typeNameToken=(INT | BOOL | STRING | Identifier);
 emptyBracketPair: LBRACK RBRACK;
 expressionBracketPair: LBRACK expression RBRACK;
+emptyParenthesisPair: LPAREN RPAREN;
 
 // format string
 formatString
