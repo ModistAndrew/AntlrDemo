@@ -17,8 +17,8 @@ public abstract class StatementNode extends AstNode {
         }
 
         @Override
-        public void accept(AstVisitor visitor) {
-            visitor.visit(this);
+        public <T> T accept(AstVisitor<T> visitor) {
+            return visitor.visit(this);
         }
     }
 
@@ -30,8 +30,8 @@ public abstract class StatementNode extends AstNode {
         }
 
         @Override
-        public void accept(AstVisitor visitor) {
-            visitor.visit(this);
+        public <T> T accept(AstVisitor<T> visitor) {
+            return visitor.visit(this);
         }
     }
 
@@ -46,8 +46,8 @@ public abstract class StatementNode extends AstNode {
         }
 
         @Override
-        public void accept(AstVisitor visitor) {
-            visitor.visit(this);
+        public <T> T accept(AstVisitor<T> visitor) {
+            return visitor.visit(this);
         }
     }
 
@@ -60,8 +60,8 @@ public abstract class StatementNode extends AstNode {
         }
 
         @Override
-        public void accept(AstVisitor visitor) {
-            visitor.visit(this);
+        public <T> T accept(AstVisitor<T> visitor) {
+            return visitor.visit(this);
         }
     }
 
@@ -74,8 +74,8 @@ public abstract class StatementNode extends AstNode {
         }
 
         @Override
-        public void accept(AstVisitor visitor) {
-            visitor.visit(this);
+        public <T> T accept(AstVisitor<T> visitor) {
+            return visitor.visit(this);
         }
     }
 
@@ -85,8 +85,8 @@ public abstract class StatementNode extends AstNode {
         }
 
         @Override
-        public void accept(AstVisitor visitor) {
-            visitor.visit(this);
+        public <T> T accept(AstVisitor<T> visitor) {
+            return visitor.visit(this);
         }
     }
 
@@ -96,8 +96,8 @@ public abstract class StatementNode extends AstNode {
         }
 
         @Override
-        public void accept(AstVisitor visitor) {
-            visitor.visit(this);
+        public <T> T accept(AstVisitor<T> visitor) {
+            return visitor.visit(this);
         }
     }
 
@@ -110,8 +110,8 @@ public abstract class StatementNode extends AstNode {
         }
 
         @Override
-        public void accept(AstVisitor visitor) {
-            visitor.visit(this);
+        public <T> T accept(AstVisitor<T> visitor) {
+            return visitor.visit(this);
         }
     }
 
@@ -123,8 +123,8 @@ public abstract class StatementNode extends AstNode {
         }
 
         @Override
-        public void accept(AstVisitor visitor) {
-            visitor.visit(this);
+        public <T> T accept(AstVisitor<T> visitor) {
+            return visitor.visit(this);
         }
     }
 
@@ -134,8 +134,8 @@ public abstract class StatementNode extends AstNode {
         }
 
         @Override
-        public void accept(AstVisitor visitor) {
-            visitor.visit(this);
+        public <T> T accept(AstVisitor<T> visitor) {
+            return visitor.visit(this);
         }
     }
 }

@@ -1,6 +1,8 @@
 package modist.antlrdemo.frontend.ast;
 
+import modist.antlrdemo.frontend.ast.metadata.Position;
 import modist.antlrdemo.frontend.ast.node.AstNode;
+import modist.antlrdemo.frontend.ast.node.ClassDeclarationNode;
 import modist.antlrdemo.frontend.ast.node.ProgramNode;
 import modist.antlrdemo.frontend.grammar.MxParser;
 import modist.antlrdemo.frontend.grammar.MxVisitor;
@@ -11,13 +13,12 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 
 public class AstBuilder implements MxVisitor<AstNode> {
     @Override
-    public AstNode visitProgram(MxParser.ProgramContext ctx) {
-        ctx.children.stream().map(this::visit).forEach(System.out::println); // visit all children
+    public ProgramNode visitProgram(MxParser.ProgramContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitClassDeclaration(MxParser.ClassDeclarationContext ctx) {
+    public ClassDeclarationNode visitClassDeclaration(MxParser.ClassDeclarationContext ctx) {
         return null;
     }
 

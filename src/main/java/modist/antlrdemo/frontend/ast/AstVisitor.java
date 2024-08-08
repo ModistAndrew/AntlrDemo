@@ -2,88 +2,88 @@ package modist.antlrdemo.frontend.ast;
 
 import modist.antlrdemo.frontend.ast.node.*;
 
-public interface AstVisitor {
-    void visit(ArgumentListNode node);
+public interface AstVisitor<T> {
+    T visit(ArgumentListNode node);
 
-    void visit(ArrayCreatorBodyNode.Empty node);
+    T visit(ArrayCreatorBodyNode.Empty node);
 
-    void visit(ArrayCreatorBodyNode.Expression node);
+    T visit(ArrayCreatorBodyNode.Expression node);
 
-    void visit(ArrayInitializerNode node);
+    T visit(ArrayInitializerNode node);
 
-    void visit(BlockNode node);
+    T visit(BlockNode node);
 
-    void visit(ClassDeclarationNode node);
+    T visit(ClassDeclarationNode node);
 
-    void visit(ConstructorDeclarationNode node);
+    T visit(ConstructorDeclarationNode node);
 
-    void visit(CreatorNode node);
+    T visit(CreatorNode node);
 
-    void visit(ExpressionNode.Paren node);
+    T visit(ExpressionNode.Paren node);
 
-    void visit(ExpressionNode.This node);
+    T visit(ExpressionNode.This node);
 
-    void visit(ExpressionNode.Literal node);
+    T visit(ExpressionNode.Literal node);
 
-    void visit(ExpressionNode.FormatString node);
+    T visit(ExpressionNode.FormatString node);
 
-    void visit(ExpressionNode.Identifier node);
+    T visit(ExpressionNode.Identifier node);
 
-    void visit(ExpressionNode.New node);
+    T visit(ExpressionNode.New node);
 
-    void visit(ExpressionNode.ArrayAccess node);
+    T visit(ExpressionNode.ArrayAccess node);
 
-    void visit(ExpressionNode.MemberAccess node);
+    T visit(ExpressionNode.MemberAccess node);
 
-    void visit(ExpressionNode.FunctionCall node);
+    T visit(ExpressionNode.FunctionCall node);
 
-    void visit(ExpressionNode.PostUnary node);
+    T visit(ExpressionNode.PostUnary node);
 
-    void visit(ExpressionNode.PreUnary node);
+    T visit(ExpressionNode.PreUnary node);
 
-    void visit(ExpressionNode.Binary node);
+    T visit(ExpressionNode.Binary node);
 
-    void visit(ExpressionNode.Conditional node);
+    T visit(ExpressionNode.Conditional node);
 
-    void visit(ExpressionNode.Assign node);
+    T visit(ExpressionNode.Assign node);
 
-    void visit(ForControlNode node);
+    T visit(ForControlNode node);
 
-    void visit(FormalParameterNode node);
+    T visit(FormalParameterNode node);
 
-    void visit(FormatStringNode node);
+    T visit(FormatStringNode node);
 
-    void visit(FunctionDeclarationNode node);
+    T visit(FunctionDeclarationNode node);
 
-    void visit(LiteralNode node);
+    T visit(LiteralNode node);
 
-    void visit(ProgramNode node);
+    T visit(ProgramNode node);
 
-    void visit(StatementNode.Block node);
+    T visit(StatementNode.Block node);
 
-    void visit(StatementNode.VariableDeclaration node);
+    T visit(StatementNode.VariableDeclaration node);
 
-    void visit(StatementNode.If node);
+    T visit(StatementNode.If node);
 
-    void visit(StatementNode.For node);
+    T visit(StatementNode.For node);
 
-    void visit(StatementNode.While node);
+    T visit(StatementNode.While node);
 
-    void visit(StatementNode.Break node);
+    T visit(StatementNode.Break node);
 
-    void visit(StatementNode.Continue node);
+    T visit(StatementNode.Continue node);
 
-    void visit(StatementNode.Return node);
+    T visit(StatementNode.Return node);
 
-    void visit(StatementNode.Expression node);
+    T visit(StatementNode.Expression node);
 
-    void visit(StatementNode.Empty node);
+    T visit(StatementNode.Empty node);
 
-    void visit(TypeNameNode node);
+    T visit(TypeNameNode node);
 
-    void visit(TypeNode node);
+    T visit(TypeNode node);
 
-    void visit(VariableDeclarationNode node);
+    T visit(VariableDeclarationNode node);
 
-    void visit(VariableDeclaratorNode node);
+    T visit(VariableDeclaratorNode node);
 }

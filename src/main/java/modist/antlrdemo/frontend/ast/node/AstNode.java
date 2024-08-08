@@ -10,5 +10,5 @@ public abstract class AstNode {
         this.position = position;
     }
 
-    public abstract void accept(AstVisitor visitor);
+    public abstract <T> T accept(AstVisitor<T> visitor);
 }

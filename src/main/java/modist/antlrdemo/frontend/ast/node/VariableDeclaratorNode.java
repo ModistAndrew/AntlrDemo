@@ -1,4 +1,15 @@
 package modist.antlrdemo.frontend.ast.node;
 
-public class VariableDeclaratorNode {
+import modist.antlrdemo.frontend.ast.AstVisitor;
+import modist.antlrdemo.frontend.ast.metadata.Position;
+
+public class VariableDeclaratorNode extends DeclarationNode {
+    public VariableDeclaratorNode(Position position) {
+        super(position);
+    }
+
+    @Override
+    public <T> T accept(AstVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
 }

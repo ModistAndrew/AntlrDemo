@@ -19,8 +19,8 @@ public abstract class ExpressionNode extends AstNode implements ForInitializatio
         }
 
         @Override
-        public void accept(AstVisitor visitor) {
-            visitor.visit(this);
+        public <T> T accept(AstVisitor<T> visitor) {
+            return visitor.visit(this);
         }
     }
 
@@ -30,8 +30,8 @@ public abstract class ExpressionNode extends AstNode implements ForInitializatio
         }
 
         @Override
-        public void accept(AstVisitor visitor) {
-            visitor.visit(this);
+        public <T> T accept(AstVisitor<T> visitor) {
+            return visitor.visit(this);
         }
     }
 
@@ -43,8 +43,8 @@ public abstract class ExpressionNode extends AstNode implements ForInitializatio
         }
 
         @Override
-        public void accept(AstVisitor visitor) {
-            visitor.visit(this);
+        public <T> T accept(AstVisitor<T> visitor) {
+            return visitor.visit(this);
         }
     }
 
@@ -56,8 +56,8 @@ public abstract class ExpressionNode extends AstNode implements ForInitializatio
         }
 
         @Override
-        public void accept(AstVisitor visitor) {
-            visitor.visit(this);
+        public <T> T accept(AstVisitor<T> visitor) {
+            return visitor.visit(this);
         }
     }
 
@@ -69,8 +69,8 @@ public abstract class ExpressionNode extends AstNode implements ForInitializatio
         }
 
         @Override
-        public void accept(AstVisitor visitor) {
-            visitor.visit(this);
+        public <T> T accept(AstVisitor<T> visitor) {
+            return visitor.visit(this);
         }
     }
 
@@ -82,8 +82,8 @@ public abstract class ExpressionNode extends AstNode implements ForInitializatio
         }
 
         @Override
-        public void accept(AstVisitor visitor) {
-            visitor.visit(this);
+        public <T> T accept(AstVisitor<T> visitor) {
+            return visitor.visit(this);
         }
     }
 
@@ -96,8 +96,8 @@ public abstract class ExpressionNode extends AstNode implements ForInitializatio
         }
 
         @Override
-        public void accept(AstVisitor visitor) {
-            visitor.visit(this);
+        public <T> T accept(AstVisitor<T> visitor) {
+            return visitor.visit(this);
         }
     }
 
@@ -110,8 +110,8 @@ public abstract class ExpressionNode extends AstNode implements ForInitializatio
         }
 
         @Override
-        public void accept(AstVisitor visitor) {
-            visitor.visit(this);
+        public <T> T accept(AstVisitor<T> visitor) {
+            return visitor.visit(this);
         }
     }
 
@@ -124,8 +124,8 @@ public abstract class ExpressionNode extends AstNode implements ForInitializatio
         }
 
         @Override
-        public void accept(AstVisitor visitor) {
-            visitor.visit(this);
+        public <T> T accept(AstVisitor<T> visitor) {
+            return visitor.visit(this);
         }
     }
 
@@ -138,8 +138,8 @@ public abstract class ExpressionNode extends AstNode implements ForInitializatio
         }
 
         @Override
-        public void accept(AstVisitor visitor) {
-            visitor.visit(this);
+        public <T> T accept(AstVisitor<T> visitor) {
+            return visitor.visit(this);
         }
     }
 
@@ -152,8 +152,8 @@ public abstract class ExpressionNode extends AstNode implements ForInitializatio
         }
 
         @Override
-        public void accept(AstVisitor visitor) {
-            visitor.visit(this);
+        public <T> T accept(AstVisitor<T> visitor) {
+            return visitor.visit(this);
         }
     }
 
@@ -167,8 +167,8 @@ public abstract class ExpressionNode extends AstNode implements ForInitializatio
         }
 
         @Override
-        public void accept(AstVisitor visitor) {
-            visitor.visit(this);
+        public <T> T accept(AstVisitor<T> visitor) {
+            return visitor.visit(this);
         }
     }
 
@@ -182,8 +182,8 @@ public abstract class ExpressionNode extends AstNode implements ForInitializatio
         }
 
         @Override
-        public void accept(AstVisitor visitor) {
-            visitor.visit(this);
+        public <T> T accept(AstVisitor<T> visitor) {
+            return visitor.visit(this);
         }
     }
 
@@ -197,8 +197,8 @@ public abstract class ExpressionNode extends AstNode implements ForInitializatio
         }
 
         @Override
-        public void accept(AstVisitor visitor) {
-            visitor.visit(this);
+        public <T> T accept(AstVisitor<T> visitor) {
+            return visitor.visit(this);
         }
     }
 }
