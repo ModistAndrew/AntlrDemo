@@ -1,15 +1,13 @@
 package modist.antlrdemo.frontend.ast;
 
-import modist.antlrdemo.frontend.ast.metadata.Position;
-import modist.antlrdemo.frontend.ast.node.AstNode;
-import modist.antlrdemo.frontend.ast.node.ClassDeclarationNode;
-import modist.antlrdemo.frontend.ast.node.ProgramNode;
+import modist.antlrdemo.frontend.ast.node.*;
 import modist.antlrdemo.frontend.grammar.MxParser;
 import modist.antlrdemo.frontend.grammar.MxVisitor;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.jetbrains.annotations.Nullable;
 
 public class AstBuilder implements MxVisitor<AstNode> {
     @Override
@@ -23,281 +21,292 @@ public class AstBuilder implements MxVisitor<AstNode> {
     }
 
     @Override
-    public AstNode visitClassBody(MxParser.ClassBodyContext ctx) {
+    public FunctionDeclarationNode visitFunctionDeclaration(MxParser.FunctionDeclarationContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitFunctionDeclaration(MxParser.FunctionDeclarationContext ctx) {
+    public ConstructorDeclarationNode visitConstructorDeclaration(MxParser.ConstructorDeclarationContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitConstructorDeclaration(MxParser.ConstructorDeclarationContext ctx) {
+    public FormalParameterListNode visitFormalParameterList(MxParser.FormalParameterListContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitFormalParameterList(MxParser.FormalParameterListContext ctx) {
+    public FormalParameterNode visitFormalParameter(MxParser.FormalParameterContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitFormalParameter(MxParser.FormalParameterContext ctx) {
+    public BlockNode visitBlock(MxParser.BlockContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitBlock(MxParser.BlockContext ctx) {
+    public StatementNode.Block visitBlockStmt(MxParser.BlockStmtContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitBlockStmt(MxParser.BlockStmtContext ctx) {
+    public StatementNode.VariableDeclaration visitVariableDeclarationStmt(MxParser.VariableDeclarationStmtContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitVariableDeclarationStmt(MxParser.VariableDeclarationStmtContext ctx) {
+    public StatementNode.If visitIfStmt(MxParser.IfStmtContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitIfStmt(MxParser.IfStmtContext ctx) {
+    public StatementNode.For visitForStmt(MxParser.ForStmtContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitForStmt(MxParser.ForStmtContext ctx) {
+    public StatementNode.While visitWhileStmt(MxParser.WhileStmtContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitWhileStmt(MxParser.WhileStmtContext ctx) {
+    public StatementNode.Break visitBreakStmt(MxParser.BreakStmtContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitBreakStmt(MxParser.BreakStmtContext ctx) {
+    public StatementNode.Continue visitContinueStmt(MxParser.ContinueStmtContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitContinueStmt(MxParser.ContinueStmtContext ctx) {
+    public StatementNode.Return visitReturnStmt(MxParser.ReturnStmtContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitReturnStmt(MxParser.ReturnStmtContext ctx) {
+    public StatementNode.Expression visitExpressionStmt(MxParser.ExpressionStmtContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitExpressionStmt(MxParser.ExpressionStmtContext ctx) {
+    public StatementNode.Empty visitEmptyStmt(MxParser.EmptyStmtContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitEmptyStmt(MxParser.EmptyStmtContext ctx) {
+    public VariableDeclarationNode visitVariableDeclarationBody(MxParser.VariableDeclarationBodyContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitVariableDeclarationBody(MxParser.VariableDeclarationBodyContext ctx) {
+    public VariableDeclarationNode visitVariableDeclaration(MxParser.VariableDeclarationContext ctx) {
+        return visitVariableDeclarationBody(ctx.variableDeclarationBody());
+    }
+
+    @Override
+    public VariableDeclaratorNode visitVariableDeclarator(MxParser.VariableDeclaratorContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitVariableDeclaration(MxParser.VariableDeclarationContext ctx) {
+    public VariableInitializerNode visitVariableInitializer(MxParser.VariableInitializerContext ctx) {
+        return (VariableInitializerNode) visitChildren(ctx);
+    }
+
+    @Override
+    public ForInitializationNode visitForInitialization(MxParser.ForInitializationContext ctx) {
+        return (ForInitializationNode) visitChildren(ctx);
+    }
+
+    @Override
+    public ExpressionNode.New visitNewExpr(MxParser.NewExprContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitVariableDeclarator(MxParser.VariableDeclaratorContext ctx) {
+    public ExpressionNode.This visitThisExpr(MxParser.ThisExprContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitVariableInitializer(MxParser.VariableInitializerContext ctx) {
+    public ExpressionNode.PostUnary visitPostUnaryExpr(MxParser.PostUnaryExprContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitForControl(MxParser.ForControlContext ctx) {
+    public ExpressionNode.Binary visitBinaryExpr(MxParser.BinaryExprContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitForInitialization(MxParser.ForInitializationContext ctx) {
+    public ExpressionNode.Paren visitParenExpr(MxParser.ParenExprContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitNewExpr(MxParser.NewExprContext ctx) {
+    public ExpressionNode.PreUnary visitPreUnaryExpr(MxParser.PreUnaryExprContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitThisExpr(MxParser.ThisExprContext ctx) {
+    public ExpressionNode.ArrayAccess visitArrayAccessExpr(MxParser.ArrayAccessExprContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitPostUnaryExpr(MxParser.PostUnaryExprContext ctx) {
+    public ExpressionNode.Literal visitLiteralExpr(MxParser.LiteralExprContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitBinaryExpr(MxParser.BinaryExprContext ctx) {
+    public ExpressionNode.FunctionCall visitFunctionCallExpr(MxParser.FunctionCallExprContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitParenExpr(MxParser.ParenExprContext ctx) {
+    public ExpressionNode.MemberAccess visitMemberAccessExpr(MxParser.MemberAccessExprContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitPreUnaryExpr(MxParser.PreUnaryExprContext ctx) {
+    public ExpressionNode.FormatString visitFormatStringExpr(MxParser.FormatStringExprContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitArrayAccessExpr(MxParser.ArrayAccessExprContext ctx) {
+    public ExpressionNode.Assign visitAssignExpr(MxParser.AssignExprContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitLiteralExpr(MxParser.LiteralExprContext ctx) {
+    public ExpressionNode.Conditional visitConditionalExpr(MxParser.ConditionalExprContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitFunctionCallExpr(MxParser.FunctionCallExprContext ctx) {
+    public ExpressionNode.Identifier visitIdentifierExpr(MxParser.IdentifierExprContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitMemberAccessExpr(MxParser.MemberAccessExprContext ctx) {
+    public LiteralNode visitLiteral(MxParser.LiteralContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitFormatStringExpr(MxParser.FormatStringExprContext ctx) {
+    public CreatorNode visitCreator(MxParser.CreatorContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitAssignExpr(MxParser.AssignExprContext ctx) {
+    public CreatorBodyNode visitCreatorBody(MxParser.CreatorBodyContext ctx) {
+        return (CreatorBodyNode) visitChildren(ctx);
+    }
+
+    @Override
+    public ArrayCreatorBodyNode.Literal visitLiteralArrayCreator(MxParser.LiteralArrayCreatorContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitConditionalExpr(MxParser.ConditionalExprContext ctx) {
+    public ArrayCreatorBodyNode.Empty visitEmptyArrayCreator(MxParser.EmptyArrayCreatorContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitIdentifierExpr(MxParser.IdentifierExprContext ctx) {
+    public ArrayInitializerNode visitArrayInitializer(MxParser.ArrayInitializerContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitLiteral(MxParser.LiteralContext ctx) {
+    public ArgumentListNode visitArgumentList(MxParser.ArgumentListContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitCreator(MxParser.CreatorContext ctx) {
+    public ExpressionNode visitCondition(MxParser.ConditionContext ctx) {
+        return visitExpression(ctx.expression());
+    }
+
+    @Override
+    public TypeNode visitType(MxParser.TypeContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitCreatorBody(MxParser.CreatorBodyContext ctx) {
+    public TypeNameNode visitTypeName(MxParser.TypeNameContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitLiteralArrayCreator(MxParser.LiteralArrayCreatorContext ctx) {
-        return null;
+    @Nullable
+    public TypeNode visitReturnType(MxParser.ReturnTypeContext ctx) {
+        return ctx.type() == null ? null : visitType(ctx.type());
     }
 
-    @Override
-    public AstNode visitEmptyArrayCreator(MxParser.EmptyArrayCreatorContext ctx) {
-        return null;
-    }
-
-    @Override
-    public AstNode visitArrayInitializer(MxParser.ArrayInitializerContext ctx) {
-        return null;
-    }
-
-    @Override
-    public AstNode visitArgumentList(MxParser.ArgumentListContext ctx) {
-        return null;
-    }
-
-    @Override
-    public AstNode visitCondition(MxParser.ConditionContext ctx) {
-        return null;
-    }
-
-    @Override
-    public AstNode visitType(MxParser.TypeContext ctx) {
-        return null;
-    }
-
-    @Override
-    public AstNode visitTypeName(MxParser.TypeNameContext ctx) {
-        return null;
-    }
-
-    @Override
-    public AstNode visitReturnType(MxParser.ReturnTypeContext ctx) {
-        return null;
-    }
-
+    // unused
     @Override
     public AstNode visitEmptyBracketPair(MxParser.EmptyBracketPairContext ctx) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public ExpressionNode visitExpressionBracketPair(MxParser.ExpressionBracketPairContext ctx) {
+        return visitExpression(ctx.expression());
+    }
+
+    @Override
+    public FormatStringNode.Atom visitAtomFormatString(MxParser.AtomFormatStringContext ctx) {
         return null;
     }
 
     @Override
-    public AstNode visitExpressionBracketPair(MxParser.ExpressionBracketPairContext ctx) {
+    public FormatStringNode.Complex visitComplexFormatString(MxParser.ComplexFormatStringContext ctx) {
         return null;
     }
 
+    // convenience method for double dispatch. should not call on self
+    // use visitXXX methods for covariant return types
     @Override
-    public AstNode visitAtomFormatString(MxParser.AtomFormatStringContext ctx) {
-        return null;
-    }
-
-    @Override
-    public AstNode visitComplexFormatString(MxParser.ComplexFormatStringContext ctx) {
-        return null;
-    }
-
-    @Override
-    public AstNode visit(ParseTree parseTree) { // convenience method for double dispatch. should not call on self
-        // use visitXXX methods for covariant return types
+    public AstNode visit(ParseTree parseTree) {
         return parseTree.accept(this);
     }
 
+    // simply visit the only child. for rule set
     @Override
-    public AstNode visitChildren(RuleNode ruleNode) { // simply visit the only child. for rule set
-        if(ruleNode.getChildCount() != 1) {
+    public AstNode visitChildren(RuleNode ruleNode) {
+        if (ruleNode.getChildCount() != 1) {
             throw new IllegalArgumentException("RuleNode is not a single child node");
         }
         return visit(ruleNode.getChild(0));
     }
 
+    // unused. terminal nodes are dealt directly in visitXXX methods
     @Override
-    public AstNode visitTerminal(TerminalNode terminalNode) { // unused. terminal nodes are dealt directly in visitXXX methods
+    public AstNode visitTerminal(TerminalNode terminalNode) {
         throw new UnsupportedOperationException();
     }
 
     @Override
     public AstNode visitErrorNode(ErrorNode errorNode) { // TODO: error handling
         throw new UnsupportedOperationException();
+    }
+
+    protected StatementNode visitStatement(MxParser.StatementContext ctx) {
+        return (StatementNode) visit(ctx);
+    }
+
+    protected ExpressionNode visitExpression(MxParser.ExpressionContext ctx) {
+        return (ExpressionNode) visit(ctx);
+    }
+
+    protected ArrayCreatorBodyNode visitArrayCreatorBody(MxParser.ArrayCreatorBodyContext ctx) {
+        return (ArrayCreatorBodyNode) visit(ctx);
+    }
+
+    protected FormatStringNode visitFormatString(MxParser.FormatStringContext ctx) {
+        return (FormatStringNode) visit(ctx);
     }
 }

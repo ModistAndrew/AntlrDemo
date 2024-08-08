@@ -6,12 +6,9 @@ grammar Mx;
 
 // PARSER
 
-// root
+// program and class
 program: (SEMI | classDeclaration | variableDeclaration | functionDeclaration)*;
-
-// class
-classDeclaration: CLASS Identifier classBody SEMI;
-classBody: LBRACE (SEMI | variableDeclaration | constructorDeclaration | functionDeclaration)* RBRACE;
+classDeclaration: CLASS Identifier LBRACE (SEMI | variableDeclaration | constructorDeclaration | functionDeclaration)* RBRACE SEMI;
 
 // function
 functionDeclaration: returnType Identifier formalParameterList block;
@@ -25,7 +22,7 @@ statement
     : block # blockStmt
     | variableDeclaration # variableDeclarationStmt
     | IF condition ifThenStmt=statement (ELSE ifElseStmt=statement)? # ifStmt
-    | FOR forControl statement # forStmt
+    | FOR LPAREN forInit=forInitialization? SEMI forCondition=expression? SEMI forUpdate=expression? RPAREN statement # forStmt
     | WHILE condition statement # whileStmt
     | BREAK SEMI # breakStmt
     | CONTINUE SEMI # continueStmt
@@ -37,7 +34,6 @@ variableDeclarationBody: type variableDeclarator (COMMA variableDeclarator)*;
 variableDeclaration: variableDeclarationBody SEMI;
 variableDeclarator: Identifier (ASSIGN variableInitializer)?;
 variableInitializer: arrayInitializer | expression;
-forControl: LPAREN forInit=forInitialization? SEMI forCondition=expression? SEMI forUpdate=expression? RPAREN;
 forInitialization: variableDeclarationBody | expression;
 
 // expression

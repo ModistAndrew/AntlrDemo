@@ -6,7 +6,7 @@ import modist.antlrdemo.frontend.ast.metadata.Position;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ProgramNode extends AstNode {
+public class ProgramNode extends BaseAstNode {
     public final List<ClassDeclarationNode> classes = new ArrayList<>();
     public final List<VariableDeclarationNode> variables = new ArrayList<>();
     public final List<FunctionDeclarationNode> functions = new ArrayList<>();

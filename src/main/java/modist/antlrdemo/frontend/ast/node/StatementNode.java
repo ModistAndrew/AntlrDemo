@@ -4,7 +4,7 @@ import modist.antlrdemo.frontend.ast.AstVisitor;
 import modist.antlrdemo.frontend.ast.metadata.Position;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class StatementNode extends AstNode {
+public abstract class StatementNode extends BaseAstNode {
     public StatementNode(Position position) {
         super(position);
     }
@@ -52,7 +52,12 @@ public abstract class StatementNode extends AstNode {
     }
 
     public static class For extends StatementNode {
-        public ForControlNode forControl;
+        @Nullable
+        public ForInitializationNode initialization;
+        @Nullable
+        public ExpressionNode condition;
+        @Nullable
+        public ExpressionNode update;
         public StatementNode statement;
 
         public For(Position position) {

@@ -3,11 +3,12 @@ package modist.antlrdemo.frontend.ast;
 import modist.antlrdemo.frontend.ast.node.*;
 
 public interface AstVisitor<T> {
+    //TODO: simplify the interface. some AST nodes don't need to be visited.
     T visit(ArgumentListNode node);
 
     T visit(ArrayCreatorBodyNode.Empty node);
 
-    T visit(ArrayCreatorBodyNode.Expression node);
+    T visit(ArrayCreatorBodyNode.Literal node);
 
     T visit(ArrayInitializerNode node);
 
@@ -47,9 +48,9 @@ public interface AstVisitor<T> {
 
     T visit(ExpressionNode.Assign node);
 
-    T visit(ForControlNode node);
-
     T visit(FormalParameterNode node);
+
+    T visit(FormalParameterListNode node);
 
     T visit(FormatStringNode node);
 

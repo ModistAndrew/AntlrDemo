@@ -3,7 +3,7 @@ package modist.antlrdemo.frontend.ast.node;
 import modist.antlrdemo.frontend.ast.AstVisitor;
 import modist.antlrdemo.frontend.ast.metadata.Position;
 
-public class FormalParameterNode extends AstNode {
+public class FormalParameterNode extends BaseAstNode {
     public FormalParameterNode(Position position) {
         super(position);
     }

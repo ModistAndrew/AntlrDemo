@@ -3,7 +3,7 @@ package modist.antlrdemo.frontend.ast.node;
 import modist.antlrdemo.frontend.ast.AstVisitor;
 import modist.antlrdemo.frontend.ast.metadata.Position;
 
-public class VariableDeclaratorNode extends DeclarationNode {
+public class VariableDeclaratorNode extends BaseAstNode {
     public VariableDeclaratorNode(Position position) {
         super(position);
     }

@@ -4,7 +4,7 @@ import modist.antlrdemo.frontend.ast.AstVisitor;
 import modist.antlrdemo.frontend.ast.metadata.ExpressionInfo;
 import modist.antlrdemo.frontend.ast.metadata.Position;
 
-public abstract class ExpressionNode extends AstNode implements ForInitializationNode, VariableInitializerNode {
+public abstract class ExpressionNode extends BaseAstNode implements ForInitializationNode, VariableInitializerNode {
     public ExpressionInfo info;
 
     public ExpressionNode(Position position) {
