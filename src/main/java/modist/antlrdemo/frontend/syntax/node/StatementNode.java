@@ -1,8 +1,8 @@
-package modist.antlrdemo.frontend.ast.node;
+package modist.antlrdemo.frontend.syntax.node;
 
 import org.jetbrains.annotations.Nullable;
 
-public abstract sealed class StatementNode extends BaseAstNode {
+public abstract sealed class StatementNode extends AstNode {
     public static final class Block extends StatementNode {
         public BlockNode block;
     }

@@ -1,6 +1,6 @@
-package modist.antlrdemo.frontend.ast;
+package modist.antlrdemo.frontend.syntax;
 
-import modist.antlrdemo.frontend.ast.node.*;
+import modist.antlrdemo.frontend.syntax.node.*;
 import modist.antlrdemo.frontend.grammar.MxParser;
 import modist.antlrdemo.frontend.grammar.MxVisitor;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -9,7 +9,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-public class AstBuilder implements MxVisitor<AstNode> {
+public class AstBuilder implements MxVisitor<IAstNode> {
     @Override
     public ProgramNode visitProgram(MxParser.ProgramContext ctx) {
         ProgramNode program = withPosition(new ProgramNode(), ctx);
@@ -284,7 +284,7 @@ public class AstBuilder implements MxVisitor<AstNode> {
     @Override
     public ArrayCreatorNode.Empty visitEmptyArrayCreator(MxParser.EmptyArrayCreatorContext ctx) {
         ArrayCreatorNode.Empty emptyArrayCreator = withPosition(new ArrayCreatorNode.Empty(), ctx);
-        emptyArrayCreator.initializedLengths = ctx.expressionBracketPair().stream().map(this::visitExpressionBracketPair).toList();
+        emptyArrayCreator.dimensionLengths = ctx.expressionBracketPair().stream().map(this::visitExpressionBracketPair).toList();
         emptyArrayCreator.emptyDimension = ctx.emptyBracketPair().size();
         return emptyArrayCreator;
     }
@@ -325,7 +325,7 @@ public class AstBuilder implements MxVisitor<AstNode> {
 
     // unused
     @Override
-    public AstNode visitEmptyBracketPair(MxParser.EmptyBracketPairContext ctx) {
+    public IAstNode visitEmptyBracketPair(MxParser.EmptyBracketPairContext ctx) {
         throw new UnsupportedOperationException();
     }
 
@@ -335,7 +335,7 @@ public class AstBuilder implements MxVisitor<AstNode> {
     }
 
     @Override
-    public AstNode visitEmptyParenthesisPair(MxParser.EmptyParenthesisPairContext ctx) {
+    public IAstNode visitEmptyParenthesisPair(MxParser.EmptyParenthesisPairContext ctx) {
         throw new UnsupportedOperationException();
     }
 
@@ -350,13 +350,13 @@ public class AstBuilder implements MxVisitor<AstNode> {
     // convenience method for double dispatch. should not call on self
     // use visitXXX methods for covariant return types
     @Override
-    public AstNode visit(ParseTree parseTree) {
+    public IAstNode visit(ParseTree parseTree) {
         return parseTree.accept(this);
     }
 
     // simply visit the only child. for rule set
     @Override
-    public AstNode visitChildren(RuleNode ruleNode) {
+    public IAstNode visitChildren(RuleNode ruleNode) {
         if (ruleNode.getChildCount() != 1) {
             throw new IllegalArgumentException("RuleNode is not a single child node, but " + ruleNode.getChildCount());
         }
@@ -365,13 +365,13 @@ public class AstBuilder implements MxVisitor<AstNode> {
 
     // unused. terminal nodes are dealt directly in visitXXX methods
     @Override
-    public AstNode visitTerminal(TerminalNode terminalNode) {
+    public IAstNode visitTerminal(TerminalNode terminalNode) {
         throw new UnsupportedOperationException();
     }
 
     // unused
     @Override
-    public AstNode visitErrorNode(ErrorNode errorNode) {
+    public IAstNode visitErrorNode(ErrorNode errorNode) {
         throw new UnsupportedOperationException();
     }
 
@@ -387,7 +387,7 @@ public class AstBuilder implements MxVisitor<AstNode> {
         return (ArrayCreatorNode) visit(ctx);
     }
 
-    private <T extends AstNode> T withPosition(T astNode, ParserRuleContext ctx) {
+    private <T extends IAstNode> T withPosition(T astNode, ParserRuleContext ctx) {
         astNode.setPosition(TokenUtil.getPosition(ctx.getStart()));
         return astNode;
     }

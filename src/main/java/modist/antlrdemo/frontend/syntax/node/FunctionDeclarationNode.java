@@ -1,4 +1,4 @@
-package modist.antlrdemo.frontend.ast.node;
+package modist.antlrdemo.frontend.syntax.node;
 
 import org.jetbrains.annotations.Nullable;
 

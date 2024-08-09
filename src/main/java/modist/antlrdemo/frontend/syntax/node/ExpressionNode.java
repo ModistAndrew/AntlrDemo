@@ -1,8 +1,8 @@
-package modist.antlrdemo.frontend.ast.node;
+package modist.antlrdemo.frontend.syntax.node;
 
 import org.jetbrains.annotations.Nullable;
 
-public abstract sealed class ExpressionNode extends BaseAstNode implements ForInitializationNode, VariableInitializerNode {
+public abstract sealed class ExpressionNode extends AstNode implements ForInitializationNode, VariableInitializerNode {
     public static final class Paren extends ExpressionNode {
         public ExpressionNode expression;
     }

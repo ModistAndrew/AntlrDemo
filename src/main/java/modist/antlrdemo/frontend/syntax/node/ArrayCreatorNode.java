@@ -1,10 +1,10 @@
-package modist.antlrdemo.frontend.ast.node;
+package modist.antlrdemo.frontend.syntax.node;
 
 import java.util.List;
 
-public abstract sealed class ArrayCreatorNode extends BaseAstNode {
+public abstract sealed class ArrayCreatorNode extends AstNode {
     public static final class Empty extends ArrayCreatorNode {
-        public List<ExpressionNode> initializedLengths;
+        public List<ExpressionNode> dimensionLengths;
         public int emptyDimension;
     }
 

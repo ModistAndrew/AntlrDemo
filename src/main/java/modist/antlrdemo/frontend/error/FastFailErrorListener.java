@@ -1,6 +1,6 @@
 package modist.antlrdemo.frontend.error;
 
-import modist.antlrdemo.frontend.ast.Position;
+import modist.antlrdemo.frontend.syntax.Position;
 import org.antlr.v4.runtime.*;
 
 public class FastFailErrorListener extends BaseErrorListener {

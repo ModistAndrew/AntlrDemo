@@ -1,7 +1,7 @@
-package modist.antlrdemo.frontend.ast;
+package modist.antlrdemo.frontend.syntax;
 
-import modist.antlrdemo.frontend.ast.node.ExpressionNode;
-import modist.antlrdemo.frontend.ast.node.TypeNameNode;
+import modist.antlrdemo.frontend.syntax.node.ExpressionNode;
+import modist.antlrdemo.frontend.syntax.node.TypeNameNode;
 import modist.antlrdemo.frontend.grammar.MxLexer;
 import org.antlr.v4.runtime.Token;
 import org.jetbrains.annotations.Nullable;

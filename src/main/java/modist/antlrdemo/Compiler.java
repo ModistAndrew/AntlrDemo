@@ -1,7 +1,7 @@
 package modist.antlrdemo;
 
-import modist.antlrdemo.frontend.ast.AstBuilder;
-import modist.antlrdemo.frontend.ast.node.ProgramNode;
+import modist.antlrdemo.frontend.syntax.AstBuilder;
+import modist.antlrdemo.frontend.syntax.node.ProgramNode;
 import modist.antlrdemo.frontend.error.FastFailErrorListener;
 import modist.antlrdemo.frontend.grammar.MxLexer;
 import modist.antlrdemo.frontend.grammar.MxParser;
