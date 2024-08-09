@@ -1,4 +1,4 @@
 package modist.antlrdemo.frontend.ast.node;
 
-public interface VariableInitializerNode extends AstNode {
+public sealed interface VariableInitializerNode extends AstNode permits ArrayInitializerNode, ExpressionNode {
 }
