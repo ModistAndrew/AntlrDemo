@@ -4,9 +4,14 @@ import modist.antlrdemo.frontend.ast.node.ExpressionNode;
 import modist.antlrdemo.frontend.ast.node.TypeNameNode;
 import modist.antlrdemo.frontend.grammar.MxLexer;
 import org.antlr.v4.runtime.Token;
+import org.jetbrains.annotations.Nullable;
 
 // extract info from token
 public class TokenUtil {
+    public static Position getPosition(Token token) {
+        return new Position(token.getLine(), token.getCharPositionInLine());
+    }
+
     public static ExpressionNode.PostUnary.Operator getPostUnaryOperator(Token token) {
         return ExpressionNode.PostUnary.Operator.valueOf(MxLexer.VOCABULARY.getSymbolicName(token.getType()));
     }
@@ -28,6 +33,7 @@ public class TokenUtil {
                 : TypeNameNode.TypeNameEnum.Primitive.valueOf(MxLexer.VOCABULARY.getSymbolicName(token.getType()));
     }
 
+    @Nullable
     public static ExpressionNode.Literal.LiteralEnum getLiteralEnum(Token token) {
         return switch (token.getType()) {
             case MxLexer.IntegerLiteral ->
@@ -35,7 +41,7 @@ public class TokenUtil {
             case MxLexer.StringLiteral -> new ExpressionNode.Literal.LiteralEnum.Str(unesacpeString(token));
             case MxLexer.BooleanLiteral ->
                     new ExpressionNode.Literal.LiteralEnum.Bool(Boolean.parseBoolean(token.getText()));
-            case MxLexer.NULL -> ExpressionNode.Literal.LiteralEnum.Null.INSTANCE;
+            case MxLexer.NULL -> null;
             default ->
                     throw new IllegalStateException("Unexpected token type: " + MxLexer.VOCABULARY.getSymbolicName(token.getType()));
         };
@@ -50,11 +56,12 @@ public class TokenUtil {
                     token.getText().substring(2, token.getText().length() - 1);
             default -> throw new IllegalStateException("Unexpected value: " + token.getType());
         };
-        text = text.replace("\\n", "\n").replace("\\\\", "\\").replace("\\\"", "\"");
-        if (token.getType() == MxLexer.FormatStringAtom || token.getType() == MxLexer.FormatStringBegin
-                || token.getType() == MxLexer.FormatStringMiddle || token.getType() == MxLexer.FormatStringEnd) {
-            text = text.replace("$$", "$");
-        }
-        return text;
+        return switch (token.getType()) {
+            case MxLexer.StringLiteral -> text.replace("\\n", "\n").replace("\\\\", "\\").replace("\\\"", "\"");
+            case MxLexer.FormatStringBegin, MxLexer.FormatStringMiddle, MxLexer.FormatStringEnd,
+                 MxLexer.FormatStringAtom ->
+                    text.replace("$$", "$").replace("\\n", "\n").replace("\\\\", "\\").replace("\\\"", "\"");
+            default -> throw new IllegalStateException("Unexpected value: " + token.getType());
+        };
     }
 }

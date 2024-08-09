@@ -1,6 +1,6 @@
 package modist.antlrdemo.frontend.ast.node;
 
-import modist.antlrdemo.frontend.ast.metadata.Position;
+import modist.antlrdemo.frontend.ast.Position;
 
 public abstract class BaseAstNode implements AstNode {
     public final Position position;

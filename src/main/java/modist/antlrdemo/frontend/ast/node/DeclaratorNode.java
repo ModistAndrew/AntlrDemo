@@ -1,6 +1,6 @@
 package modist.antlrdemo.frontend.ast.node;
 
-import modist.antlrdemo.frontend.ast.metadata.Position;
+import modist.antlrdemo.frontend.ast.Position;
 
 public abstract class DeclaratorNode extends BaseAstNode {
     public final String name;

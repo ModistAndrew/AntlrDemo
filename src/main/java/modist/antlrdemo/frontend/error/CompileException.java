@@ -1,6 +1,6 @@
 package modist.antlrdemo.frontend.error;
 
-import modist.antlrdemo.frontend.ast.metadata.Position;
+import modist.antlrdemo.frontend.ast.Position;
 
 public abstract class CompileException extends RuntimeException {
 

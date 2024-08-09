@@ -1,12 +1,9 @@
 package modist.antlrdemo.frontend.ast.node;
 
-import modist.antlrdemo.frontend.ast.AstVisitor;
-import modist.antlrdemo.frontend.ast.metadata.ExpressionInfo;
-import modist.antlrdemo.frontend.ast.metadata.Position;
+import modist.antlrdemo.frontend.ast.Position;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class ExpressionNode extends BaseAstNode implements ForInitializationNode, VariableInitializerNode {
-    public ExpressionInfo info;
-
     public ExpressionNode(Position position) {
         super(position);
     }
@@ -17,34 +14,20 @@ public abstract class ExpressionNode extends BaseAstNode implements ForInitializ
         public Paren(Position position) {
             super(position);
         }
-
-        @Override
-        public <T> T accept(AstVisitor<T> visitor) {
-            return visitor.visit(this);
-        }
     }
 
     public static class This extends ExpressionNode {
         public This(Position position) {
             super(position);
         }
-
-        @Override
-        public <T> T accept(AstVisitor<T> visitor) {
-            return visitor.visit(this);
-        }
     }
 
     public static class Literal extends ExpressionNode {
+        @Nullable
         public LiteralEnum value;
 
         public Literal(Position position) {
             super(position);
-        }
-
-        @Override
-        public <T> T accept(AstVisitor<T> visitor) {
-            return visitor.visit(this);
         }
 
         public interface LiteralEnum {
@@ -56,10 +39,6 @@ public abstract class ExpressionNode extends BaseAstNode implements ForInitializ
 
             record Str(String value) implements LiteralEnum {
             }
-
-            enum Null implements LiteralEnum {
-                INSTANCE
-            }
         }
     }
 
@@ -69,11 +48,6 @@ public abstract class ExpressionNode extends BaseAstNode implements ForInitializ
         public FormatString(Position position) {
             super(position);
         }
-
-        @Override
-        public <T> T accept(AstVisitor<T> visitor) {
-            return visitor.visit(this);
-        }
     }
 
     public static class Identifier extends ExpressionNode {
@@ -82,11 +56,6 @@ public abstract class ExpressionNode extends BaseAstNode implements ForInitializ
         public Identifier(Position position) {
             super(position);
         }
-
-        @Override
-        public <T> T accept(AstVisitor<T> visitor) {
-            return visitor.visit(this);
-        }
     }
 
     public static class New extends ExpressionNode {
@@ -94,11 +63,6 @@ public abstract class ExpressionNode extends BaseAstNode implements ForInitializ
 
         public New(Position position) {
             super(position);
-        }
-
-        @Override
-        public <T> T accept(AstVisitor<T> visitor) {
-            return visitor.visit(this);
         }
     }
 
@@ -109,11 +73,6 @@ public abstract class ExpressionNode extends BaseAstNode implements ForInitializ
         public ArrayAccess(Position position) {
             super(position);
         }
-
-        @Override
-        public <T> T accept(AstVisitor<T> visitor) {
-            return visitor.visit(this);
-        }
     }
 
     public static class MemberAccess extends ExpressionNode {
@@ -122,11 +81,6 @@ public abstract class ExpressionNode extends BaseAstNode implements ForInitializ
 
         public MemberAccess(Position position) {
             super(position);
-        }
-
-        @Override
-        public <T> T accept(AstVisitor<T> visitor) {
-            return visitor.visit(this);
         }
     }
 
@@ -137,11 +91,6 @@ public abstract class ExpressionNode extends BaseAstNode implements ForInitializ
         public FunctionCall(Position position) {
             super(position);
         }
-
-        @Override
-        public <T> T accept(AstVisitor<T> visitor) {
-            return visitor.visit(this);
-        }
     }
 
     public static class PostUnary extends ExpressionNode {
@@ -150,11 +99,6 @@ public abstract class ExpressionNode extends BaseAstNode implements ForInitializ
 
         public PostUnary(Position position) {
             super(position);
-        }
-
-        @Override
-        public <T> T accept(AstVisitor<T> visitor) {
-            return visitor.visit(this);
         }
 
         public enum Operator {
@@ -170,14 +114,8 @@ public abstract class ExpressionNode extends BaseAstNode implements ForInitializ
             super(position);
         }
 
-        @Override
-        public <T> T accept(AstVisitor<T> visitor) {
-            return visitor.visit(this);
-        }
-
         public enum Operator {
-            INC, DEC, ADD, SUB,
-            NOT, LOGICAL_NOT
+            INC, DEC, ADD, SUB, NOT, LOGICAL_NOT
         }
     }
 
@@ -190,22 +128,8 @@ public abstract class ExpressionNode extends BaseAstNode implements ForInitializ
             super(position);
         }
 
-        @Override
-        public <T> T accept(AstVisitor<T> visitor) {
-            return visitor.visit(this);
-        }
-
         public enum Operator {
-            MUL, DIV, MOD,
-            ADD, SUB,
-            SHL, SHR,
-            GT, LT, GE, LE,
-            NE, EQ,
-            AND,
-            XOR,
-            OR,
-            LOGICAL_AND,
-            LOGICAL_OR
+            MUL, DIV, MOD, ADD, SUB, SHL, SHR, GT, LT, GE, LE, NE, EQ, AND, XOR, OR, LOGICAL_AND, LOGICAL_OR
         }
     }
 
@@ -217,11 +141,6 @@ public abstract class ExpressionNode extends BaseAstNode implements ForInitializ
         public Conditional(Position position) {
             super(position);
         }
-
-        @Override
-        public <T> T accept(AstVisitor<T> visitor) {
-            return visitor.visit(this);
-        }
     }
 
     public static class Assign extends ExpressionNode {
@@ -231,11 +150,6 @@ public abstract class ExpressionNode extends BaseAstNode implements ForInitializ
 
         public Assign(Position position) {
             super(position);
-        }
-
-        @Override
-        public <T> T accept(AstVisitor<T> visitor) {
-            return visitor.visit(this);
         }
 
         public enum Operator {

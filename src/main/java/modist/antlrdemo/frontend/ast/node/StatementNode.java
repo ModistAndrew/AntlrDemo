@@ -1,7 +1,6 @@
 package modist.antlrdemo.frontend.ast.node;
 
-import modist.antlrdemo.frontend.ast.AstVisitor;
-import modist.antlrdemo.frontend.ast.metadata.Position;
+import modist.antlrdemo.frontend.ast.Position;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class StatementNode extends BaseAstNode {
@@ -15,11 +14,6 @@ public abstract class StatementNode extends BaseAstNode {
         public Block(Position position) {
             super(position);
         }
-
-        @Override
-        public <T> T accept(AstVisitor<T> visitor) {
-            return visitor.visit(this);
-        }
     }
 
     public static class VariableDeclaration extends StatementNode {
@@ -27,11 +21,6 @@ public abstract class StatementNode extends BaseAstNode {
 
         public VariableDeclaration(Position position) {
             super(position);
-        }
-
-        @Override
-        public <T> T accept(AstVisitor<T> visitor) {
-            return visitor.visit(this);
         }
     }
 
@@ -43,11 +32,6 @@ public abstract class StatementNode extends BaseAstNode {
 
         public If(Position position) {
             super(position);
-        }
-
-        @Override
-        public <T> T accept(AstVisitor<T> visitor) {
-            return visitor.visit(this);
         }
     }
 
@@ -63,11 +47,6 @@ public abstract class StatementNode extends BaseAstNode {
         public For(Position position) {
             super(position);
         }
-
-        @Override
-        public <T> T accept(AstVisitor<T> visitor) {
-            return visitor.visit(this);
-        }
     }
 
     public static class While extends StatementNode {
@@ -77,32 +56,17 @@ public abstract class StatementNode extends BaseAstNode {
         public While(Position position) {
             super(position);
         }
-
-        @Override
-        public <T> T accept(AstVisitor<T> visitor) {
-            return visitor.visit(this);
-        }
     }
 
     public static class Break extends StatementNode {
         public Break(Position position) {
             super(position);
         }
-
-        @Override
-        public <T> T accept(AstVisitor<T> visitor) {
-            return visitor.visit(this);
-        }
     }
 
     public static class Continue extends StatementNode {
         public Continue(Position position) {
             super(position);
-        }
-
-        @Override
-        public <T> T accept(AstVisitor<T> visitor) {
-            return visitor.visit(this);
         }
     }
 
@@ -113,11 +77,6 @@ public abstract class StatementNode extends BaseAstNode {
         public Return(Position position) {
             super(position);
         }
-
-        @Override
-        public <T> T accept(AstVisitor<T> visitor) {
-            return visitor.visit(this);
-        }
     }
 
     public static class Expression extends StatementNode {
@@ -125,11 +84,6 @@ public abstract class StatementNode extends BaseAstNode {
 
         public Expression(Position position) {
             super(position);
-        }
-
-        @Override
-        public <T> T accept(AstVisitor<T> visitor) {
-            return visitor.visit(this);
         }
     }
 }
