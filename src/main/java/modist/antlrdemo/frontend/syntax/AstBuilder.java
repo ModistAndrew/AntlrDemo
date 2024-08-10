@@ -195,6 +195,23 @@ public class AstBuilder implements MxVisitor<IAstNode> {
     }
 
     @Override
+    public ExpressionNode.Function visitFunctionExpr(MxParser.FunctionExprContext ctx) {
+        ExpressionNode.Function functionExpression = withPosition(new ExpressionNode.Function(), ctx);
+        functionExpression.expression = ctx.expression() != null ? visitExpression(ctx.expression()) : null;
+        functionExpression.name = ctx.Identifier().getText();
+        functionExpression.arguments = visitArgumentList(ctx.argumentList());
+        return functionExpression;
+    }
+
+    @Override
+    public ExpressionNode.Variable visitVariableExpr(MxParser.VariableExprContext ctx) {
+        ExpressionNode.Variable variableExpression = withPosition(new ExpressionNode.Variable(), ctx);
+        variableExpression.expression = ctx.expression() != null ? visitExpression(ctx.expression()) : null;
+        variableExpression.name = ctx.Identifier().getText();
+        return variableExpression;
+    }
+
+    @Override
     public ExpressionNode.PreUnary visitPreUnaryExpr(MxParser.PreUnaryExprContext ctx) {
         ExpressionNode.PreUnary preUnaryExpression = withPosition(new ExpressionNode.PreUnary(), ctx);
         preUnaryExpression.expression = visitExpression(ctx.expression());
@@ -215,22 +232,6 @@ public class AstBuilder implements MxVisitor<IAstNode> {
         ExpressionNode.Literal literalExpression = withPosition(new ExpressionNode.Literal(), ctx);
         literalExpression.value = TokenUtil.getLiteralEnum(ctx.literal);
         return literalExpression;
-    }
-
-    @Override
-    public ExpressionNode.FunctionCall visitFunctionCallExpr(MxParser.FunctionCallExprContext ctx) {
-        ExpressionNode.FunctionCall functionCallExpression = withPosition(new ExpressionNode.FunctionCall(), ctx);
-        functionCallExpression.expression = visitExpression(ctx.expression());
-        functionCallExpression.arguments = visitArgumentList(ctx.argumentList());
-        return functionCallExpression;
-    }
-
-    @Override
-    public ExpressionNode.MemberAccess visitMemberAccessExpr(MxParser.MemberAccessExprContext ctx) {
-        ExpressionNode.MemberAccess memberAccessExpression = withPosition(new ExpressionNode.MemberAccess(), ctx);
-        memberAccessExpression.expression = visitExpression(ctx.expression());
-        memberAccessExpression.name = ctx.Identifier().getText();
-        return memberAccessExpression;
     }
 
     @Override
@@ -256,13 +257,6 @@ public class AstBuilder implements MxVisitor<IAstNode> {
         conditionalExpression.trueExpression = visitExpression(ctx.expression(1));
         conditionalExpression.falseExpression = visitExpression(ctx.expression(2));
         return conditionalExpression;
-    }
-
-    @Override
-    public ExpressionNode.Identifier visitIdentifierExpr(MxParser.IdentifierExprContext ctx) {
-        ExpressionNode.Identifier identifierExpression = withPosition(new ExpressionNode.Identifier(), ctx);
-        identifierExpression.name = ctx.Identifier().getText();
-        return identifierExpression;
     }
 
     @Override

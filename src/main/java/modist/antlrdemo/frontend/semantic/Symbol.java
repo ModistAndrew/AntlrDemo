@@ -12,5 +12,6 @@ public interface Symbol {
     }
 
     record Function(Position position) implements Symbol {
+
     }
 }

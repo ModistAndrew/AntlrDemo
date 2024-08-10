@@ -8,7 +8,7 @@ grammar Mx;
 
 // program and class
 program: (classDeclaration | variableDeclaration | functionDeclaration)*;
-classDeclaration: CLASS Identifier LBRACE (variableDeclaration | functionDeclaration)* constructorDeclaration? (variableDeclaration | functionDeclaration)* RBRACE;
+classDeclaration: CLASS Identifier LBRACE (variableDeclaration | functionDeclaration)* constructorDeclaration? (variableDeclaration | functionDeclaration)* RBRACE SEMI;
 
 // function
 functionDeclaration: (VOID | type) Identifier LPAREN (parameterDeclaration (COMMA parameterDeclaration)*)? RPAREN block;
@@ -40,11 +40,12 @@ expression
     | THIS # thisExpr
     | literal=(IntegerLiteral | BooleanLiteral | StringLiteral | NULL) # literalExpr
     | formatString # formatStringExpr
-    | Identifier # identifierExpr
     | NEW creator # newExpr
     | expression expressionBracketPair # arrayAccessExpr
-    | expression DOT Identifier # memberAccessExpr
-    | expression argumentList # functionCallExpr
+    | Identifier # variableExpr
+    | expression DOT Identifier # variableExpr
+    | Identifier argumentList # functionExpr
+    | expression DOT Identifier argumentList # functionExpr
     | expression op=(INC|DEC) # postUnaryExpr
     | op=(ADD|SUB|INC|DEC) expression # preUnaryExpr
     | op=(NOT|LOGICAL_NOT) expression # preUnaryExpr

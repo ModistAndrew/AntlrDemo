@@ -30,10 +30,6 @@ public abstract sealed class ExpressionNode extends AstNode implements ForInitia
         public FormatStringNode formatString;
     }
 
-    public static final class Identifier extends ExpressionNode {
-        public String name;
-    }
-
     public static final class New extends ExpressionNode {
         public CreatorNode creator;
     }
@@ -43,13 +39,16 @@ public abstract sealed class ExpressionNode extends AstNode implements ForInitia
         public ExpressionNode index;
     }
 
-    public static final class MemberAccess extends ExpressionNode {
+    public static final class Variable extends ExpressionNode {
+        @Nullable
         public ExpressionNode expression;
         public String name;
     }
 
-    public static final class FunctionCall extends ExpressionNode {
+    public static final class Function extends ExpressionNode {
+        @Nullable
         public ExpressionNode expression;
+        public String name;
         public ArgumentListNode arguments;
     }
 
