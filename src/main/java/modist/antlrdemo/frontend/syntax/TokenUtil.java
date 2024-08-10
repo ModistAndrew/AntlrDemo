@@ -1,8 +1,8 @@
 package modist.antlrdemo.frontend.syntax;
 
 import modist.antlrdemo.frontend.syntax.node.ExpressionNode;
-import modist.antlrdemo.frontend.syntax.node.TypeNameNode;
 import modist.antlrdemo.frontend.grammar.MxLexer;
+import modist.antlrdemo.frontend.syntax.node.TypeNode;
 import org.antlr.v4.runtime.Token;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,9 +28,9 @@ public class TokenUtil {
         return ExpressionNode.Assign.Operator.valueOf(MxLexer.VOCABULARY.getSymbolicName(token.getType()));
     }
 
-    public static TypeNameNode.TypeNameEnum getTypeNameEnum(Token token) {
-        return token.getType() == MxLexer.Identifier ? new TypeNameNode.TypeNameEnum.Reference(token.getText())
-                : TypeNameNode.TypeNameEnum.Primitive.valueOf(MxLexer.VOCABULARY.getSymbolicName(token.getType()));
+    public static TypeNode.TypeEnum getTypeNameEnum(Token token) {
+        return token.getType() == MxLexer.Identifier ? new TypeNode.TypeEnum.Reference(token.getText())
+                : TypeNode.TypeEnum.Primitive.valueOf(MxLexer.VOCABULARY.getSymbolicName(token.getType()));
     }
 
     @Nullable

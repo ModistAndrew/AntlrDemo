@@ -2,13 +2,15 @@ package modist.antlrdemo.frontend.syntax.node;
 
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 public abstract sealed class StatementNode extends AstNode {
     public static final class Block extends StatementNode {
-        public BlockNode block;
+        public List<StatementNode> statements;
     }
 
-    public static final class VariableDeclaration extends StatementNode {
-        public VariableDeclarationNode variableDeclaration;
+    public static final class VariableDeclarations extends StatementNode implements ForInitializationNode {
+        public List<DeclarationNode.Variable> variables;
     }
 
     public static final class If extends StatementNode {

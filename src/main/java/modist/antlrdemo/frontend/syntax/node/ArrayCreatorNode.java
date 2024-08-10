@@ -8,8 +8,8 @@ public abstract sealed class ArrayCreatorNode extends AstNode {
         public int emptyDimension;
     }
 
-    public static final class Literal extends ArrayCreatorNode {
+    public static final class Init extends ArrayCreatorNode {
         public int dimension;
-        public ArrayInitializerNode initializer;
+        public ExpressionNode.Array initializer;
     }
 }

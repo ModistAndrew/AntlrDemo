@@ -2,11 +2,9 @@ package modist.antlrdemo.frontend.syntax.node;
 
 import org.jetbrains.annotations.Nullable;
 
-public abstract sealed class ExpressionNode extends AstNode implements ForInitializationNode, VariableInitializerNode {
-    public static final class Paren extends ExpressionNode {
-        public ExpressionNode expression;
-    }
+import java.util.List;
 
+public abstract sealed class ExpressionNode extends AstNode implements ForInitializationNode {
     public static final class This extends ExpressionNode {
     }
 
@@ -26,15 +24,22 @@ public abstract sealed class ExpressionNode extends AstNode implements ForInitia
         }
     }
 
+    public static final class Array extends ExpressionNode {
+        public List<ExpressionNode> expressions;
+    }
+
     public static final class FormatString extends ExpressionNode {
-        public FormatStringNode formatString;
+        public List<String> texts;
+        public List<ExpressionNode> expressions;
     }
 
-    public static final class New extends ExpressionNode {
-        public CreatorNode creator;
+    public static final class Creator extends ExpressionNode {
+        public TypeNode.TypeEnum typeName;
+        @Nullable
+        public ArrayCreatorNode arrayCreator;
     }
 
-    public static final class ArrayAccess extends ExpressionNode {
+    public static final class Subscript extends ExpressionNode {
         public ExpressionNode expression;
         public ExpressionNode index;
     }
@@ -49,7 +54,7 @@ public abstract sealed class ExpressionNode extends AstNode implements ForInitia
         @Nullable
         public ExpressionNode expression;
         public String name;
-        public ArgumentListNode arguments;
+        public List<ExpressionNode> arguments;
     }
 
     public static final class PostUnary extends ExpressionNode {

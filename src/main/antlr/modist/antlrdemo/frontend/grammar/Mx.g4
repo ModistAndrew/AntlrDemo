@@ -7,8 +7,9 @@ grammar Mx;
 // PARSER
 
 // program and class
-program: (classDeclaration | variableDeclaration | functionDeclaration)*;
-classDeclaration: CLASS Identifier LBRACE (variableDeclaration | functionDeclaration)* constructorDeclaration? (variableDeclaration | functionDeclaration)* RBRACE SEMI;
+program: (classDeclaration | variableDeclarations | functionDeclaration)*;
+classDeclaration: CLASS Identifier LBRACE classDeclarationBody RBRACE SEMI; // must end with ';'
+classDeclarationBody: (variableDeclarations | functionDeclaration)* constructorDeclaration? (variableDeclarations | functionDeclaration)*;
 
 // function
 functionDeclaration: (VOID | type) Identifier LPAREN (parameterDeclaration (COMMA parameterDeclaration)*)? RPAREN block;
@@ -19,7 +20,7 @@ block: LBRACE statement* RBRACE;
 // statement
 statement
     : block # blockStmt
-    | variableDeclaration # variableDeclarationStmt
+    | variableDeclarations # variableDeclarationsStmt
     | IF condition ifThenStmt=statement (ELSE ifElseStmt=statement)? # ifStmt
     | FOR LPAREN forInit=forInitialization? SEMI forCondition=expression? SEMI forUpdate=expression? RPAREN statement # forStmt
     | WHILE condition statement # whileStmt
@@ -28,20 +29,20 @@ statement
     | RETURN expression? SEMI # returnStmt
     | expression SEMI # expressionStmt
     ;
-variableDeclarationBody: type variableDeclarator (COMMA variableDeclarator)*;
-variableDeclaration: variableDeclarationBody SEMI;
-variableDeclarator: Identifier (ASSIGN variableInitializer)?;
-variableInitializer: arrayInitializer | expression;
-forInitialization: variableDeclarationBody | expression;
+variableDeclarationsBody: type variableDeclarator (COMMA variableDeclarator)*;
+variableDeclarations: variableDeclarationsBody SEMI;
+variableDeclarator: Identifier (ASSIGN expression)?;
+forInitialization: variableDeclarationsBody | expression;
 
 // expression
 expression
     : LPAREN expression RPAREN # parenExpr
     | THIS # thisExpr
-    | literal=(IntegerLiteral | BooleanLiteral | StringLiteral | NULL) # literalExpr
+    | literal # literalExpr
+    | array # arrayExpr
     | formatString # formatStringExpr
-    | NEW creator # newExpr
-    | expression expressionBracketPair # arrayAccessExpr
+    | NEW typeName (arrayCreator | emptyParenthesisPair)? # creatorExpr
+    | expression expressionBracketPair # subscriptExpr
     | Identifier # variableExpr
     | expression DOT Identifier # variableExpr
     | Identifier argumentList # functionExpr
@@ -76,27 +77,25 @@ expression
         )
         expression # assignExpr
     ;
-creator: typeName (arrayCreator | emptyParenthesisPair)?; // may omit constructor arguments
 arrayCreator
     : expressionBracketPair+ emptyBracketPair* # emptyArrayCreator
-    | emptyBracketPair+ arrayInitializer # literalArrayCreator
+    | emptyBracketPair+ array # initArrayCreator
     ;
-arrayInitializer: LBRACE (variableInitializer (COMMA variableInitializer)* (COMMA)? )? RBRACE;
+array: LBRACE (expression (COMMA expression)*)? RBRACE;
+formatString
+    : formatStringToken+=FormatStringAtom
+    | formatStringToken+=FormatStringBegin expression (formatStringToken+=FormatStringMiddle expression)* formatStringToken+=FormatStringEnd
+    ;
+literal: IntegerLiteral | BooleanLiteral | StringLiteral | NULL;
 argumentList: LPAREN (expression (COMMA expression)*)? RPAREN;
 condition: LPAREN expression RPAREN;
 
 // type
 type: typeName emptyBracketPair*;
-typeName: typeNameToken=(INT | BOOL | STRING | Identifier);
+typeName: INT | BOOL | STRING | Identifier;
 emptyBracketPair: LBRACK RBRACK;
 expressionBracketPair: LBRACK expression RBRACK;
 emptyParenthesisPair: LPAREN RPAREN;
-
-// format string
-formatString
-    : formatStringToken+=FormatStringAtom
-    | formatStringToken+=FormatStringBegin expression (formatStringToken+=FormatStringMiddle expression)* formatStringToken+=FormatStringEnd
-    ;
 
 // LEXER
 
