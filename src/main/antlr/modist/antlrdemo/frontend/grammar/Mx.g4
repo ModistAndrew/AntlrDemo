@@ -83,8 +83,8 @@ arrayCreator
     ;
 array: LBRACE (expression (COMMA expression)*)? RBRACE;
 formatString
-    : formatStringToken+=FormatStringAtom
-    | formatStringToken+=FormatStringBegin expression (formatStringToken+=FormatStringMiddle expression)* formatStringToken+=FormatStringEnd
+    : formatStringText+=FormatStringAtom
+    | formatStringText+=FormatStringBegin expression (formatStringText+=FormatStringMiddle expression)* formatStringText+=FormatStringEnd
     ;
 literal: IntegerLiteral | BooleanLiteral | StringLiteral | NULL;
 argumentList: LPAREN (expression (COMMA expression)*)? RPAREN;

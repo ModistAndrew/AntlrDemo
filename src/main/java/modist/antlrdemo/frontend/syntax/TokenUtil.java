@@ -4,7 +4,6 @@ import modist.antlrdemo.frontend.syntax.node.ExpressionNode;
 import modist.antlrdemo.frontend.grammar.MxLexer;
 import modist.antlrdemo.frontend.syntax.node.TypeNode;
 import org.antlr.v4.runtime.Token;
-import org.jetbrains.annotations.Nullable;
 
 // extract info from token
 public class TokenUtil {
@@ -28,12 +27,11 @@ public class TokenUtil {
         return ExpressionNode.Assign.Operator.valueOf(MxLexer.VOCABULARY.getSymbolicName(token.getType()));
     }
 
-    public static TypeNode.TypeEnum getTypeNameEnum(Token token) {
-        return token.getType() == MxLexer.Identifier ? new TypeNode.TypeEnum.Reference(token.getText())
-                : TypeNode.TypeEnum.Primitive.valueOf(MxLexer.VOCABULARY.getSymbolicName(token.getType()));
+    public static TypeNode.TypeNameEnum getTypeNameEnum(Token token) {
+        return token.getType() == MxLexer.Identifier ? new TypeNode.TypeNameEnum.Reference(token.getText())
+                : TypeNode.TypeNameEnum.Primitive.valueOf(MxLexer.VOCABULARY.getSymbolicName(token.getType()));
     }
 
-    @Nullable
     public static ExpressionNode.Literal.LiteralEnum getLiteralEnum(Token token) {
         return switch (token.getType()) {
             case MxLexer.IntegerLiteral ->
@@ -41,7 +39,7 @@ public class TokenUtil {
             case MxLexer.StringLiteral -> new ExpressionNode.Literal.LiteralEnum.Str(unesacpeString(token));
             case MxLexer.BooleanLiteral ->
                     new ExpressionNode.Literal.LiteralEnum.Bool(Boolean.parseBoolean(token.getText()));
-            case MxLexer.NULL -> null;
+            case MxLexer.NULL -> ExpressionNode.Literal.LiteralEnum.Null.INSTANCE;
             default ->
                     throw new IllegalStateException("Unexpected token type: " + MxLexer.VOCABULARY.getSymbolicName(token.getType()));
         };

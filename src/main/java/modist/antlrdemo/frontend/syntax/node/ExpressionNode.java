@@ -1,15 +1,13 @@
 package modist.antlrdemo.frontend.syntax.node;
 
-import org.jetbrains.annotations.Nullable;
-
 import java.util.List;
+import java.util.Optional;
 
 public abstract sealed class ExpressionNode extends AstNode implements ForInitializationNode {
     public static final class This extends ExpressionNode {
     }
 
     public static final class Literal extends ExpressionNode {
-        @Nullable
         public LiteralEnum value;
 
         public sealed interface LiteralEnum {
@@ -21,11 +19,15 @@ public abstract sealed class ExpressionNode extends AstNode implements ForInitia
 
             record Str(String value) implements LiteralEnum {
             }
+
+            enum Null implements LiteralEnum {
+                INSTANCE
+            }
         }
     }
 
     public static final class Array extends ExpressionNode {
-        public List<ExpressionNode> expressions;
+        public List<ExpressionNode> elements;
     }
 
     public static final class FormatString extends ExpressionNode {
@@ -34,9 +36,8 @@ public abstract sealed class ExpressionNode extends AstNode implements ForInitia
     }
 
     public static final class Creator extends ExpressionNode {
-        public TypeNode.TypeEnum typeName;
-        @Nullable
-        public ArrayCreatorNode arrayCreator;
+        public TypeNode.TypeNameEnum typeName;
+        public Optional<ArrayCreatorNode> arrayCreator;
     }
 
     public static final class Subscript extends ExpressionNode {
@@ -45,14 +46,12 @@ public abstract sealed class ExpressionNode extends AstNode implements ForInitia
     }
 
     public static final class Variable extends ExpressionNode {
-        @Nullable
-        public ExpressionNode expression;
+        public Optional<ExpressionNode> expression;
         public String name;
     }
 
     public static final class Function extends ExpressionNode {
-        @Nullable
-        public ExpressionNode expression;
+        public Optional<ExpressionNode> expression;
         public String name;
         public List<ExpressionNode> arguments;
     }
