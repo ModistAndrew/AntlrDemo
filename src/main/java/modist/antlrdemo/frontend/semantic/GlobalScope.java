@@ -1,12 +1,10 @@
 package modist.antlrdemo.frontend.semantic;
 
 import modist.antlrdemo.frontend.error.SemanticException;
-import modist.antlrdemo.frontend.syntax.Position;
+import modist.antlrdemo.frontend.Position;
 import modist.antlrdemo.frontend.syntax.node.ProgramNode;
 
-// store global symbols like classes. Built-in features are also stored here.
-// check function names
-public class GlobalScope extends Scope {
+public final class GlobalScope extends Scope {
     private final SymbolTable<Symbol.TypeName> typeNames = new SymbolTable<>();
     private final SymbolTable<Symbol.Class> classes = new SymbolTable<>();
     private final SymbolTable<Symbol.Function> arrayFunctions = new SymbolTable<>(); // array functions are stored in a separate table as they are not associated with any class

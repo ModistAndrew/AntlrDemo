@@ -1,6 +1,6 @@
 package modist.antlrdemo.frontend.error;
 
-import modist.antlrdemo.frontend.syntax.Position;
+import modist.antlrdemo.frontend.Position;
 
 public class SyntaxException extends CompileException {
 

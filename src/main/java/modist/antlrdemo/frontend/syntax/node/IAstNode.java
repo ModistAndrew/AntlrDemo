@@ -1,6 +1,6 @@
 package modist.antlrdemo.frontend.syntax.node;
 
-import modist.antlrdemo.frontend.syntax.Position;
+import modist.antlrdemo.frontend.Position;
 
 public sealed interface IAstNode permits AstNode, ForInitializationNode {
     Position getPosition();
