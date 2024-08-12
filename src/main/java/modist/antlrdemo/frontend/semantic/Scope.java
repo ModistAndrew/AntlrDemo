@@ -1,27 +1,16 @@
 package modist.antlrdemo.frontend.semantic;
 
-import modist.antlrdemo.frontend.syntax.node.DeclarationNode;
+import modist.antlrdemo.frontend.syntax.Position;
 
-import java.util.*;
+public abstract class Scope {
+    protected final SymbolTable<Symbol.Function> functions = new SymbolTable<>();
+    protected final SymbolTable<Symbol.Variable> variables = new SymbolTable<>();
 
-public class Scope {
-    public Scope parent;
+    protected abstract GlobalScope getGlobalScope();
 
+    public abstract Symbol.TypeName resolveTypeName(String name, Position position);
 
-    public Scope(Scope parent) {
-        this.parent = parent;
-    }
+    public abstract Symbol.Function resolveFunction(String name, Position position);
 
-
-
-    private static class SymbolTable<T extends Symbol> {
-        private final HashMap<String, T> table = new HashMap<>();
-
-        public void declare(String name, T value) {
-        }
-
-        public T refer(String name) {
-            return null;
-        }
-    }
+    public abstract Symbol.Variable resolveVariable(String name, Position position);
 }

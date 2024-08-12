@@ -1,5 +1,4 @@
 package modist.antlrdemo.frontend.semantic;
 
-public record FunctionInfo() {
-
+public class BuiltinFeatures {
 }

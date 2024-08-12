@@ -37,7 +37,7 @@ public abstract sealed class ExpressionNode extends AstNode implements ForInitia
     }
 
     public static final class Creator extends ExpressionNode {
-        public TypeNode.TypeNameEnum typeName;
+        public String typeName;
         @Nullable
         public ArrayCreatorNode arrayCreator;
     }

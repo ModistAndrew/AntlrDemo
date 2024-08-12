@@ -2,7 +2,6 @@ package modist.antlrdemo.frontend.syntax;
 
 import modist.antlrdemo.frontend.syntax.node.ExpressionNode;
 import modist.antlrdemo.frontend.grammar.MxLexer;
-import modist.antlrdemo.frontend.syntax.node.TypeNode;
 import org.antlr.v4.runtime.Token;
 
 // extract info from token
@@ -25,11 +24,6 @@ public class TokenUtil {
 
     public static ExpressionNode.Assign.Operator getAssignOperator(Token token) {
         return ExpressionNode.Assign.Operator.valueOf(MxLexer.VOCABULARY.getSymbolicName(token.getType()));
-    }
-
-    public static TypeNode.TypeNameEnum getTypeNameEnum(Token token) {
-        return token.getType() == MxLexer.Identifier ? new TypeNode.TypeNameEnum.Reference(token.getText())
-                : TypeNode.TypeNameEnum.Primitive.valueOf(MxLexer.VOCABULARY.getSymbolicName(token.getType()));
     }
 
     public static ExpressionNode.Literal.LiteralEnum getLiteralEnum(Token token) {

@@ -334,8 +334,8 @@ public class AstBuilder implements MxVisitor<IAstNode> {
         throw new UnsupportedOperationException();
     }
 
-    public TypeNode.TypeNameEnum extractTypeName(MxParser.TypeNameContext ctx) {
-        return TokenUtil.getTypeNameEnum(ctx.start);
+    public String extractTypeName(MxParser.TypeNameContext ctx) {
+        return ctx.start.getText();
     }
 
     @Override
