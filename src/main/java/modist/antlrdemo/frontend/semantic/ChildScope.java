@@ -17,6 +17,11 @@ public class ChildScope extends Scope {
     }
 
     @Override
+    public Symbol.Class resolveClass(String name, Position position) {
+        return globalScope.resolveClass(name, position);
+    }
+
+    @Override
     public Symbol.TypeName resolveTypeName(String name, Position position) {
         return globalScope.resolveTypeName(name, position);
     }

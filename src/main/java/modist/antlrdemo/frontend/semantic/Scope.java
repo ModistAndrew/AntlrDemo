@@ -8,9 +8,12 @@ public abstract class Scope {
 
     protected abstract GlobalScope getGlobalScope();
 
-    public abstract Symbol.TypeName resolveTypeName(String name, Position position);
+    public abstract Symbol.Class resolveClass(String name, Position position);
 
     public abstract Symbol.Function resolveFunction(String name, Position position);
 
     public abstract Symbol.Variable resolveVariable(String name, Position position);
+
+    public abstract Symbol.TypeName resolveTypeName(String name, Position position);
+
 }

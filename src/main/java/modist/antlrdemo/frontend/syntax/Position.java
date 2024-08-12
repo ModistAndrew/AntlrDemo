@@ -1,9 +1,7 @@
 package modist.antlrdemo.frontend.syntax;
 
 public record Position(int line, int column) {
-    public Position() {
-        this(-1, 0);
-    }
+    public static final Position BUILTIN = new Position(-1, 0);
 
     @Override
     public String toString() {
