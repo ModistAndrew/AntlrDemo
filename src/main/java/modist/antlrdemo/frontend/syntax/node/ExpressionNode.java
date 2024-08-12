@@ -1,7 +1,8 @@
 package modist.antlrdemo.frontend.syntax.node;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.List;
-import java.util.Optional;
 
 public abstract sealed class ExpressionNode extends AstNode implements ForInitializationNode {
     public static final class This extends ExpressionNode {
@@ -37,7 +38,8 @@ public abstract sealed class ExpressionNode extends AstNode implements ForInitia
 
     public static final class Creator extends ExpressionNode {
         public TypeNode.TypeNameEnum typeName;
-        public Optional<ArrayCreatorNode> arrayCreator;
+        @Nullable
+        public ArrayCreatorNode arrayCreator;
     }
 
     public static final class Subscript extends ExpressionNode {
@@ -46,12 +48,14 @@ public abstract sealed class ExpressionNode extends AstNode implements ForInitia
     }
 
     public static final class Variable extends ExpressionNode {
-        public Optional<ExpressionNode> expression;
+        @Nullable
+        public ExpressionNode expression;
         public String name;
     }
 
     public static final class Function extends ExpressionNode {
-        public Optional<ExpressionNode> expression;
+        @Nullable
+        public ExpressionNode expression;
         public String name;
         public List<ExpressionNode> arguments;
     }

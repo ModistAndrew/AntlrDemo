@@ -11,7 +11,6 @@ import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.List;
-import java.util.Optional;
 
 public class AstBuilder implements MxVisitor<IAstNode> {
     @Override
@@ -28,7 +27,7 @@ public class AstBuilder implements MxVisitor<IAstNode> {
         DeclarationNode.Class classNode = withPosition(new DeclarationNode.Class(), ctx.Identifier());
         classNode.name = ctx.Identifier().getText();
         MxParser.ClassDeclarationBodyContext body = ctx.classDeclarationBody();
-        classNode.constructor = Optional.ofNullable(body.constructorDeclaration()).map(this::visitConstructorDeclaration);
+        classNode.constructor = body.constructorDeclaration() != null ? this.visitConstructorDeclaration(body.constructorDeclaration()) : null;
         classNode.variables = body.variableDeclarations().stream().map(this::extractVariableDeclarations).flatMap(List::stream).toList();
         classNode.functions = body.functionDeclaration().stream().map(this::visitFunctionDeclaration).toList();
         return classNode;
@@ -43,7 +42,7 @@ public class AstBuilder implements MxVisitor<IAstNode> {
     public DeclarationNode.Function visitFunctionDeclaration(MxParser.FunctionDeclarationContext ctx) {
         DeclarationNode.Function functionNode = withPosition(new DeclarationNode.Function(), ctx.Identifier());
         functionNode.name = ctx.Identifier().getText();
-        functionNode.returnType = Optional.ofNullable(ctx.type()).map(this::visitType);
+        functionNode.returnType = ctx.type() != null ? this.visitType(ctx.type()) : null;
         functionNode.parameters = ctx.parameterDeclaration().stream().map(this::visitParameterDeclaration).toList();
         functionNode.body = visitBlock(ctx.block());
         return functionNode;
@@ -89,16 +88,16 @@ public class AstBuilder implements MxVisitor<IAstNode> {
         StatementNode.If ifNode = withPosition(new StatementNode.If(), ctx);
         ifNode.condition = visitCondition(ctx.condition());
         ifNode.thenStatement = visitStatement(ctx.ifThenStmt);
-        ifNode.elseStatement = Optional.ofNullable(ctx.ifElseStmt).map(this::visitStatement);
+        ifNode.elseStatement = ctx.ifElseStmt != null ? this.visitStatement(ctx.ifElseStmt) : null;
         return ifNode;
     }
 
     @Override
     public StatementNode.For visitForStmt(MxParser.ForStmtContext ctx) {
         StatementNode.For forNode = withPosition(new StatementNode.For(), ctx);
-        forNode.initialization = Optional.ofNullable(ctx.forInit).map(this::visitForInitialization);
-        forNode.condition = Optional.ofNullable(ctx.forCondition).map(this::visitExpression);
-        forNode.update = Optional.ofNullable(ctx.forUpdate).map(this::visitExpression);
+        forNode.initialization = ctx.forInit != null ? this.visitForInitialization(ctx.forInit) : null;
+        forNode.condition = ctx.forCondition != null ? this.visitExpression(ctx.forCondition) : null;
+        forNode.update = ctx.forUpdate != null ? this.visitExpression(ctx.forUpdate) : null;
         forNode.statement = visitStatement(ctx.statement());
         return forNode;
     }
@@ -124,7 +123,7 @@ public class AstBuilder implements MxVisitor<IAstNode> {
     @Override
     public StatementNode.Return visitReturnStmt(MxParser.ReturnStmtContext ctx) {
         StatementNode.Return returnNode = withPosition(new StatementNode.Return(), ctx);
-        returnNode.expression = Optional.ofNullable(ctx.expression()).map(this::visitExpression);
+        returnNode.expression = ctx.expression() != null ? this.visitExpression(ctx.expression()) : null;
         return returnNode;
     }
 
@@ -145,7 +144,7 @@ public class AstBuilder implements MxVisitor<IAstNode> {
             DeclarationNode.Variable variableNode = withPosition(new DeclarationNode.Variable(), declarator.Identifier());
             variableNode.name = declarator.Identifier().getText();
             variableNode.type = visitType(ctx.type());
-            variableNode.initializer = Optional.ofNullable(declarator.expression()).map(this::visitExpression);
+            variableNode.initializer = declarator.expression() != null ? this.visitExpression(declarator.expression()) : null;
             return variableNode;
         }).toList();
     }
@@ -212,7 +211,7 @@ public class AstBuilder implements MxVisitor<IAstNode> {
     @Override
     public ExpressionNode.Function visitFunctionExpr(MxParser.FunctionExprContext ctx) {
         ExpressionNode.Function functionNode = withPosition(new ExpressionNode.Function(), ctx);
-        functionNode.expression = Optional.ofNullable(ctx.expression()).map(this::visitExpression);
+        functionNode.expression = ctx.expression() != null ? this.visitExpression(ctx.expression()) : null;
         functionNode.name = ctx.Identifier().getText();
         functionNode.arguments = extractArgumentList(ctx.argumentList());
         return functionNode;
@@ -221,7 +220,7 @@ public class AstBuilder implements MxVisitor<IAstNode> {
     @Override
     public ExpressionNode.Variable visitVariableExpr(MxParser.VariableExprContext ctx) {
         ExpressionNode.Variable variableNode = withPosition(new ExpressionNode.Variable(), ctx);
-        variableNode.expression = Optional.ofNullable(ctx.expression()).map(this::visitExpression);
+        variableNode.expression = ctx.expression() != null ? this.visitExpression(ctx.expression()) : null;
         variableNode.name = ctx.Identifier().getText();
         return variableNode;
     }
@@ -248,7 +247,7 @@ public class AstBuilder implements MxVisitor<IAstNode> {
     public ExpressionNode.Creator visitCreatorExpr(MxParser.CreatorExprContext ctx) {
         ExpressionNode.Creator creatorNode = withPosition(new ExpressionNode.Creator(), ctx);
         creatorNode.typeName = extractTypeName(ctx.typeName());
-        creatorNode.arrayCreator = Optional.ofNullable(ctx.arrayCreator()).map(this::visitArrayCreator);
+        creatorNode.arrayCreator = ctx.arrayCreator() != null ? this.visitArrayCreator(ctx.arrayCreator()) : null;
         return creatorNode;
     }
 

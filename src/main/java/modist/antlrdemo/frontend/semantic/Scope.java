@@ -1,15 +1,20 @@
 package modist.antlrdemo.frontend.semantic;
 
+import modist.antlrdemo.frontend.syntax.node.DeclarationNode;
+
 import java.util.*;
 
-public abstract class Scope {
+public class Scope {
     public Scope parent;
+
 
     public Scope(Scope parent) {
         this.parent = parent;
     }
 
-    protected static class SymbolTable<T extends Symbol> {
+
+
+    private static class SymbolTable<T extends Symbol> {
         private final HashMap<String, T> table = new HashMap<>();
 
         public void declare(String name, T value) {
