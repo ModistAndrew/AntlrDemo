@@ -1,6 +1,6 @@
 package modist.antlrdemo.frontend.semantic;
 
-import modist.antlrdemo.frontend.Position;
+import modist.antlrdemo.frontend.metadata.Position;
 import modist.antlrdemo.frontend.syntax.node.DeclarationNode;
 import modist.antlrdemo.frontend.syntax.node.StatementNode;
 import org.jetbrains.annotations.Nullable;

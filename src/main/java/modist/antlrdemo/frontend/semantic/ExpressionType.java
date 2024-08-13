@@ -1,7 +1,10 @@
 package modist.antlrdemo.frontend.semantic;
 
-import modist.antlrdemo.frontend.error.ExpressionTypeMismatchException;
+import modist.antlrdemo.frontend.error.TypeMismatchException;
 import modist.antlrdemo.frontend.error.SemanticException;
+import modist.antlrdemo.frontend.metadata.LiteralEnum;
+import modist.antlrdemo.frontend.metadata.Operator;
+import modist.antlrdemo.frontend.metadata.Position;
 import modist.antlrdemo.frontend.syntax.node.ArrayCreatorNode;
 import modist.antlrdemo.frontend.syntax.node.ExpressionNode;
 import modist.antlrdemo.frontend.syntax.node.ExpressionNode.*;
@@ -19,50 +22,42 @@ public record ExpressionType(@Nullable Type type, boolean isLValue) {
         private Type getJointType(ExpressionNode... expressions) {
             @Nullable Type type = null;
             for (ExpressionNode expression : expressions) {
-                Type newType = getSolidType(expression);
+                Type newType = getType(expression);
                 if (type == null) {
                     type = newType;
                 } else {
                     Type jointType = type.join(newType);
                     if (jointType == null) {
-                        throw new ExpressionTypeMismatchException(newType, type, expression.position);
+                        throw new TypeMismatchException(newType, type, expression.position);
                     }
                     type = jointType;
                 }
             }
             // we use null in the loop for the first time to represent the type of the first expression
             // we return Type.NULL if the expressionNodes is empty
-            return type == null ? modist.antlrdemo.frontend.semantic.Type.NULL : type;
-        }
-
-        private Type expectType(ExpressionNode expression, Predicate<Type> predicate, String predicateDescription, boolean checkLvalue) {
-            Type type = getSolidType(expression, checkLvalue);
-            if (!predicate.test(type)) {
-                throw new ExpressionTypeMismatchException(type, predicateDescription, expression.position);
-            }
-            return type;
+            return type == null ? Type.NULL : type;
         }
 
         private Type expectType(ExpressionNode expression, Predicate<Type> predicate, String predicateDescription) {
-            return expectType(expression, predicate, predicateDescription, false);
-        }
-
-        private Type expectType(ExpressionNode expression, Type expectedType, boolean checkLvalue) {
-            Type type = getSolidType(expression, checkLvalue);
-            if (expectedType.join(type) == null) {
-                throw new ExpressionTypeMismatchException(type, expectedType, expression.position);
+            Type type = getType(expression);
+            if (!predicate.test(type)) {
+                throw new TypeMismatchException(type, predicateDescription, expression.position);
             }
             return type;
         }
 
         private Type expectType(ExpressionNode expression, Type expectedType) {
-            return expectType(expression, expectedType, false);
+            Type type = getType(expression);
+            if (expectedType.join(type) == null) {
+                throw new TypeMismatchException(type, expectedType, expression.position);
+            }
+            return type;
         }
 
-        private Type getSolidType(ExpressionNode expression, boolean checkLvalue) {
+        private Type getType(ExpressionNode expression, boolean checkLvalue) {
             ExpressionType expressionType = build(expression);
             if (expressionType.type == null) {
-                throw new ExpressionTypeMismatchException(expressionType.type, "non-null", expression.position);
+                throw new TypeMismatchException(expressionType.type, "non-null", expression.position);
             }
             if (checkLvalue && !expressionType.isLValue) {
                 throw new SemanticException("Expression is not an lvalue", expression.position);
@@ -70,12 +65,24 @@ public record ExpressionType(@Nullable Type type, boolean isLValue) {
             return expressionType.type;
         }
 
-        private Type getSolidType(ExpressionNode expression) {
-            return getSolidType(expression, false);
+        private Type getType(ExpressionNode expression) {
+            return getType(expression, false);
         }
 
-        private boolean isArithmetic(Type type) {
-            return type == BuiltinFeatures.INT;
+        private boolean canOperate(Type type, Operator op) {
+            return switch (op) {
+                case EQ, NE -> true;
+                case ADD, LT, GT, LE, GE -> type.equals(BuiltinFeatures.INT) || type.equals(BuiltinFeatures.STRING);
+                case INC, DEC, NOT, AND, XOR, OR, SUB, MUL, DIV, MOD, SHL, SHR -> type == BuiltinFeatures.INT;
+                case LOGICAL_AND, LOGICAL_OR, LOGICAL_NOT -> type == BuiltinFeatures.BOOL;
+            };
+        }
+
+        private Type testOperator(Type type, Operator op, Position position) {
+            if (!canOperate(type, op)) {
+                throw new SemanticException(String.format("Operator '%s' cannot be applied to type '%s'", op, type), position);
+            }
+            return type;
         }
 
         public ExpressionType build(ExpressionNode expression) {
@@ -85,11 +92,10 @@ public record ExpressionType(@Nullable Type type, boolean isLValue) {
                     default -> throw new SemanticException("Use of 'this' outside class", expression.position);
                 };
                 case Literal literal -> switch (literal.value) {
-                    case Literal.LiteralEnum.Int ignored -> new ExpressionType(BuiltinFeatures.INT);
-                    case Literal.LiteralEnum.Bool ignored -> new ExpressionType(BuiltinFeatures.BOOL);
-                    case Literal.LiteralEnum.Str ignored -> new ExpressionType(BuiltinFeatures.STRING);
-                    case Literal.LiteralEnum.Null ignored ->
-                            new ExpressionType(modist.antlrdemo.frontend.semantic.Type.NULL);
+                    case LiteralEnum.Int ignored -> new ExpressionType(BuiltinFeatures.INT);
+                    case LiteralEnum.Bool ignored -> new ExpressionType(BuiltinFeatures.BOOL);
+                    case LiteralEnum.Str ignored -> new ExpressionType(BuiltinFeatures.STRING);
+                    case LiteralEnum.Null ignored -> new ExpressionType(Type.NULL);
                 };
                 case Array array -> new ExpressionType(getJointType(array.elements.toArray(ExpressionNode[]::new)));
                 case FormatString formatString -> {
@@ -114,11 +120,11 @@ public record ExpressionType(@Nullable Type type, boolean isLValue) {
                 }
                 case Variable variable ->
                         variable.expression == null ? new ExpressionType(scope.resolveVariable(variable.name, expression.position).type, true) :
-                                new ExpressionType(scope.getClass(getSolidType(variable.expression)).variables.resolve(variable.name, expression.position).type, true);
+                                new ExpressionType(scope.getClass(getType(variable.expression)).variables.resolve(variable.name, expression.position).type, true);
                 case Function function -> {
                     Symbol.Function functionSymbol = function.expression == null ?
                             scope.resolveFunction(function.name, expression.position) :
-                            scope.getClass(getSolidType(function.expression)).functions.resolve(function.name, expression.position);
+                            scope.getClass(getType(function.expression)).functions.resolve(function.name, expression.position);
                     if (functionSymbol.parameters.size() != function.arguments.size()) {
                         throw new SemanticException(String.format("Function '%s' expects %d arguments, but %d given",
                                 function.name, functionSymbol.parameters.size(), function.arguments.size()), expression.position);
@@ -128,14 +134,21 @@ public record ExpressionType(@Nullable Type type, boolean isLValue) {
                     }
                     yield new ExpressionType(functionSymbol.returnType);
                 }
-                case PostUnary postUnary ->
-                        new ExpressionType(expectType(postUnary.expression, BuiltinFeatures.INT, true));
-                case PreUnary preUnary -> {
-                    Type type = expectType(preUnary.expression, BuiltinFeatures.INT, true);
-                    yield switch (preUnary.operator) {
-                        case PreUnary.Operator.Plus, PreUnary.Operator.Minus -> new ExpressionType(BuiltinFeatures.INT);
-                        case PreUnary.Operator.Not -> new ExpressionType(BuiltinFeatures.BOOL);
-                    };
+                case PostUnaryAssign postUnaryAssign ->
+                        new ExpressionType(testOperator(getType(postUnaryAssign.expression, true), postUnaryAssign.operator, expression.position));
+                case PreUnaryAssign preUnaryAssign ->
+                        new ExpressionType(testOperator(getType(preUnaryAssign.expression, true), preUnaryAssign.operator, expression.position));
+                case PreUnary preUnary ->
+                        new ExpressionType(testOperator(getType(preUnary.expression), preUnary.operator, expression.position));
+                case Binary binary ->
+                        new ExpressionType(testOperator(getJointType(binary.leftExpression, binary.rightExpression), binary.operator, expression.position));
+                case Conditional conditional -> {
+                    expectType(conditional.condition, BuiltinFeatures.BOOL);
+                    yield new ExpressionType(getJointType(conditional.trueExpression, conditional.falseExpression));
+                }
+                case Assign assign -> {
+                    expectType(assign.rightExpression, getType(assign.leftExpression, true));
+                    yield new ExpressionType(null);
                 }
             };
         }

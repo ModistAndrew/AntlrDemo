@@ -1,7 +1,7 @@
 package modist.antlrdemo.frontend.semantic;
 
 import modist.antlrdemo.frontend.error.SemanticException;
-import modist.antlrdemo.frontend.Position;
+import modist.antlrdemo.frontend.metadata.Position;
 import modist.antlrdemo.frontend.syntax.node.ProgramNode;
 
 public final class GlobalScope extends Scope {

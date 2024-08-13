@@ -1,7 +1,8 @@
 package modist.antlrdemo.frontend.syntax;
 
-import modist.antlrdemo.frontend.Position;
-import modist.antlrdemo.frontend.syntax.node.ExpressionNode;
+import modist.antlrdemo.frontend.metadata.LiteralEnum;
+import modist.antlrdemo.frontend.metadata.Operator;
+import modist.antlrdemo.frontend.metadata.Position;
 import modist.antlrdemo.frontend.grammar.MxLexer;
 import org.antlr.v4.runtime.Token;
 
@@ -11,30 +12,18 @@ public class TokenUtil {
         return new Position(token.getLine(), token.getCharPositionInLine());
     }
 
-    public static ExpressionNode.PostUnary.Operator getPostUnaryOperator(Token token) {
-        return ExpressionNode.PostUnary.Operator.valueOf(MxLexer.VOCABULARY.getSymbolicName(token.getType()));
+    public static Operator getOperator(Token token) {
+        return Operator.valueOf(MxLexer.VOCABULARY.getSymbolicName(token.getType()));
     }
 
-    public static ExpressionNode.PreUnary.Operator getPreUnaryOperator(Token token) {
-        return ExpressionNode.PreUnary.Operator.valueOf(MxLexer.VOCABULARY.getSymbolicName(token.getType()));
-    }
-
-    public static ExpressionNode.Binary.Operator getBinaryOperator(Token token) {
-        return ExpressionNode.Binary.Operator.valueOf(MxLexer.VOCABULARY.getSymbolicName(token.getType()));
-    }
-
-    public static ExpressionNode.Assign.Operator getAssignOperator(Token token) {
-        return ExpressionNode.Assign.Operator.valueOf(MxLexer.VOCABULARY.getSymbolicName(token.getType()));
-    }
-
-    public static ExpressionNode.Literal.LiteralEnum getLiteralEnum(Token token) {
+    public static LiteralEnum getLiteralEnum(Token token) {
         return switch (token.getType()) {
             case MxLexer.IntegerLiteral ->
-                    new ExpressionNode.Literal.LiteralEnum.Int(Integer.parseInt(token.getText()));
-            case MxLexer.StringLiteral -> new ExpressionNode.Literal.LiteralEnum.Str(unesacpeString(token));
+                    new LiteralEnum.Int(Integer.parseInt(token.getText()));
+            case MxLexer.StringLiteral -> new LiteralEnum.Str(unesacpeString(token));
             case MxLexer.BooleanLiteral ->
-                    new ExpressionNode.Literal.LiteralEnum.Bool(Boolean.parseBoolean(token.getText()));
-            case MxLexer.NULL -> ExpressionNode.Literal.LiteralEnum.Null.INSTANCE;
+                    new LiteralEnum.Bool(Boolean.parseBoolean(token.getText()));
+            case MxLexer.NULL -> LiteralEnum.Null.INSTANCE;
             default ->
                     throw new IllegalStateException("Unexpected token type: " + MxLexer.VOCABULARY.getSymbolicName(token.getType()));
         };

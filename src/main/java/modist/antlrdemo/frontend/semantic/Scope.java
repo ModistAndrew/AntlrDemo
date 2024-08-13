@@ -1,6 +1,6 @@
 package modist.antlrdemo.frontend.semantic;
 
-import modist.antlrdemo.frontend.Position;
+import modist.antlrdemo.frontend.metadata.Position;
 import modist.antlrdemo.frontend.syntax.node.StatementNode;
 
 public abstract sealed class Scope permits ChildScope, GlobalScope {

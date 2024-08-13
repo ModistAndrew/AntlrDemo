@@ -1,4 +1,4 @@
-package modist.antlrdemo.frontend;
+package modist.antlrdemo.frontend.metadata;
 
 public record Position(int line, int column) {
     // used when the position is built-in

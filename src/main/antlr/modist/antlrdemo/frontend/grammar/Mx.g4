@@ -48,9 +48,9 @@ expression
     | expression DOT Identifier # variableExpr
     | Identifier argumentList # functionExpr
     | expression DOT Identifier argumentList # functionExpr
-    | expression op=(INC|DEC) # postUnaryExpr
-    | op=(ADD|SUB|INC|DEC) expression # preUnaryExpr
-    | op=(NOT|LOGICAL_NOT) expression # preUnaryExpr
+    | expression op=(INC|DEC) # postUnaryAssignExpr
+    | op=(INC|DEC) expression # preUnaryAssignExpr
+    | op=(ADD|SUB|NOT|LOGICAL_NOT) expression # preUnaryExpr
     | expression op=(MUL|DIV|MOD) expression # binaryExpr
     | expression op=(ADD|SUB) expression # binaryExpr
     | expression op=(SHL|SHR) expression # binaryExpr
@@ -62,21 +62,7 @@ expression
     | expression op=LOGICAL_AND expression # binaryExpr
     | expression op=LOGICAL_OR expression # binaryExpr
     | expression QUESTION expression COLON expression # conditionalExpr
-    | <assoc=right> expression
-        op=
-        (ASSIGN
-        | ADD_ASSIGN
-        | SUB_ASSIGN
-        | MUL_ASSIGN
-        | DIV_ASSIGN
-        | MOD_ASSIGN
-        | AND_ASSIGN
-        | OR_ASSIGN
-        | XOR_ASSIGN
-        | SHL_ASSIGN
-        | SHR_ASSIGN
-        )
-        expression # assignExpr
+    | <assoc=right> expression ASSIGN expression # assignExpr
     ;
 arrayCreator
     : expressionBracketPair+ emptyBracketPair* # emptyArrayCreator
@@ -165,16 +151,6 @@ XOR: '^';
 NOT: '~';
 
 ASSIGN: '=';
-ADD_ASSIGN: '+=';
-SUB_ASSIGN: '-=';
-MUL_ASSIGN: '*=';
-DIV_ASSIGN: '/=';
-MOD_ASSIGN: '%=';
-AND_ASSIGN: '&=';
-OR_ASSIGN: '|=';
-XOR_ASSIGN: '^=';
-SHL_ASSIGN: '<<=';
-SHR_ASSIGN: '>>=';
 
 INC: '++';
 DEC: '--';

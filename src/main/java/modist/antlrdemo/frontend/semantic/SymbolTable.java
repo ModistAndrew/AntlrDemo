@@ -2,7 +2,7 @@ package modist.antlrdemo.frontend.semantic;
 
 import modist.antlrdemo.frontend.error.SymbolRedefinedException;
 import modist.antlrdemo.frontend.error.SymbolUndefinedException;
-import modist.antlrdemo.frontend.Position;
+import modist.antlrdemo.frontend.metadata.Position;
 
 import java.util.ArrayList;
 import java.util.HashMap;

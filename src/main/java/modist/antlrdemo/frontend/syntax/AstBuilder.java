@@ -169,16 +169,16 @@ public class AstBuilder implements MxVisitor<IAstNode> {
     }
 
     @Override
-    public ExpressionNode.This visitThisExpr(MxParser.ThisExprContext ctx) {
-        return withPosition(new ExpressionNode.This(), ctx);
+    public ExpressionNode.PreUnaryAssign visitPreUnaryAssignExpr(MxParser.PreUnaryAssignExprContext ctx) {
+        ExpressionNode.PreUnaryAssign preUnaryAssignNode = withPosition(new ExpressionNode.PreUnaryAssign(), ctx.op);
+        preUnaryAssignNode.expression = visitExpression(ctx.expression());
+        preUnaryAssignNode.operator = TokenUtil.getOperator(ctx.op);
+        return preUnaryAssignNode;
     }
 
     @Override
-    public ExpressionNode.PostUnary visitPostUnaryExpr(MxParser.PostUnaryExprContext ctx) {
-        ExpressionNode.PostUnary postUnaryNode = withPosition(new ExpressionNode.PostUnary(), ctx.op);
-        postUnaryNode.expression = visitExpression(ctx.expression());
-        postUnaryNode.operator = TokenUtil.getPostUnaryOperator(ctx.op);
-        return postUnaryNode;
+    public ExpressionNode.This visitThisExpr(MxParser.ThisExprContext ctx) {
+        return withPosition(new ExpressionNode.This(), ctx);
     }
 
     @Override
@@ -199,8 +199,16 @@ public class AstBuilder implements MxVisitor<IAstNode> {
         ExpressionNode.Binary binaryNode = withPosition(new ExpressionNode.Binary(), ctx.op);
         binaryNode.leftExpression = visitExpression(ctx.expression(0));
         binaryNode.rightExpression = visitExpression(ctx.expression(1));
-        binaryNode.operator = TokenUtil.getBinaryOperator(ctx.op);
+        binaryNode.operator = TokenUtil.getOperator(ctx.op);
         return binaryNode;
+    }
+
+    @Override
+    public ExpressionNode.PostUnaryAssign visitPostUnaryAssignExpr(MxParser.PostUnaryAssignExprContext ctx) {
+        ExpressionNode.PostUnaryAssign postUnaryAssignNode = withPosition(new ExpressionNode.PostUnaryAssign(), ctx.op);
+        postUnaryAssignNode.expression = visitExpression(ctx.expression());
+        postUnaryAssignNode.operator = TokenUtil.getOperator(ctx.op);
+        return postUnaryAssignNode;
     }
 
     @Override
@@ -229,7 +237,7 @@ public class AstBuilder implements MxVisitor<IAstNode> {
     public ExpressionNode.PreUnary visitPreUnaryExpr(MxParser.PreUnaryExprContext ctx) {
         ExpressionNode.PreUnary preUnaryNode = withPosition(new ExpressionNode.PreUnary(), ctx.op);
         preUnaryNode.expression = visitExpression(ctx.expression());
-        preUnaryNode.operator = TokenUtil.getPreUnaryOperator(ctx.op);
+        preUnaryNode.operator = TokenUtil.getOperator(ctx.op);
         return preUnaryNode;
     }
 
@@ -253,10 +261,9 @@ public class AstBuilder implements MxVisitor<IAstNode> {
 
     @Override
     public ExpressionNode.Assign visitAssignExpr(MxParser.AssignExprContext ctx) {
-        ExpressionNode.Assign assignNode = withPosition(new ExpressionNode.Assign(), ctx.op);
+        ExpressionNode.Assign assignNode = withPosition(new ExpressionNode.Assign(), ctx.ASSIGN());
         assignNode.leftExpression = visitExpression(ctx.expression(0));
         assignNode.rightExpression = visitExpression(ctx.expression(1));
-        assignNode.operator = TokenUtil.getAssignOperator(ctx.op);
         return assignNode;
     }
 

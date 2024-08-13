@@ -1,5 +1,7 @@
 package modist.antlrdemo.frontend.syntax.node;
 
+import modist.antlrdemo.frontend.metadata.LiteralEnum;
+import modist.antlrdemo.frontend.metadata.Operator;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -10,21 +12,6 @@ public abstract sealed class ExpressionNode extends AstNode implements ForInitia
 
     public static final class Literal extends ExpressionNode {
         public LiteralEnum value;
-
-        public sealed interface LiteralEnum {
-            record Int(int value) implements LiteralEnum {
-            }
-
-            record Bool(boolean value) implements LiteralEnum {
-            }
-
-            record Str(String value) implements LiteralEnum {
-            }
-
-            enum Null implements LiteralEnum {
-                INSTANCE
-            }
-        }
     }
 
     public static final class Array extends ExpressionNode {
@@ -60,32 +47,25 @@ public abstract sealed class ExpressionNode extends AstNode implements ForInitia
         public List<ExpressionNode> arguments;
     }
 
-    public static final class PostUnary extends ExpressionNode {
+    public static final class PostUnaryAssign extends ExpressionNode {
         public ExpressionNode expression;
         public Operator operator;
+    }
 
-        public enum Operator {
-            INC, DEC
-        }
+    public static final class PreUnaryAssign extends ExpressionNode {
+        public ExpressionNode expression;
+        public Operator operator;
     }
 
     public static final class PreUnary extends ExpressionNode {
         public ExpressionNode expression;
         public Operator operator;
-
-        public enum Operator {
-            INC, DEC, ADD, SUB, NOT, LOGICAL_NOT
-        }
     }
 
     public static final class Binary extends ExpressionNode {
         public ExpressionNode leftExpression;
         public ExpressionNode rightExpression;
         public Operator operator;
-
-        public enum Operator {
-            MUL, DIV, MOD, ADD, SUB, SHL, SHR, GT, LT, GE, LE, NE, EQ, AND, XOR, OR, LOGICAL_AND, LOGICAL_OR
-        }
     }
 
     public static final class Conditional extends ExpressionNode {
@@ -97,10 +77,5 @@ public abstract sealed class ExpressionNode extends AstNode implements ForInitia
     public static final class Assign extends ExpressionNode {
         public ExpressionNode leftExpression;
         public ExpressionNode rightExpression;
-        public Operator operator;
-
-        public enum Operator {
-            ASSIGN, ADD_ASSIGN, SUB_ASSIGN, MUL_ASSIGN, DIV_ASSIGN, MOD_ASSIGN, AND_ASSIGN, OR_ASSIGN, XOR_ASSIGN, SHL_ASSIGN, SHR_ASSIGN
-        }
     }
 }
