@@ -9,7 +9,6 @@ public final class GlobalScope extends Scope {
     private final SymbolTable<Symbol.Class> classes = new SymbolTable<>();
     private final Symbol.Class arrayClass = BuiltinFeatures.ARRAY_CLASS; // a virtual class for arrays
     private final Symbol.Class nullClass = BuiltinFeatures.NULL_CLASS; // a virtual class for null
-    private final Symbol.Function mainFunction;
 
     public GlobalScope(ProgramNode program) {
         addBuiltInFeatures();
@@ -17,7 +16,7 @@ public final class GlobalScope extends Scope {
         program.classes.forEach(typeNode -> classes.declare(new Symbol.Class(this, typeNode)));
         program.functions.forEach(functionNode -> functions.declare(new Symbol.Function(this, functionNode)));
         program.variables.forEach(variableNode -> variables.declare(new Symbol.Variable(this, variableNode)));
-        mainFunction = getMainFunction(program);
+        getMainFunction(program);
     }
 
     private void addBuiltInFeatures() {
@@ -36,7 +35,7 @@ public final class GlobalScope extends Scope {
         functions.declare(BuiltinFeatures.TO_STRING);
     }
 
-    private Symbol.Function getMainFunction(ProgramNode program) {
+    private void getMainFunction(ProgramNode program) {
         if (!functions.contains("main")) {
             throw new SemanticException("Main function not found", program.position);
         }
@@ -47,12 +46,16 @@ public final class GlobalScope extends Scope {
         if (mainFunction.parameters.size() != 0) {
             throw new SemanticException("Main function must have no parameters", mainFunction.position);
         }
-        return mainFunction;
     }
 
     @Override
     protected GlobalScope getGlobalScope() {
         return this;
+    }
+
+    @Override
+    public Scope getParent() {
+        return null;
     }
 
     @Override

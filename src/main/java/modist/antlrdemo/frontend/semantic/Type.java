@@ -27,10 +27,6 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
         return new Type(typeName, dimension - 1);
     }
 
-    public boolean isCustom() {
-        return typeName != null && !typeName.primitive && dimension == 0;
-    }
-
     public boolean isPrimitive() {
         return typeName != null && typeName.primitive && dimension == 0;
     }

@@ -38,7 +38,7 @@ public record ExpressionType(@Nullable Type type, boolean isLValue) {
             return type == null ? Type.NULL : type;
         }
 
-        private Type expectType(ExpressionNode expression, Predicate<Type> predicate, String predicateDescription) {
+        public Type expectType(ExpressionNode expression, Predicate<Type> predicate, String predicateDescription) {
             Type type = getType(expression);
             if (!predicate.test(type)) {
                 throw new TypeMismatchException(type, predicateDescription, expression.position);
@@ -46,7 +46,7 @@ public record ExpressionType(@Nullable Type type, boolean isLValue) {
             return type;
         }
 
-        private Type expectType(ExpressionNode expression, Type expectedType) {
+        public Type expectType(ExpressionNode expression, Type expectedType) {
             Type type = getType(expression);
             if (expectedType.join(type) == null) {
                 throw new TypeMismatchException(type, expectedType, expression.position);
@@ -97,7 +97,7 @@ public record ExpressionType(@Nullable Type type, boolean isLValue) {
                     case LiteralEnum.Str ignored -> new ExpressionType(BuiltinFeatures.STRING);
                     case LiteralEnum.Null ignored -> new ExpressionType(Type.NULL);
                 };
-                case Array array -> new ExpressionType(getJointType(array.elements.toArray(ExpressionNode[]::new)));
+                case Array array -> new ExpressionType(getJointType(array.elements.toArray(ExpressionNode[]::new)).increaseDimension());
                 case FormatString formatString -> {
                     formatString.expressions.forEach(child -> expectType(child, Type::isPrimitive, "primitive"));
                     yield new ExpressionType(BuiltinFeatures.STRING);

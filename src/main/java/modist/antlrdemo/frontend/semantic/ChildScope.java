@@ -20,6 +20,11 @@ public sealed class ChildScope extends Scope {
     }
 
     @Override
+    public Scope getParent() {
+        return parent;
+    }
+
+    @Override
     public Symbol.Class getClass(Type type) {
         return globalScope.getClass(type);
     }

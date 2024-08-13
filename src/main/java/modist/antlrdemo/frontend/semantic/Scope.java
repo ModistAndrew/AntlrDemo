@@ -9,6 +9,8 @@ public abstract sealed class Scope permits ChildScope, GlobalScope {
 
     protected abstract GlobalScope getGlobalScope();
 
+    public abstract Scope getParent();
+
     public abstract Symbol.Class getClass(Type type);
 
     public abstract Symbol.Function resolveFunction(String name, Position position);

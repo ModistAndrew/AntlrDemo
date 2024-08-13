@@ -1,5 +1,6 @@
 package modist.antlrdemo;
 
+import modist.antlrdemo.frontend.semantic.SemanticChecker;
 import modist.antlrdemo.frontend.syntax.AstBuilder;
 import modist.antlrdemo.frontend.syntax.node.ProgramNode;
 import modist.antlrdemo.frontend.error.FastFailErrorListener;
@@ -21,7 +22,9 @@ public class Compiler {
         setFastFailErrorListener(parser);
         AstBuilder astBuilder = new AstBuilder();
         ProgramNode node = astBuilder.visitProgram(parser.program());
-        System.out.println(node);
+        SemanticChecker semanticChecker = new SemanticChecker();
+        semanticChecker.check(node);
+        System.out.println("Semantic check passed.");
     }
 
     private static void setFastFailErrorListener(Recognizer<?, ?> recognizer) {
