@@ -69,20 +69,26 @@ public record ExpressionType(@Nullable Type type, boolean isLValue) {
             return getType(expression, false);
         }
 
-        private boolean canOperate(Type type, Operator op) {
+        @Nullable
+        private Type getOperationResult(Type type, Operator op) {
+            boolean isBool = BuiltinFeatures.BOOL.equals(type);
+            boolean isInt = BuiltinFeatures.INT.equals(type);
+            boolean isString = BuiltinFeatures.STRING.equals(type);
             return switch (op) {
-                case EQ, NE -> true;
-                case ADD, LT, GT, LE, GE -> type.equals(BuiltinFeatures.INT) || type.equals(BuiltinFeatures.STRING);
-                case INC, DEC, NOT, AND, XOR, OR, SUB, MUL, DIV, MOD, SHL, SHR -> type == BuiltinFeatures.INT;
-                case LOGICAL_AND, LOGICAL_OR, LOGICAL_NOT -> type == BuiltinFeatures.BOOL;
+                case EQ, NE -> BuiltinFeatures.BOOL;
+                case ADD -> isInt || isString ? type : null;
+                case LT, GT, LE, GE -> isInt || isString ? BuiltinFeatures.BOOL : null;
+                case INC, DEC, NOT, AND, XOR, OR, SUB, MUL, DIV, MOD, SHL, SHR -> isInt ? type : null;
+                case LOGICAL_AND, LOGICAL_OR, LOGICAL_NOT -> isBool ? type : null;
             };
         }
 
         private Type testOperator(Type type, Operator op, Position position) {
-            if (!canOperate(type, op)) {
+            Type result = getOperationResult(type, op);
+            if (result == null) {
                 throw new SemanticException(String.format("Operator '%s' cannot be applied to type '%s'", op, type), position);
             }
-            return type;
+            return result;
         }
 
         public ExpressionType build(ExpressionNode expression) {
@@ -97,7 +103,8 @@ public record ExpressionType(@Nullable Type type, boolean isLValue) {
                     case LiteralEnum.Str ignored -> new ExpressionType(BuiltinFeatures.STRING);
                     case LiteralEnum.Null ignored -> new ExpressionType(Type.NULL);
                 };
-                case Array array -> new ExpressionType(getJointType(array.elements.toArray(ExpressionNode[]::new)).increaseDimension());
+                case Array array ->
+                        new ExpressionType(getJointType(array.elements.toArray(ExpressionNode[]::new)).increaseDimension());
                 case FormatString formatString -> {
                     formatString.expressions.forEach(child -> expectType(child, Type::isPrimitive, "primitive"));
                     yield new ExpressionType(BuiltinFeatures.STRING);
