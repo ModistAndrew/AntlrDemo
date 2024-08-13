@@ -116,7 +116,7 @@ public record ExpressionType(@Nullable Type type, boolean isLValue) {
                 }
                 case Subscript subscript -> {
                     expectType(subscript.index, BuiltinFeatures.INT);
-                    yield new ExpressionType(expectType(subscript.expression, Type::isArray, "array").decreaseDimension());
+                    yield new ExpressionType(expectType(subscript.expression, Type::isArray, "array").decreaseDimension(), true);
                 }
                 case Variable variable ->
                         variable.expression == null ? new ExpressionType(scope.resolveVariable(variable.name, expression.position).type, true) :
