@@ -4,7 +4,7 @@ import modist.antlrdemo.frontend.error.SemanticException;
 import modist.antlrdemo.frontend.metadata.Position;
 import modist.antlrdemo.frontend.syntax.node.ProgramNode;
 
-public final class GlobalScope extends Scope {
+public class GlobalScope extends Scope {
     private final SymbolTable<Symbol.TypeName> typeNames = new SymbolTable<>();
     private final SymbolTable<Symbol.Class> classes = new SymbolTable<>();
     private final Symbol.Class arrayClass = BuiltinFeatures.ARRAY_CLASS; // a virtual class for arrays

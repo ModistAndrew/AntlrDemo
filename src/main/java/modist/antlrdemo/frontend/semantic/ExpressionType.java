@@ -93,10 +93,12 @@ public record ExpressionType(@Nullable Type type, boolean isLValue) {
 
         public ExpressionType build(ExpressionNode expression) {
             return switch (expression) {
-                case This ignored -> switch (scope) {
-                    case ChildScope.Class classScope -> new ExpressionType(classScope.classType);
-                    default -> throw new SemanticException("Use of 'this' outside class", expression.position);
-                };
+                case This ignored -> {
+                    if (!scope.inClass) {
+                        throw new SemanticException("Use of 'this' outside of class", expression.position);
+                    }
+                    yield new ExpressionType(scope.thisType);
+                }
                 case Literal literal -> switch (literal.value) {
                     case LiteralEnum.Int ignored -> new ExpressionType(BuiltinFeatures.INT);
                     case LiteralEnum.Bool ignored -> new ExpressionType(BuiltinFeatures.BOOL);
