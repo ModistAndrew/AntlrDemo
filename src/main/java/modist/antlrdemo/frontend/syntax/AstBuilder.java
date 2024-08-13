@@ -1,5 +1,6 @@
 package modist.antlrdemo.frontend.syntax;
 
+import modist.antlrdemo.frontend.error.SemanticException;
 import modist.antlrdemo.frontend.syntax.node.*;
 import modist.antlrdemo.frontend.grammar.MxParser;
 import modist.antlrdemo.frontend.grammar.MxVisitor;
@@ -9,7 +10,9 @@ import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class AstBuilder implements MxVisitor<IAstNode> {
@@ -26,16 +29,16 @@ public class AstBuilder implements MxVisitor<IAstNode> {
     public DeclarationNode.Class visitClassDeclaration(MxParser.ClassDeclarationContext ctx) {
         DeclarationNode.Class classNode = withPosition(new DeclarationNode.Class(), ctx.Identifier());
         classNode.name = ctx.Identifier().getText();
-        MxParser.ClassDeclarationBodyContext body = ctx.classDeclarationBody();
-        classNode.constructor = body.constructorDeclaration() != null ? this.visitConstructorDeclaration(body.constructorDeclaration()) : null;
-        classNode.variables = body.variableDeclarations().stream().map(this::extractVariableDeclarations).flatMap(List::stream).toList();
-        classNode.functions = body.functionDeclaration().stream().map(this::visitFunctionDeclaration).toList();
+        classNode.constructor = null;
+        ctx.constructorDeclaration().stream().map(this::visitConstructorDeclaration).forEach(constructor -> {
+            if (classNode.constructor != null) {
+                throw new SemanticException("Multiple constructors in class " + classNode.name, constructor.position);
+            }
+            classNode.constructor = constructor;
+        });
+        classNode.variables = ctx.variableDeclarations().stream().map(this::extractVariableDeclarations).flatMap(List::stream).toList();
+        classNode.functions = ctx.functionDeclaration().stream().map(this::visitFunctionDeclaration).toList();
         return classNode;
-    }
-
-    @Override
-    public IAstNode visitClassDeclarationBody(MxParser.ClassDeclarationBodyContext ctx) {
-        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -277,22 +280,6 @@ public class AstBuilder implements MxVisitor<IAstNode> {
     }
 
     @Override
-    public ArrayCreatorNode.Empty visitEmptyArrayCreator(MxParser.EmptyArrayCreatorContext ctx) {
-        ArrayCreatorNode.Empty emptyArrayCreatorNode = withPosition(new ArrayCreatorNode.Empty(), ctx);
-        emptyArrayCreatorNode.dimensionLengths = ctx.expressionBracketPair().stream().map(this::visitExpressionBracketPair).toList();
-        emptyArrayCreatorNode.emptyDimension = ctx.emptyBracketPair().size();
-        return emptyArrayCreatorNode;
-    }
-
-    @Override
-    public ArrayCreatorNode.Init visitInitArrayCreator(MxParser.InitArrayCreatorContext ctx) {
-        ArrayCreatorNode.Init initArrayCreatorNode = withPosition(new ArrayCreatorNode.Init(), ctx);
-        initArrayCreatorNode.dimension = ctx.emptyBracketPair().size();
-        initArrayCreatorNode.initializer = visitArray(ctx.array());
-        return initArrayCreatorNode;
-    }
-
-    @Override
     public ExpressionNode.Array visitArray(MxParser.ArrayContext ctx) {
         ExpressionNode.Array arrayNode = withPosition(new ExpressionNode.Array(), ctx);
         arrayNode.elements = ctx.expression().stream().map(this::visitExpression).toList();
@@ -347,6 +334,12 @@ public class AstBuilder implements MxVisitor<IAstNode> {
     }
 
     @Override
+    @Nullable
+    public ExpressionNode visitPossibleBracketPair(MxParser.PossibleBracketPairContext ctx) {
+        return ctx.expression() != null ? withPosition(visitExpression(ctx.expression()), ctx) : null;
+    }
+
+    @Override
     public IAstNode visitEmptyParenthesisPair(MxParser.EmptyParenthesisPairContext ctx) {
         throw new UnsupportedOperationException();
     }
@@ -382,7 +375,30 @@ public class AstBuilder implements MxVisitor<IAstNode> {
     }
 
     public ArrayCreatorNode visitArrayCreator(MxParser.ArrayCreatorContext ctx) {
-        return (ArrayCreatorNode) visit(ctx);
+        @Nullable ExpressionNode.Array initializer = ctx.array() != null ? visitArray(ctx.array()) : null;
+        boolean acceptExpression = initializer == null;
+        List<ExpressionNode> dimensionLengths = new ArrayList<>();
+        for (MxParser.PossibleBracketPairContext pair : ctx.possibleBracketPair()) {
+            @Nullable ExpressionNode expression = visitPossibleBracketPair(pair);
+            if (expression == null) {
+                acceptExpression = false;
+            } else if (acceptExpression) {
+                dimensionLengths.add(expression);
+            } else {
+                throw new SemanticException("Invalid expression bracket pair in array creator", expression.position);
+            }
+        }
+        if (initializer == null) {
+            ArrayCreatorNode.Empty arrayCreatorNode = withPosition(new ArrayCreatorNode.Empty(), ctx);
+            arrayCreatorNode.dimensionLengths = dimensionLengths;
+            arrayCreatorNode.emptyDimension = ctx.possibleBracketPair().size() - dimensionLengths.size();
+            return arrayCreatorNode;
+        } else {
+            ArrayCreatorNode.Init arrayCreatorNode = withPosition(new ArrayCreatorNode.Init(), ctx);
+            arrayCreatorNode.initializer = initializer;
+            arrayCreatorNode.dimension = ctx.possibleBracketPair().size();
+            return arrayCreatorNode;
+        }
     }
 
     private <T extends IAstNode> T withPosition(T astNode, Token token) {

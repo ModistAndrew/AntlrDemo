@@ -8,8 +8,7 @@ grammar Mx;
 
 // program and class
 program: (classDeclaration | variableDeclarations | functionDeclaration)*;
-classDeclaration: CLASS Identifier LBRACE classDeclarationBody RBRACE SEMI; // must end with ';'
-classDeclarationBody: (variableDeclarations | functionDeclaration)* constructorDeclaration? (variableDeclarations | functionDeclaration)*;
+classDeclaration: CLASS Identifier LBRACE (variableDeclarations | functionDeclaration | constructorDeclaration)* RBRACE SEMI; // must end with ';'
 
 // function
 functionDeclaration: (VOID | type) Identifier LPAREN (parameterDeclaration (COMMA parameterDeclaration)*)? RPAREN block;
@@ -42,7 +41,7 @@ expression
     | array # arrayExpr
     | formatString # formatStringExpr
     | NEW typeName=(INT | BOOL | STRING | Identifier) arrayCreator # creatorExpr
-    | NEW typeName=Identifier emptyParenthesisPair? # creatorExpr // class instance creation
+    | NEW typeName=Identifier emptyParenthesisPair? # creatorExpr
     | expression expressionBracketPair # subscriptExpr
     | Identifier # variableExpr
     | expression DOT Identifier # variableExpr
@@ -64,10 +63,7 @@ expression
     | expression QUESTION expression COLON expression # conditionalExpr
     | <assoc=right> expression ASSIGN expression # assignExpr
     ;
-arrayCreator
-    : expressionBracketPair+ emptyBracketPair* # emptyArrayCreator
-    | emptyBracketPair+ array # initArrayCreator
-    ;
+arrayCreator: possibleBracketPair* array?;
 array: LBRACE (expression (COMMA expression)*)? RBRACE;
 formatString
     : formatStringText+=FormatStringAtom
@@ -81,6 +77,7 @@ condition: LPAREN expression RPAREN;
 type: typeName=(INT | BOOL | STRING | Identifier) emptyBracketPair*;
 emptyBracketPair: LBRACK RBRACK;
 expressionBracketPair: LBRACK expression RBRACK;
+possibleBracketPair: LBRACK expression? RBRACK;
 emptyParenthesisPair: LPAREN RPAREN;
 
 // LEXER

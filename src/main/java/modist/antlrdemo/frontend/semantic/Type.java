@@ -36,7 +36,8 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
     }
 
     // join two types, return the common type if they match, otherwise return null
-    // null-type matches any type with dimension no less than its dimension; notice that null-type with dimension 0 cannot match primitive types
+    // null-type can match any type with higher or equal dimension
+    // specially, null-type with dimension 0 can match any non-primitive type
     @Nullable
     public Type join(Type other) {
         if (typeName == null && other.typeName == null) {
