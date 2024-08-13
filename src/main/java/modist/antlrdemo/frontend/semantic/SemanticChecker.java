@@ -2,6 +2,7 @@ package modist.antlrdemo.frontend.semantic;
 
 import modist.antlrdemo.frontend.error.SemanticException;
 import modist.antlrdemo.frontend.syntax.node.*;
+import org.jetbrains.annotations.Nullable;
 
 public class SemanticChecker {
     private Scope scope;
@@ -14,9 +15,11 @@ public class SemanticChecker {
         scope = scope.getParent();
     }
 
-    // may not use check recursively if some more complicated logic is needed
-    public void check(IAstNode node) {
+    // should not use check recursively if some more complicated logic is needed; do it manually
+    public void check(@Nullable IAstNode node) {
         switch (node) {
+            case null -> { // for convenience of null check
+            }
             case ProgramNode program -> {
                 pushScope(new GlobalScope(program));
                 program.classes.forEach(this::check);
@@ -26,9 +29,7 @@ public class SemanticChecker {
             case ArrayCreatorNode ignored -> throw new UnsupportedOperationException();
             case DeclarationNode.Class classDeclaration -> {
                 pushScope(new ChildScope(scope, classDeclaration));
-                if (classDeclaration.constructor != null) {
-                    check(classDeclaration.constructor);
-                }
+                check(classDeclaration.constructor);
                 classDeclaration.functions.forEach(this::check);
                 popScope();
             }
@@ -37,7 +38,7 @@ public class SemanticChecker {
                 functionDeclaration.body.statements.forEach(this::check); // we've already entered the function scope
                 popScope();
             }
-            case DeclarationNode.Variable ignored -> throw new UnsupportedOperationException();
+            case DeclarationNode.Variable ignored -> throw new UnsupportedOperationException(); // are treated in scope.declareVariable
             case DeclarationNode.Constructor constructorDeclaration -> {
                 pushScope(new ChildScope(scope, constructorDeclaration));
                 constructorDeclaration.body.statements.forEach(this::check); // we've already entered the function scope
@@ -51,25 +52,19 @@ public class SemanticChecker {
                 popScope();
             }
             case StatementNode.VariableDeclarations variableDeclarationsStatement ->
-                    scope.declareLocalVariables(variableDeclarationsStatement);
+                    variableDeclarationsStatement.variables.forEach(scope::declareVariable);
             case StatementNode.If ifStatement -> {
                 new ExpressionType.Builder(scope).expectType(ifStatement.condition, BuiltinFeatures.BOOL);
                 check(ifStatement.thenStatement);
-                if (ifStatement.elseStatement != null) {
-                    check(ifStatement.elseStatement);
-                }
+                check(ifStatement.elseStatement);
             }
             case StatementNode.For forStatement -> {
                 pushScope(new ChildScope(scope, forStatement));
-                if (forStatement.initialization != null) {
-                    check(forStatement.initialization);
-                }
+                check(forStatement.initialization);
                 if (forStatement.condition != null) {
                     new ExpressionType.Builder(scope).expectType(forStatement.condition, BuiltinFeatures.BOOL);
                 }
-                if (forStatement.update != null) {
-                    check(forStatement.update);
-                }
+                check(forStatement.update);
                 switch (forStatement.statement) {
                     case StatementNode.Block block ->
                             block.statements.forEach(this::check); // we've already entered the loop scope

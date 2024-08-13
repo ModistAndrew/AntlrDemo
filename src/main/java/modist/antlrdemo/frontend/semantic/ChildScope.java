@@ -21,7 +21,7 @@ public class ChildScope extends Scope {
     public ChildScope(Scope parent, DeclarationNode.Class classNode) {
         this(parent);
         classNode.functions.forEach(function -> functions.declare(new Symbol.Function(this, function)));
-        classNode.variables.forEach(variable -> variables.declare(new Symbol.Variable(this, variable)));
+        classNode.variables.forEach(this::declareVariable);
         inClass = true;
         thisType = new Type(this, classNode);
     }

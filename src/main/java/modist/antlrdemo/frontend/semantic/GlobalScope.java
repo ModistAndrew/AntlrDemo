@@ -15,7 +15,7 @@ public class GlobalScope extends Scope {
         program.classes.forEach(typeNode -> typeNames.declare(new Symbol.TypeName(typeNode)));
         program.classes.forEach(typeNode -> classes.declare(new Symbol.Class(this, typeNode)));
         program.functions.forEach(functionNode -> functions.declare(new Symbol.Function(this, functionNode)));
-        program.variables.forEach(variableNode -> variables.declare(new Symbol.Variable(this, variableNode)));
+        program.variables.forEach(this::declareVariable);
         getMainFunction(program);
     }
 

@@ -34,7 +34,7 @@ public record ExpressionType(@Nullable Type type, boolean isLValue) {
                 }
             }
             // we use null in the loop for the first time to represent the type of the first expression
-            // we return Type.NULL if the expressionNodes is empty
+            // we return Type.NULL if the expressionNodes is empty (for array creator)
             return type == null ? Type.NULL : type;
         }
 
