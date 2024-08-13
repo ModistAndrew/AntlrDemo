@@ -49,4 +49,7 @@ public abstract sealed class StatementNode extends AstNode {
     public static final class Expression extends StatementNode {
         public ExpressionNode expression;
     }
+
+    public static final class Empty extends StatementNode {
+    }
 }

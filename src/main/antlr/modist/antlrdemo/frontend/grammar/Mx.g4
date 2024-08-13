@@ -27,6 +27,7 @@ statement
     | CONTINUE SEMI # continueStmt
     | RETURN expression? SEMI # returnStmt
     | expression SEMI # expressionStmt
+    | SEMI # emptyStmt
     ;
 variableDeclarationsBody: type variableDeclarator (COMMA variableDeclarator)*;
 variableDeclarations: variableDeclarationsBody SEMI;

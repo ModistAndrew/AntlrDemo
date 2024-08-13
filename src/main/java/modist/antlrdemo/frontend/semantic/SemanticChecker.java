@@ -38,7 +38,8 @@ public class SemanticChecker {
                 functionDeclaration.body.statements.forEach(this::check); // we've already entered the function scope
                 popScope();
             }
-            case DeclarationNode.Variable ignored -> throw new UnsupportedOperationException(); // are treated in scope.declareVariable
+            case DeclarationNode.Variable ignored ->
+                    throw new UnsupportedOperationException(); // are treated in scope.declareVariable
             case DeclarationNode.Constructor constructorDeclaration -> {
                 pushScope(new ChildScope(scope, constructorDeclaration));
                 constructorDeclaration.body.statements.forEach(this::check); // we've already entered the function scope
@@ -108,6 +109,8 @@ public class SemanticChecker {
                 }
             }
             case StatementNode.Expression expressionStatement -> check(expressionStatement.expression);
+            case StatementNode.Empty ignored -> {
+            }
             case TypeNode ignored -> throw new UnsupportedOperationException();
         }
     }

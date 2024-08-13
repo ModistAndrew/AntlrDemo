@@ -138,6 +138,11 @@ public class AstBuilder implements MxVisitor<IAstNode> {
     }
 
     @Override
+    public StatementNode.Empty visitEmptyStmt(MxParser.EmptyStmtContext ctx) {
+        return withPosition(new StatementNode.Empty(), ctx);
+    }
+
+    @Override
     public IAstNode visitVariableDeclarationsBody(MxParser.VariableDeclarationsBodyContext ctx) {
         throw new UnsupportedOperationException();
     }
