@@ -57,7 +57,7 @@ public record ExpressionType(@Nullable Type type, boolean isLValue) {
         private Type getType(ExpressionNode expression, boolean checkLvalue) {
             ExpressionType expressionType = build(expression);
             if (expressionType.type == null) {
-                throw new TypeMismatchException(expressionType.type, "non-null", expression.position);
+                throw new TypeMismatchException(expressionType.type, "non-void", expression.position);
             }
             if (checkLvalue && !expressionType.isLValue) {
                 throw new SemanticException("Expression is not an lvalue", expression.position);
