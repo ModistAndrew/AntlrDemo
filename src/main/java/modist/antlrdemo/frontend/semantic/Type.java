@@ -2,6 +2,7 @@ package modist.antlrdemo.frontend.semantic;
 
 import modist.antlrdemo.frontend.syntax.node.DeclarationNode;
 import modist.antlrdemo.frontend.syntax.node.TypeNode;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
@@ -39,7 +40,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
     // null-type can match any type with higher or equal dimension
     // specially, null-type with dimension 0 can match any non-primitive type
     @Nullable
-    public Type join(Type other) {
+    public Type join(@NotNull Type other) {
         if (typeName == null && other.typeName == null) {
             return new Type(null, Math.max(dimension, other.dimension));
         }

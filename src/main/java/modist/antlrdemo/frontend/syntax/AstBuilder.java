@@ -380,11 +380,11 @@ public class AstBuilder implements MxVisitor<IAstNode> {
     }
 
     public ArrayCreatorNode visitArrayCreator(MxParser.ArrayCreatorContext ctx) {
-        @Nullable ExpressionNode.Array initializer = ctx.array() != null ? visitArray(ctx.array()) : null;
+        ExpressionNode.Array initializer = ctx.array() != null ? visitArray(ctx.array()) : null;
         boolean acceptExpression = initializer == null;
         List<ExpressionNode> dimensionLengths = new ArrayList<>();
         for (MxParser.PossibleBracketPairContext pair : ctx.possibleBracketPair()) {
-            @Nullable ExpressionNode expression = visitPossibleBracketPair(pair);
+            ExpressionNode expression = visitPossibleBracketPair(pair);
             if (expression == null) {
                 acceptExpression = false;
             } else if (acceptExpression) {

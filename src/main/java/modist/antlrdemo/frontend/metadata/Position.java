@@ -6,6 +6,6 @@ public record Position(int line, int column) {
 
     @Override
     public String toString() {
-        return line >= 0 ? String.format("%d:%d", line, column) : line == -1 ? "built-in" : "unknown";
+        return line >= 0 ? String.format("[%d:%d]", line, column) : line == -1 ? "[builtin]" : "[unknown]";
     }
 }

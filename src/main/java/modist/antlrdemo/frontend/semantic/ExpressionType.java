@@ -19,44 +19,45 @@ public record ExpressionType(@Nullable Type type, boolean isLValue) {
     }
 
     public record Builder(Scope scope) {
-        private Type getJointType(ExpressionNode... expressions) {
-            @Nullable Type type = null;
-            for (ExpressionNode expression : expressions) {
-                Type newType = getType(expression);
-                if (type == null) {
-                    type = newType;
-                } else {
-                    Type jointType = type.join(newType);
-                    if (jointType == null) {
-                        throw new TypeMismatchException(newType, type, expression.position);
-                    }
-                    type = jointType;
-                }
+        // expressions shouldn't be empty
+        @Nullable
+        private Type joinTypes(ExpressionNode... expressions) {
+            Type expectedType = getNullableType(expressions[0]);
+            for (int i = 1; i < expressions.length; i++) {
+                expectedType = joinType(expressions[i], expectedType);
             }
-            // we use null in the loop for the first time to represent the type of the first expression
-            // we return Type.NULL if the expressionNodes is empty (for array creator)
-            return type == null ? Type.NULL : type;
+            return expectedType;
         }
 
-        public Type expectType(ExpressionNode expression, Predicate<Type> predicate, String predicateDescription) {
-            Type type = getType(expression);
+        private Type testSolidType(ExpressionNode expression, Predicate<Type> predicate, String predicateDescription) {
+            Type type = getSolidType(expression); // not null for the convenience of the predicate
             if (!predicate.test(type)) {
                 throw new TypeMismatchException(type, predicateDescription, expression.position);
             }
             return type;
         }
 
-        public Type expectType(ExpressionNode expression, Type expectedType) {
-            Type type = getType(expression);
-            if (expectedType.join(type) == null) {
+        // won't return null if expectedType is not null
+        @Nullable
+        public Type joinType(ExpressionNode expression, @Nullable Type expectedType) {
+            Type type = getNullableType(expression);
+            if (expectedType == null || type == null) {
+                if (expectedType != null || type != null) {
+                    throw new TypeMismatchException(type, expectedType, expression.position);
+                }
+                return null;
+            }
+            Type jointType = expectedType.join(type);
+            if (jointType == null) {
                 throw new TypeMismatchException(type, expectedType, expression.position);
             }
-            return type;
+            return jointType;
         }
 
-        private Type getType(ExpressionNode expression, boolean checkLvalue) {
+        @Nullable
+        private Type getType(ExpressionNode expression, boolean checkLvalue, boolean checkNull) {
             ExpressionType expressionType = build(expression);
-            if (expressionType.type == null) {
+            if (checkNull && expressionType.type == null) {
                 throw new TypeMismatchException(expressionType.type, "non-void", expression.position);
             }
             if (checkLvalue && !expressionType.isLValue) {
@@ -65,8 +66,17 @@ public record ExpressionType(@Nullable Type type, boolean isLValue) {
             return expressionType.type;
         }
 
-        private Type getType(ExpressionNode expression) {
-            return getType(expression, false);
+        private Type getLvalueType(ExpressionNode expression) {
+            return getType(expression, true, true);
+        }
+
+        private Type getSolidType(ExpressionNode expression) {
+            return getType(expression, false, true);
+        }
+
+        @Nullable
+        private Type getNullableType(ExpressionNode expression) {
+            return getType(expression, false, false);
         }
 
         @Nullable
@@ -105,10 +115,15 @@ public record ExpressionType(@Nullable Type type, boolean isLValue) {
                     case LiteralEnum.Str ignored -> new ExpressionType(BuiltinFeatures.STRING);
                     case LiteralEnum.Null ignored -> new ExpressionType(Type.NULL);
                 };
-                case Array array ->
-                        new ExpressionType(getJointType(array.elements.toArray(ExpressionNode[]::new)).increaseDimension());
+                case Array array -> {
+                    Type elementType = array.elements.isEmpty() ? Type.NULL : joinTypes(array.elements.toArray(ExpressionNode[]::new));
+                    if (elementType == null) {
+                        throw new TypeMismatchException(elementType, "non-void", expression.position);
+                    }
+                    yield new ExpressionType(elementType.increaseDimension());
+                }
                 case FormatString formatString -> {
-                    formatString.expressions.forEach(child -> expectType(child, Type::isPrimitive, "primitive"));
+                    formatString.expressions.forEach(child -> testSolidType(child, Type::isPrimitive, "primitive"));
                     yield new ExpressionType(BuiltinFeatures.STRING);
                 }
                 case Creator creator -> {
@@ -116,47 +131,47 @@ public record ExpressionType(@Nullable Type type, boolean isLValue) {
                     yield switch (creator.arrayCreator) {
                         case null -> new ExpressionType(new Type(typeName));
                         case ArrayCreatorNode.Empty empty -> {
-                            empty.dimensionLengths.forEach(child -> expectType(child, BuiltinFeatures.INT));
+                            empty.dimensionLengths.forEach(child -> joinType(child, BuiltinFeatures.INT));
                             yield new ExpressionType(new Type(typeName, empty.dimensionLengths.size() + empty.emptyDimension));
                         }
                         case ArrayCreatorNode.Init init ->
-                                new ExpressionType(expectType(init.initializer, new Type(typeName, init.dimension)));
+                                new ExpressionType(joinType(init.initializer, new Type(typeName, init.dimension)));
                     };
                 }
                 case Subscript subscript -> {
-                    expectType(subscript.index, BuiltinFeatures.INT);
-                    yield new ExpressionType(expectType(subscript.expression, Type::isArray, "array").decreaseDimension(), true);
+                    joinType(subscript.index, BuiltinFeatures.INT);
+                    yield new ExpressionType(testSolidType(subscript.expression, Type::isArray, "array").decreaseDimension(), true);
                 }
                 case Variable variable ->
                         variable.expression == null ? new ExpressionType(scope.resolveVariable(variable.name, expression.position).type, true) :
-                                new ExpressionType(scope.getClass(getType(variable.expression)).variables.resolve(variable.name, expression.position).type, true);
+                                new ExpressionType(scope.getClass(getSolidType(variable.expression)).variables.resolve(variable.name, expression.position).type, true);
                 case Function function -> {
                     Symbol.Function functionSymbol = function.expression == null ?
                             scope.resolveFunction(function.name, expression.position) :
-                            scope.getClass(getType(function.expression)).functions.resolve(function.name, expression.position);
+                            scope.getClass(getSolidType(function.expression)).functions.resolve(function.name, expression.position);
                     if (functionSymbol.parameters.size() != function.arguments.size()) {
                         throw new SemanticException(String.format("Function '%s' expects %d arguments, but %d given",
                                 function.name, functionSymbol.parameters.size(), function.arguments.size()), expression.position);
                     }
                     for (int i = 0; i < function.arguments.size(); i++) {
-                        expectType(function.arguments.get(i), functionSymbol.parameters.get(i).type);
+                        joinType(function.arguments.get(i), functionSymbol.parameters.get(i).type);
                     }
                     yield new ExpressionType(functionSymbol.returnType);
                 }
                 case PostUnaryAssign postUnaryAssign ->
-                        new ExpressionType(testOperator(getType(postUnaryAssign.expression, true), postUnaryAssign.operator, expression.position));
+                        new ExpressionType(testOperator(getLvalueType(postUnaryAssign.expression), postUnaryAssign.operator, expression.position));
                 case PreUnaryAssign preUnaryAssign ->
-                        new ExpressionType(testOperator(getType(preUnaryAssign.expression, true), preUnaryAssign.operator, expression.position), true);
+                        new ExpressionType(testOperator(getLvalueType(preUnaryAssign.expression), preUnaryAssign.operator, expression.position), true);
                 case PreUnary preUnary ->
-                        new ExpressionType(testOperator(getType(preUnary.expression), preUnary.operator, expression.position));
+                        new ExpressionType(testOperator(getSolidType(preUnary.expression), preUnary.operator, expression.position));
                 case Binary binary ->
-                        new ExpressionType(testOperator(getJointType(binary.leftExpression, binary.rightExpression), binary.operator, expression.position));
+                        new ExpressionType(testOperator(joinType(binary.rightExpression, getSolidType(binary.leftExpression)), binary.operator, expression.position));
                 case Conditional conditional -> {
-                    expectType(conditional.condition, BuiltinFeatures.BOOL);
-                    yield new ExpressionType(getJointType(conditional.trueExpression, conditional.falseExpression));
+                    joinType(conditional.condition, BuiltinFeatures.BOOL);
+                    yield new ExpressionType(joinTypes(conditional.falseExpression, conditional.trueExpression));
                 }
                 case Assign assign -> {
-                    expectType(assign.rightExpression, getType(assign.leftExpression, true));
+                    joinType(assign.rightExpression, getLvalueType(assign.leftExpression));
                     yield new ExpressionType(null);
                 }
             };

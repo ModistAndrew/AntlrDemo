@@ -55,7 +55,7 @@ public class SemanticChecker {
             case StatementNode.VariableDeclarations variableDeclarationsStatement ->
                     variableDeclarationsStatement.variables.forEach(scope::declareVariable);
             case StatementNode.If ifStatement -> {
-                new ExpressionType.Builder(scope).expectType(ifStatement.condition, BuiltinFeatures.BOOL);
+                new ExpressionType.Builder(scope).joinType(ifStatement.condition, BuiltinFeatures.BOOL);
                 check(ifStatement.thenStatement);
                 check(ifStatement.elseStatement);
             }
@@ -63,7 +63,7 @@ public class SemanticChecker {
                 pushScope(new ChildScope(scope, forStatement));
                 check(forStatement.initialization);
                 if (forStatement.condition != null) {
-                    new ExpressionType.Builder(scope).expectType(forStatement.condition, BuiltinFeatures.BOOL);
+                    new ExpressionType.Builder(scope).joinType(forStatement.condition, BuiltinFeatures.BOOL);
                 }
                 check(forStatement.update);
                 switch (forStatement.statement) {
@@ -74,7 +74,7 @@ public class SemanticChecker {
                 popScope();
             }
             case StatementNode.While whileStatement -> {
-                new ExpressionType.Builder(scope).expectType(whileStatement.condition, BuiltinFeatures.BOOL);
+                new ExpressionType.Builder(scope).joinType(whileStatement.condition, BuiltinFeatures.BOOL);
                 pushScope(new ChildScope(scope, whileStatement));
                 switch (whileStatement.statement) {
                     case StatementNode.Block block ->
@@ -105,7 +105,7 @@ public class SemanticChecker {
                         throw new SemanticException("should return a value", node.getPosition());
                     }
                 } else {
-                    new ExpressionType.Builder(scope).expectType(returnStatement.expression, scope.returnType);
+                    new ExpressionType.Builder(scope).joinType(returnStatement.expression, scope.returnType);
                 }
             }
             case StatementNode.Expression expressionStatement -> check(expressionStatement.expression);
