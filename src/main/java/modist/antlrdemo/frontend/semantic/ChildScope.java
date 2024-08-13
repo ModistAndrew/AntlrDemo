@@ -75,9 +75,6 @@ public sealed class ChildScope extends Scope {
     public static final class Loop extends ChildScope {
         public Loop(Scope parent, StatementNode.For forNode) {
             super(parent);
-            if (forNode.initialization instanceof StatementNode.VariableDeclarations variableDeclarations) {
-                declareLocalVariables(variableDeclarations);
-            }
         }
 
         public Loop(Scope parent, StatementNode.While whileNode) {

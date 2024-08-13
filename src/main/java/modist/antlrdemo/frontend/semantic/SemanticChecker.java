@@ -43,7 +43,7 @@ public class SemanticChecker {
                 popScope();
             }
             case DeclarationNode.Parameter ignored -> throw new UnsupportedOperationException();
-            case ExpressionNode ignored -> throw new UnsupportedOperationException();
+            case ExpressionNode expression -> new ExpressionType.Builder(scope).build(expression); // for simple check
             case StatementNode.Block blockStatement -> blockStatement.statements.forEach(this::check);
             case StatementNode.VariableDeclarations variableDeclarationsStatement ->
                     scope.declareLocalVariables(variableDeclarationsStatement);
@@ -63,7 +63,7 @@ public class SemanticChecker {
                     new ExpressionType.Builder(scope).expectType(forStatement.condition, BuiltinFeatures.BOOL);
                 }
                 if (forStatement.update != null) {
-                    new ExpressionType.Builder(scope).build(forStatement.update);
+                    check(forStatement.update);
                 }
                 check(forStatement.statement);
             }
@@ -101,7 +101,7 @@ public class SemanticChecker {
                     throw new SemanticException("return statement not in function", node.getPosition());
                 }
             }
-            case StatementNode.Expression expressionStatement -> new ExpressionType.Builder(scope).build(expressionStatement.expression);
+            case StatementNode.Expression expressionStatement -> check(expressionStatement.expression);
             case TypeNode ignored -> throw new UnsupportedOperationException();
         }
     }
