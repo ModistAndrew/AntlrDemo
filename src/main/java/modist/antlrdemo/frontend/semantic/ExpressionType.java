@@ -146,7 +146,7 @@ public record ExpressionType(@Nullable Type type, boolean isLValue) {
                 case PostUnaryAssign postUnaryAssign ->
                         new ExpressionType(testOperator(getType(postUnaryAssign.expression, true), postUnaryAssign.operator, expression.position));
                 case PreUnaryAssign preUnaryAssign ->
-                        new ExpressionType(testOperator(getType(preUnaryAssign.expression, true), preUnaryAssign.operator, expression.position));
+                        new ExpressionType(testOperator(getType(preUnaryAssign.expression, true), preUnaryAssign.operator, expression.position), true);
                 case PreUnary preUnary ->
                         new ExpressionType(testOperator(getType(preUnary.expression), preUnary.operator, expression.position));
                 case Binary binary ->
