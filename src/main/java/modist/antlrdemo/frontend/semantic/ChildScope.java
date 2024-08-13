@@ -20,8 +20,8 @@ public sealed class ChildScope extends Scope {
     }
 
     @Override
-    public Symbol.Class resolveClass(String name, Position position) {
-        return globalScope.resolveClass(name, position);
+    public Symbol.Class getClass(Type type) {
+        return globalScope.getClass(type);
     }
 
     @Override

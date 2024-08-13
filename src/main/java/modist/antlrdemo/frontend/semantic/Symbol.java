@@ -52,9 +52,10 @@ public abstract sealed class Symbol {
     }
 
     public static final class Function extends Symbol {
+        // we shouldn't use Type.NULL here because we need to distinguish between a function that returns nothing and a function that returns null
         @Nullable
         public final Type returnType;
-        public final SymbolTable<Variable> parameters = new SymbolTable<>();
+        public final SymbolTable.Ordered<Variable> parameters = new SymbolTable.Ordered<>();
 
         public Function(Scope scope, DeclarationNode.Function declaration) {
             super(declaration);
@@ -95,15 +96,19 @@ public abstract sealed class Symbol {
         }
     }
 
+    // we need to first declare the type before we can use it in other symbols. every type corresponds to a class
     public static final class TypeName extends Symbol {
-        // we need to first declare the type before we can use it in other symbols. every type corresponds to a class
+        // primitive types are built-in and are not pointers
+        public final boolean primitive;
         public TypeName(DeclarationNode.Class declaration) {
             super(declaration);
+            this.primitive = false;
         }
 
         // for built-in
         public TypeName(String name) {
             super(name);
+            this.primitive = true;
         }
     }
 }

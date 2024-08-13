@@ -246,7 +246,7 @@ public class AstBuilder implements MxVisitor<IAstNode> {
     @Override
     public ExpressionNode.Creator visitCreatorExpr(MxParser.CreatorExprContext ctx) {
         ExpressionNode.Creator creatorNode = withPosition(new ExpressionNode.Creator(), ctx);
-        creatorNode.typeName = extractTypeName(ctx.typeName());
+        creatorNode.typeName = ctx.typeName.getText();
         creatorNode.arrayCreator = ctx.arrayCreator() != null ? this.visitArrayCreator(ctx.arrayCreator()) : null;
         return creatorNode;
     }
@@ -324,18 +324,9 @@ public class AstBuilder implements MxVisitor<IAstNode> {
     @Override
     public TypeNode visitType(MxParser.TypeContext ctx) {
         TypeNode typeNode = withPosition(new TypeNode(), ctx);
-        typeNode.typeName = extractTypeName(ctx.typeName());
+        typeNode.typeName = ctx.typeName.getText();
         typeNode.dimension = ctx.emptyBracketPair().size();
         return typeNode;
-    }
-
-    @Override
-    public IAstNode visitTypeName(MxParser.TypeNameContext ctx) {
-        throw new UnsupportedOperationException();
-    }
-
-    public String extractTypeName(MxParser.TypeNameContext ctx) {
-        return ctx.start.getText();
     }
 
     @Override

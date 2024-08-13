@@ -9,7 +9,7 @@ public abstract sealed class Scope permits ChildScope, GlobalScope {
 
     protected abstract GlobalScope getGlobalScope();
 
-    public abstract Symbol.Class resolveClass(String name, Position position);
+    public abstract Symbol.Class getClass(Type type);
 
     public abstract Symbol.Function resolveFunction(String name, Position position);
 

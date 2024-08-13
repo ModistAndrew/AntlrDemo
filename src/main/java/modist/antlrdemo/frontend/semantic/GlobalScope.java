@@ -7,7 +7,8 @@ import modist.antlrdemo.frontend.syntax.node.ProgramNode;
 public final class GlobalScope extends Scope {
     private final SymbolTable<Symbol.TypeName> typeNames = new SymbolTable<>();
     private final SymbolTable<Symbol.Class> classes = new SymbolTable<>();
-    private final SymbolTable<Symbol.Function> arrayFunctions = new SymbolTable<>(); // array functions are stored in a separate table as they are not associated with any class
+    private final Symbol.Class arrayClass = BuiltinFeatures.ARRAY_CLASS; // a virtual class for arrays
+    private final Symbol.Class nullClass = BuiltinFeatures.NULL_CLASS; // a virtual class for null
     private final Symbol.Function mainFunction;
 
     public GlobalScope(ProgramNode program) {
@@ -20,9 +21,9 @@ public final class GlobalScope extends Scope {
     }
 
     private void addBuiltInFeatures() {
-        typeNames.declare(BuiltinFeatures.INT);
-        typeNames.declare(BuiltinFeatures.BOOL);
-        typeNames.declare(BuiltinFeatures.STRING);
+        typeNames.declare(BuiltinFeatures.INT_TYPE_NAME);
+        typeNames.declare(BuiltinFeatures.BOOL_TYPE_NAME);
+        typeNames.declare(BuiltinFeatures.STRING_TYPE_NAME);
         classes.declare(BuiltinFeatures.INT_CLASS);
         classes.declare(BuiltinFeatures.BOOL_CLASS);
         classes.declare(BuiltinFeatures.STRING_CLASS);
@@ -33,7 +34,6 @@ public final class GlobalScope extends Scope {
         functions.declare(BuiltinFeatures.GET_STRING);
         functions.declare(BuiltinFeatures.GET_INT);
         functions.declare(BuiltinFeatures.TO_STRING);
-        arrayFunctions.declare(BuiltinFeatures.ARRAY_SIZE);
     }
 
     private Symbol.Function getMainFunction(ProgramNode program) {
@@ -41,7 +41,7 @@ public final class GlobalScope extends Scope {
             throw new SemanticException("Main function not found", program.position);
         }
         Symbol.Function mainFunction = functions.get("main");
-        if (!BuiltinFeatures.INT_TYPE.equals(mainFunction.returnType)) {
+        if (!BuiltinFeatures.INT.equals(mainFunction.returnType)) {
             throw new SemanticException("Main function must return int", mainFunction.position);
         }
         if (mainFunction.parameters.size() != 0) {
@@ -56,8 +56,14 @@ public final class GlobalScope extends Scope {
     }
 
     @Override
-    public Symbol.Class resolveClass(String name, Position position) {
-        return classes.resolve(name, position);
+    public Symbol.Class getClass(Type type) {
+        if (type.isArray()) {
+            return arrayClass;
+        }
+        if (type.typeName() == null) {
+            return nullClass;
+        }
+        return classes.get(type.typeName().name);
     }
 
     @Override

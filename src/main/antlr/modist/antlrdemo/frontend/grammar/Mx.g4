@@ -41,7 +41,8 @@ expression
     | literal # literalExpr
     | array # arrayExpr
     | formatString # formatStringExpr
-    | NEW typeName (arrayCreator | emptyParenthesisPair)? # creatorExpr
+    | NEW typeName=(INT | BOOL | STRING | Identifier) arrayCreator # creatorExpr
+    | NEW typeName=Identifier emptyParenthesisPair? # creatorExpr // class instance creation
     | expression expressionBracketPair # subscriptExpr
     | Identifier # variableExpr
     | expression DOT Identifier # variableExpr
@@ -91,8 +92,7 @@ argumentList: LPAREN (expression (COMMA expression)*)? RPAREN;
 condition: LPAREN expression RPAREN;
 
 // type
-type: typeName emptyBracketPair*;
-typeName: INT | BOOL | STRING | Identifier;
+type: typeName=(INT | BOOL | STRING | Identifier) emptyBracketPair*;
 emptyBracketPair: LBRACK RBRACK;
 expressionBracketPair: LBRACK expression RBRACK;
 emptyParenthesisPair: LPAREN RPAREN;
