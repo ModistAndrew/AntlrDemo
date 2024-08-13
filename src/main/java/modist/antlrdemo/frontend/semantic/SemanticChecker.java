@@ -66,6 +66,7 @@ public class SemanticChecker {
                     check(forStatement.update);
                 }
                 check(forStatement.statement);
+                popScope();
             }
             case StatementNode.While whileStatement -> {
                 new ExpressionType.Builder(scope).expectType(whileStatement.condition, BuiltinFeatures.BOOL);
@@ -74,16 +75,14 @@ public class SemanticChecker {
                 popScope();
             }
             case StatementNode.Break ignored -> {
-                if (scope instanceof ChildScope.Loop) {
-                    return;
+                if (!(scope instanceof ChildScope.Loop)) {
+                    throw new SemanticException("break statement not in loop", node.getPosition());
                 }
-                throw new SemanticException("break statement not in loop", node.getPosition());
             }
             case StatementNode.Continue ignored -> {
-                if (scope instanceof ChildScope.Loop) {
-                    return;
+                if (!(scope instanceof ChildScope.Loop)) {
+                    throw new SemanticException("continue statement not in loop", node.getPosition());
                 }
-                throw new SemanticException("continue statement not in loop", node.getPosition());
             }
             case StatementNode.Return returnStatement -> {
                 if (scope instanceof ChildScope.Function functionScope) {
