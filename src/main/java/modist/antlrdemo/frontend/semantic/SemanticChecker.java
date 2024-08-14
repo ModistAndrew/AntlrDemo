@@ -46,11 +46,18 @@ public class SemanticChecker {
                 blockStatement.statements.forEach(this::check);
                 popScope();
             }
-            case StatementNode.VariableDeclarations variableDeclarationsStatement -> variableDeclarationsStatement.variables.forEach(this::check);
+            case StatementNode.VariableDeclarations variableDeclarationsStatement ->
+                    variableDeclarationsStatement.variables.forEach(this::check);
             case StatementNode.If ifStatement -> {
                 new ExpressionType.Builder(scope).joinType(ifStatement.condition, BuiltinFeatures.BOOL);
-                check(ifStatement.thenStatement);
-                check(ifStatement.elseStatement);
+                pushScope(new ChildScope(scope, ifStatement));
+                ifStatement.thenStatements.forEach(this::check);
+                popScope();
+                if (ifStatement.elseStatements != null) {
+                    pushScope(new ChildScope(scope, ifStatement));
+                    ifStatement.elseStatements.forEach(this::check);
+                    popScope();
+                }
             }
             case StatementNode.For forStatement -> {
                 pushScope(new ChildScope(scope, forStatement));
@@ -82,12 +89,9 @@ public class SemanticChecker {
                 if (!scope.inFunction) {
                     throw new SemanticException("return statement not in function", node.getPosition());
                 }
-                if (returnStatement.expression == null || scope.returnType == null) {
-                    if (returnStatement.expression != null) {
-                        throw new SemanticException("should not return a value", node.getPosition());
-                    }
+                if (returnStatement.expression == null) {
                     if (scope.returnType != null) {
-                        throw new SemanticException("should return a value", node.getPosition());
+                        throw new SemanticException("return statement without expression in non-void function", node.getPosition());
                     }
                 } else {
                     new ExpressionType.Builder(scope).joinType(returnStatement.expression, scope.returnType);

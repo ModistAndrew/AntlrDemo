@@ -98,8 +98,8 @@ public class AstBuilder implements MxVisitor<IAstNode> {
     public StatementNode.If visitIfStmt(MxParser.IfStmtContext ctx) {
         StatementNode.If ifNode = withPosition(new StatementNode.If(), ctx);
         ifNode.condition = visitCondition(ctx.condition());
-        ifNode.thenStatement = visitStatement(ctx.ifThenStmt);
-        ifNode.elseStatement = ctx.ifElseStmt != null ? this.visitStatement(ctx.ifElseStmt) : null;
+        ifNode.thenStatements = getStatementList(ctx.ifThenStmt);
+        ifNode.elseStatements = ctx.ifElseStmt != null ? this.getStatementList(ctx.ifElseStmt) : null;
         return ifNode;
     }
 
@@ -109,10 +109,7 @@ public class AstBuilder implements MxVisitor<IAstNode> {
         forNode.initialization = ctx.forInit != null ? this.visitForInitialization(ctx.forInit) : null;
         forNode.condition = ctx.forCondition != null ? this.visitExpression(ctx.forCondition) : null;
         forNode.update = ctx.forUpdate != null ? this.visitExpression(ctx.forUpdate) : null;
-        forNode.statements = switch (visitStatement(ctx.statement())) {
-            case StatementNode.Block block -> block.statements;
-            case StatementNode s -> List.of(s);
-        };
+        forNode.statements = getStatementList(ctx.statement());
         return forNode;
     }
 
@@ -120,10 +117,7 @@ public class AstBuilder implements MxVisitor<IAstNode> {
     public StatementNode.While visitWhileStmt(MxParser.WhileStmtContext ctx) {
         StatementNode.While whileNode = withPosition(new StatementNode.While(), ctx);
         whileNode.condition = visitCondition(ctx.condition());
-        whileNode.statements = switch (visitStatement(ctx.statement())) {
-            case StatementNode.Block block -> block.statements;
-            case StatementNode s -> List.of(s);
-        };
+        whileNode.statements = getStatementList(ctx.statement());
         return whileNode;
     }
 
@@ -237,7 +231,7 @@ public class AstBuilder implements MxVisitor<IAstNode> {
         ExpressionNode.Function functionNode = withPosition(new ExpressionNode.Function(), ctx);
         functionNode.expression = ctx.expression() != null ? this.visitExpression(ctx.expression()) : null;
         functionNode.name = ctx.Identifier().getText();
-        functionNode.arguments = extractArgumentList(ctx.argumentList());
+        functionNode.arguments = getArgumentList(ctx.argumentList());
         return functionNode;
     }
 
@@ -319,7 +313,7 @@ public class AstBuilder implements MxVisitor<IAstNode> {
         throw new UnsupportedOperationException();
     }
 
-    public List<ExpressionNode> extractArgumentList(MxParser.ArgumentListContext ctx) {
+    public List<ExpressionNode> getArgumentList(MxParser.ArgumentListContext ctx) {
         return ctx.expression().stream().map(this::visitExpression).toList();
     }
 
@@ -381,6 +375,13 @@ public class AstBuilder implements MxVisitor<IAstNode> {
 
     public StatementNode visitStatement(MxParser.StatementContext ctx) {
         return (StatementNode) visit(ctx);
+    }
+
+    public List<StatementNode> getStatementList(MxParser.StatementContext ctx) {
+        return switch (visitStatement(ctx)) {
+            case StatementNode.Block block -> block.statements;
+            case StatementNode s -> List.of(s);
+        };
     }
 
     public ExpressionNode visitExpression(MxParser.ExpressionContext ctx) {

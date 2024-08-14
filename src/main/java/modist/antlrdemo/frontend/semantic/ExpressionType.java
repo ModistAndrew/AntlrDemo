@@ -8,10 +8,8 @@ import modist.antlrdemo.frontend.metadata.Position;
 import modist.antlrdemo.frontend.syntax.node.ArrayCreatorNode;
 import modist.antlrdemo.frontend.syntax.node.ExpressionNode;
 import modist.antlrdemo.frontend.syntax.node.ExpressionNode.*;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
 import java.util.function.Predicate;
 
 public record ExpressionType(@Nullable Type type, boolean isLValue) {
@@ -82,10 +80,10 @@ public record ExpressionType(@Nullable Type type, boolean isLValue) {
         }
 
         @Nullable
-        private Type getOperationResult(@NotNull Type type, Operator op) {
-            boolean isBool = BuiltinFeatures.BOOL.equals(type);
-            boolean isInt = BuiltinFeatures.INT.equals(type);
-            boolean isString = BuiltinFeatures.STRING.equals(type);
+        private Type getOperationResult(Type type, Operator op) {
+            boolean isBool = type.equals(BuiltinFeatures.BOOL);
+            boolean isInt = type.equals(BuiltinFeatures.INT);
+            boolean isString = type.equals(BuiltinFeatures.STRING);
             return switch (op) {
                 case EQ, NE -> BuiltinFeatures.BOOL;
                 case ADD -> isInt || isString ? type : null;
@@ -96,7 +94,6 @@ public record ExpressionType(@Nullable Type type, boolean isLValue) {
         }
 
         private Type testOperator(Type type, Operator op, Position position) {
-            Objects.requireNonNull(type);
             Type result = getOperationResult(type, op);
             if (result == null) {
                 throw new SemanticException(String.format("Operator '%s' cannot be applied to type '%s'", op, type), position);

@@ -15,9 +15,9 @@ public abstract sealed class StatementNode extends AstNode {
 
     public static final class If extends StatementNode {
         public ExpressionNode condition;
-        public StatementNode thenStatement;
+        public List<StatementNode> thenStatements;
         @Nullable
-        public StatementNode elseStatement;
+        public List<StatementNode> elseStatements;
     }
 
     public static final class For extends StatementNode {

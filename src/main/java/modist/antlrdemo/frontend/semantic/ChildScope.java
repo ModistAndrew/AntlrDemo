@@ -46,6 +46,10 @@ public class ChildScope extends Scope {
         this(parent);
     }
 
+    public ChildScope(Scope parent, StatementNode.If ifNode) {
+        this(parent);
+    }
+
     @Override
     protected GlobalScope getGlobalScope() {
         return globalScope;
