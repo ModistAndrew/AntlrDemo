@@ -20,7 +20,7 @@ public class ChildScope extends Scope {
 
     public ChildScope(Scope parent, DeclarationNode.Class classNode) {
         this(parent);
-        classNode.functions.forEach(function -> functions.declare(new Symbol.Function(this, function)));
+        classNode.functions.forEach(this::declareFunction);
         inClass = true;
         thisType = new Type(this, classNode);
     }
@@ -53,6 +53,11 @@ public class ChildScope extends Scope {
     @Override
     protected GlobalScope getGlobalScope() {
         return globalScope;
+    }
+
+    @Override
+    protected Symbol.TypeName getTypeName(String name) {
+        return globalScope.getTypeName(name);
     }
 
     @Override

@@ -15,7 +15,7 @@ public class GlobalScope extends Scope {
         addBuiltInFeatures();
         program.classes.forEach(typeNode -> typeNames.declare(new Symbol.TypeName(typeNode)));
         program.classes.forEach(typeNode -> classes.declare(new Symbol.Class(this, typeNode)));
-        program.functions.forEach(functionNode -> functions.declare(new Symbol.Function(this, functionNode)));
+        program.functions.forEach(this::declareFunction);
         getMainFunction(program);
     }
 
@@ -51,6 +51,11 @@ public class GlobalScope extends Scope {
     @Override
     protected GlobalScope getGlobalScope() {
         return this;
+    }
+
+    @Override
+    protected Symbol.TypeName getTypeName(String name) {
+        return typeNames.get(name);
     }
 
     @Override
