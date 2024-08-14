@@ -63,11 +63,6 @@ public abstract sealed class Symbol {
             declaration.parameters.forEach(parameter -> parameters.declare(new Variable(scope, parameter)));
         }
 
-        public Function(Scope scope, DeclarationNode.Constructor declaration) {
-            super(declaration);
-            this.returnType = null;
-        }
-
         // for built-in
         public Function(String name, @Nullable Type returnType, Variable[] parameters) {
             super(name);
@@ -80,11 +75,6 @@ public abstract sealed class Symbol {
         public final Type type;
 
         public Variable(Scope scope, DeclarationNode.Variable declaration) {
-            super(declaration);
-            this.type = new Type(scope, declaration.type);
-        }
-
-        public Variable(Scope scope, DeclarationNode.Parameter declaration) {
             super(declaration);
             this.type = new Type(scope, declaration.type);
         }

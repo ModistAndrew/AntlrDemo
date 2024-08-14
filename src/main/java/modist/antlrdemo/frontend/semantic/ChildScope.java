@@ -21,25 +21,17 @@ public class ChildScope extends Scope {
     public ChildScope(Scope parent, DeclarationNode.Class classNode) {
         this(parent);
         classNode.functions.forEach(function -> functions.declare(new Symbol.Function(this, function)));
-        classNode.variables.forEach(this::declareVariable);
         inClass = true;
         thisType = new Type(this, classNode);
     }
 
     public ChildScope(Scope parent, DeclarationNode.Function functionNode) {
         this(parent);
-        functionNode.parameters.forEach(parameter -> variables.declare(new Symbol.Variable(this, parameter)));
         inFunction = true;
         returnType = functionNode.returnType != null ? new Type(this, functionNode.returnType) : null;
     }
 
-    public ChildScope(Scope parent, DeclarationNode.Constructor constructorNode) {
-        this(parent);
-        inFunction = true;
-        returnType = null;
-    }
-
-    // you should add for initialization manually via declareLocalVariables
+    // you should add local variables manually
     public ChildScope(Scope parent, StatementNode.For forNode) {
         this(parent);
         inLoop = true;

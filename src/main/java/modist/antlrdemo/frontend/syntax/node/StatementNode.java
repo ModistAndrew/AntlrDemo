@@ -27,12 +27,12 @@ public abstract sealed class StatementNode extends AstNode {
         public ExpressionNode condition;
         @Nullable
         public ExpressionNode update;
-        public StatementNode statement;
+        public List<StatementNode> statements;
     }
 
     public static final class While extends StatementNode {
         public ExpressionNode condition;
-        public StatementNode statement;
+        public List<StatementNode> statements;
     }
 
     public static final class Break extends StatementNode {

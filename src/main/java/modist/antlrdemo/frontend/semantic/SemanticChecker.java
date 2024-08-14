@@ -22,38 +22,31 @@ public class SemanticChecker {
             }
             case ProgramNode program -> {
                 pushScope(new GlobalScope(program));
-                program.classes.forEach(this::check);
-                program.functions.forEach(this::check);
+                program.declarations.forEach(this::check);
                 popScope();
             }
             case ArrayCreatorNode ignored -> throw new UnsupportedOperationException();
             case DeclarationNode.Class classDeclaration -> {
                 pushScope(new ChildScope(scope, classDeclaration));
+                classDeclaration.variables.forEach(this::check);
                 check(classDeclaration.constructor);
                 classDeclaration.functions.forEach(this::check);
                 popScope();
             }
             case DeclarationNode.Function functionDeclaration -> {
                 pushScope(new ChildScope(scope, functionDeclaration));
-                functionDeclaration.body.statements.forEach(this::check); // we've already entered the function scope
+                functionDeclaration.parameters.forEach(this::check);
+                functionDeclaration.body.forEach(this::check);
                 popScope();
             }
-            case DeclarationNode.Variable ignored ->
-                    throw new UnsupportedOperationException(); // are treated in scope.declareVariable
-            case DeclarationNode.Constructor constructorDeclaration -> {
-                pushScope(new ChildScope(scope, constructorDeclaration));
-                constructorDeclaration.body.statements.forEach(this::check); // we've already entered the function scope
-                popScope();
-            }
-            case DeclarationNode.Parameter ignored -> throw new UnsupportedOperationException();
+            case DeclarationNode.Variable variableDeclaration -> scope.declareVariable(variableDeclaration);
             case ExpressionNode expression -> new ExpressionType.Builder(scope).build(expression);
             case StatementNode.Block blockStatement -> {
                 pushScope(new ChildScope(scope, blockStatement));
                 blockStatement.statements.forEach(this::check);
                 popScope();
             }
-            case StatementNode.VariableDeclarations variableDeclarationsStatement ->
-                    variableDeclarationsStatement.variables.forEach(scope::declareVariable);
+            case StatementNode.VariableDeclarations variableDeclarationsStatement -> variableDeclarationsStatement.variables.forEach(this::check);
             case StatementNode.If ifStatement -> {
                 new ExpressionType.Builder(scope).joinType(ifStatement.condition, BuiltinFeatures.BOOL);
                 check(ifStatement.thenStatement);
@@ -66,21 +59,13 @@ public class SemanticChecker {
                     new ExpressionType.Builder(scope).joinType(forStatement.condition, BuiltinFeatures.BOOL);
                 }
                 check(forStatement.update);
-                switch (forStatement.statement) {
-                    case StatementNode.Block block ->
-                            block.statements.forEach(this::check); // we've already entered the loop scope
-                    default -> check(forStatement.statement);
-                }
+                forStatement.statements.forEach(this::check);
                 popScope();
             }
             case StatementNode.While whileStatement -> {
                 new ExpressionType.Builder(scope).joinType(whileStatement.condition, BuiltinFeatures.BOOL);
                 pushScope(new ChildScope(scope, whileStatement));
-                switch (whileStatement.statement) {
-                    case StatementNode.Block block ->
-                            block.statements.forEach(this::check); // we've already entered the loop scope
-                    default -> check(whileStatement.statement);
-                }
+                whileStatement.statements.forEach(this::check);
                 popScope();
             }
             case StatementNode.Break ignored -> {

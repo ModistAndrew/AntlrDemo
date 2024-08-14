@@ -10,12 +10,12 @@ public class GlobalScope extends Scope {
     private final Symbol.Class arrayClass = BuiltinFeatures.ARRAY_CLASS; // a virtual class for arrays
     private final Symbol.Class nullClass = BuiltinFeatures.NULL_CLASS; // a virtual class for null
 
+    // you should add global variables manually
     public GlobalScope(ProgramNode program) {
         addBuiltInFeatures();
         program.classes.forEach(typeNode -> typeNames.declare(new Symbol.TypeName(typeNode)));
         program.classes.forEach(typeNode -> classes.declare(new Symbol.Class(this, typeNode)));
         program.functions.forEach(functionNode -> functions.declare(new Symbol.Function(this, functionNode)));
-        program.variables.forEach(this::declareVariable);
         getMainFunction(program);
     }
 

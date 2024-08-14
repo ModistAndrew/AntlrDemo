@@ -14,14 +14,20 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class AstBuilder implements MxVisitor<IAstNode> {
     @Override
     public ProgramNode visitProgram(MxParser.ProgramContext ctx) {
         ProgramNode programNode = withPosition(new ProgramNode(), ctx);
         programNode.classes = ctx.classDeclaration().stream().map(this::visitClassDeclaration).toList();
-        programNode.variables = ctx.variableDeclarations().stream().map(this::extractVariableDeclarations).flatMap(List::stream).toList();
         programNode.functions = ctx.functionDeclaration().stream().map(this::visitFunctionDeclaration).toList();
+        programNode.declarations = ctx.children.stream().map(this::visit)
+                .flatMap(node -> switch (node) {
+                    case StatementNode.VariableDeclarations declarations -> declarations.variables.stream();
+                    case DeclarationNode declaration -> Stream.of(declaration);
+                    default -> throw new ClassCastException();
+                }).toList();
         return programNode;
     }
 
@@ -32,11 +38,12 @@ public class AstBuilder implements MxVisitor<IAstNode> {
         classNode.constructor = null;
         ctx.constructorDeclaration().stream().map(this::visitConstructorDeclaration).forEach(constructor -> {
             if (classNode.constructor != null) {
-                throw new SemanticException("Multiple constructors in class " + classNode.name, constructor.position);
+                throw new SemanticException("Duplicate constructor in class", constructor.position);
             }
             classNode.constructor = constructor;
         });
-        classNode.variables = ctx.variableDeclarations().stream().map(this::extractVariableDeclarations).flatMap(List::stream).toList();
+        classNode.variables = ctx.variableDeclarations().stream().map(this::visitVariableDeclarations)
+                .flatMap(variableDeclarations -> variableDeclarations.variables.stream()).toList();
         classNode.functions = ctx.functionDeclaration().stream().map(this::visitFunctionDeclaration).toList();
         return classNode;
     }
@@ -47,23 +54,26 @@ public class AstBuilder implements MxVisitor<IAstNode> {
         functionNode.name = ctx.Identifier().getText();
         functionNode.returnType = ctx.type() != null ? this.visitType(ctx.type()) : null;
         functionNode.parameters = ctx.parameterDeclaration().stream().map(this::visitParameterDeclaration).toList();
-        functionNode.body = visitBlock(ctx.block());
+        functionNode.body = visitBlock(ctx.block()).statements;
         return functionNode;
     }
 
     @Override
-    public DeclarationNode.Constructor visitConstructorDeclaration(MxParser.ConstructorDeclarationContext ctx) {
-        DeclarationNode.Constructor constructorNode = withPosition(new DeclarationNode.Constructor(), ctx.Identifier());
+    public DeclarationNode.Function visitConstructorDeclaration(MxParser.ConstructorDeclarationContext ctx) {
+        DeclarationNode.Function constructorNode = withPosition(new DeclarationNode.Function(), ctx.Identifier());
         constructorNode.name = ctx.Identifier().getText();
-        constructorNode.body = visitBlock(ctx.block());
+        constructorNode.returnType = null;
+        constructorNode.parameters = new ArrayList<>();
+        constructorNode.body = visitBlock(ctx.block()).statements;
         return constructorNode;
     }
 
     @Override
-    public DeclarationNode.Parameter visitParameterDeclaration(MxParser.ParameterDeclarationContext ctx) {
-        DeclarationNode.Parameter parameterNode = withPosition(new DeclarationNode.Parameter(), ctx.Identifier());
+    public DeclarationNode.Variable visitParameterDeclaration(MxParser.ParameterDeclarationContext ctx) {
+        DeclarationNode.Variable parameterNode = withPosition(new DeclarationNode.Variable(), ctx.Identifier());
         parameterNode.name = ctx.Identifier().getText();
         parameterNode.type = visitType(ctx.type());
+        parameterNode.initializer = null;
         return parameterNode;
     }
 
@@ -81,9 +91,7 @@ public class AstBuilder implements MxVisitor<IAstNode> {
 
     @Override
     public StatementNode.VariableDeclarations visitVariableDeclarationsStmt(MxParser.VariableDeclarationsStmtContext ctx) {
-        StatementNode.VariableDeclarations variableDeclarationsNode = withPosition(new StatementNode.VariableDeclarations(), ctx);
-        variableDeclarationsNode.variables = extractVariableDeclarations(ctx.variableDeclarations());
-        return variableDeclarationsNode;
+        return withPosition(visitVariableDeclarations(ctx.variableDeclarations()), ctx);
     }
 
     @Override
@@ -101,7 +109,10 @@ public class AstBuilder implements MxVisitor<IAstNode> {
         forNode.initialization = ctx.forInit != null ? this.visitForInitialization(ctx.forInit) : null;
         forNode.condition = ctx.forCondition != null ? this.visitExpression(ctx.forCondition) : null;
         forNode.update = ctx.forUpdate != null ? this.visitExpression(ctx.forUpdate) : null;
-        forNode.statement = visitStatement(ctx.statement());
+        forNode.statements = switch (visitStatement(ctx.statement())) {
+            case StatementNode.Block block -> block.statements;
+            case StatementNode s -> List.of(s);
+        };
         return forNode;
     }
 
@@ -109,7 +120,10 @@ public class AstBuilder implements MxVisitor<IAstNode> {
     public StatementNode.While visitWhileStmt(MxParser.WhileStmtContext ctx) {
         StatementNode.While whileNode = withPosition(new StatementNode.While(), ctx);
         whileNode.condition = visitCondition(ctx.condition());
-        whileNode.statement = visitStatement(ctx.statement());
+        whileNode.statements = switch (visitStatement(ctx.statement())) {
+            case StatementNode.Block block -> block.statements;
+            case StatementNode s -> List.of(s);
+        };
         return whileNode;
     }
 
@@ -143,27 +157,21 @@ public class AstBuilder implements MxVisitor<IAstNode> {
     }
 
     @Override
-    public IAstNode visitVariableDeclarationsBody(MxParser.VariableDeclarationsBodyContext ctx) {
-        throw new UnsupportedOperationException();
-    }
-
-    public List<DeclarationNode.Variable> extractVariableDeclarationsBody(MxParser.VariableDeclarationsBodyContext ctx) {
-        return ctx.variableDeclarator().stream().map(declarator -> {
+    public StatementNode.VariableDeclarations visitVariableDeclarationsBody(MxParser.VariableDeclarationsBodyContext ctx) {
+        StatementNode.VariableDeclarations variableDeclarationsNode = withPosition(new StatementNode.VariableDeclarations(), ctx);
+        variableDeclarationsNode.variables = ctx.variableDeclarator().stream().map(declarator -> {
             DeclarationNode.Variable variableNode = withPosition(new DeclarationNode.Variable(), declarator.Identifier());
             variableNode.name = declarator.Identifier().getText();
             variableNode.type = visitType(ctx.type());
             variableNode.initializer = declarator.expression() != null ? this.visitExpression(declarator.expression()) : null;
             return variableNode;
         }).toList();
+        return variableDeclarationsNode;
     }
 
     @Override
-    public IAstNode visitVariableDeclarations(MxParser.VariableDeclarationsContext ctx) {
-        throw new UnsupportedOperationException();
-    }
-
-    public List<DeclarationNode.Variable> extractVariableDeclarations(MxParser.VariableDeclarationsContext ctx) {
-        return extractVariableDeclarationsBody(ctx.variableDeclarationsBody());
+    public StatementNode.VariableDeclarations visitVariableDeclarations(MxParser.VariableDeclarationsContext ctx) {
+        return withPosition(visitVariableDeclarationsBody(ctx.variableDeclarationsBody()), ctx);
     }
 
     @Override

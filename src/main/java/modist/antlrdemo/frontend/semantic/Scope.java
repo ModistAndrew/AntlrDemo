@@ -30,7 +30,6 @@ public abstract class Scope {
     // variables don't support forward references
     // we provide a method to declare them out of constructor
     // what's more, we check the initializer here
-    // should be used in the constructor and the method that declares local variables
     public void declareVariable(DeclarationNode.Variable variableDeclaration) {
         if (variableDeclaration.initializer != null) {
             new ExpressionType.Builder(this).joinType(variableDeclaration.initializer, new Type(this, variableDeclaration.type));

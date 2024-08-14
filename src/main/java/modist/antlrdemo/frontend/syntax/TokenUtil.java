@@ -25,7 +25,7 @@ public class TokenUtil {
                     new LiteralEnum.Bool(Boolean.parseBoolean(token.getText()));
             case MxLexer.NULL -> LiteralEnum.Null.INSTANCE;
             default ->
-                    throw new IllegalStateException("Unexpected token type: " + MxLexer.VOCABULARY.getSymbolicName(token.getType()));
+                    throw new IllegalArgumentException();
         };
     }
 
@@ -36,14 +36,14 @@ public class TokenUtil {
                     token.getText().substring(1, token.getText().length() - 1);
             case MxLexer.FormatStringAtom, MxLexer.FormatStringBegin ->
                     token.getText().substring(2, token.getText().length() - 1);
-            default -> throw new IllegalStateException("Unexpected value: " + token.getType());
+            default -> throw new IllegalArgumentException();
         };
         return switch (token.getType()) {
             case MxLexer.StringLiteral -> text.replace("\\n", "\n").replace("\\\\", "\\").replace("\\\"", "\"");
             case MxLexer.FormatStringBegin, MxLexer.FormatStringMiddle, MxLexer.FormatStringEnd,
                  MxLexer.FormatStringAtom ->
                     text.replace("$$", "$").replace("\\n", "\n").replace("\\\\", "\\").replace("\\\"", "\"");
-            default -> throw new IllegalStateException("Unexpected value: " + token.getType());
+            default -> throw new IllegalArgumentException();
         };
     }
 }

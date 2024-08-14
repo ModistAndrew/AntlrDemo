@@ -8,8 +8,10 @@ import modist.antlrdemo.frontend.metadata.Position;
 import modist.antlrdemo.frontend.syntax.node.ArrayCreatorNode;
 import modist.antlrdemo.frontend.syntax.node.ExpressionNode;
 import modist.antlrdemo.frontend.syntax.node.ExpressionNode.*;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.function.Predicate;
 
 public record ExpressionType(@Nullable Type type, boolean isLValue) {
@@ -80,7 +82,7 @@ public record ExpressionType(@Nullable Type type, boolean isLValue) {
         }
 
         @Nullable
-        private Type getOperationResult(Type type, Operator op) {
+        private Type getOperationResult(@NotNull Type type, Operator op) {
             boolean isBool = BuiltinFeatures.BOOL.equals(type);
             boolean isInt = BuiltinFeatures.INT.equals(type);
             boolean isString = BuiltinFeatures.STRING.equals(type);
@@ -94,6 +96,7 @@ public record ExpressionType(@Nullable Type type, boolean isLValue) {
         }
 
         private Type testOperator(Type type, Operator op, Position position) {
+            Objects.requireNonNull(type);
             Type result = getOperationResult(type, op);
             if (result == null) {
                 throw new SemanticException(String.format("Operator '%s' cannot be applied to type '%s'", op, type), position);
