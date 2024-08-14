@@ -61,7 +61,7 @@ expression
     | expression op=OR expression # binaryExpr
     | expression op=LOGICAL_AND expression # binaryExpr
     | expression op=LOGICAL_OR expression # binaryExpr
-    | expression QUESTION expression COLON expression # conditionalExpr
+    | <assoc=right> expression QUESTION expression COLON expression # conditionalExpr
     | <assoc=right> expression ASSIGN expression # assignExpr
     ;
 arrayCreator: possibleBracketPair* array?;
