@@ -4,9 +4,6 @@ plugins {
     id 'application'
 }
 
-group = 'modist.antlrdemo'
-version = '0.1'
-
 repositories {
     mavenCentral()
 }
@@ -22,9 +19,16 @@ generateGrammarSource {
     arguments += ["-visitor", "-no-listener"]
 }
 
-run {
+application {
     mainClass = "modist.antlrdemo.Compiler"
+}
+
+run {
     standardInput = System.in
+}
+
+jar {
+    destinationDirectory.set(file("$rootDir"))
 }
 
 test {

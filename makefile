@@ -1,6 +1,3 @@
-.PHONY: build
-build:
-	bash gradlew build
 .PHONY: run
 run:
-	bash gradlew run
+	java -cp /ulib/antlr-4.13.1-complete.jar:AntlrDemo.jar modist.antlrdemo.Compiler
