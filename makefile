@@ -1,6 +1,6 @@
 .PHONY: build
 build:
-	bash gradlew build
+	gradle build
 .PHONY: run
 run:
-	bash gradlew run
+	gradle run
