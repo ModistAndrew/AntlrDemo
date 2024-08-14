@@ -7,6 +7,7 @@ public class BuiltinFeatures {
         String str = MxLexer.VOCABULARY.getLiteralName(tokenType);
         return str.substring(1, str.length() - 1); // it's strange that the literal name is surrounded by single quotes
     }
+
     public static final Symbol.TypeName INT_TYPE_NAME = new Symbol.TypeName(getLiteralName(MxLexer.INT));
     public static final Symbol.TypeName BOOL_TYPE_NAME = new Symbol.TypeName(getLiteralName(MxLexer.BOOL));
     public static final Symbol.TypeName STRING_TYPE_NAME = new Symbol.TypeName(getLiteralName(MxLexer.STRING));

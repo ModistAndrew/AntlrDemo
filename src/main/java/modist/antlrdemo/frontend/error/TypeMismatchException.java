@@ -15,6 +15,6 @@ public class TypeMismatchException extends SemanticException {
     }
 
     private static String toString(Type type) {
-        return type == null ? "void" : type.toString();
+        return type == null ? "'void'" : String.format("'%s'", type);
     }
 }

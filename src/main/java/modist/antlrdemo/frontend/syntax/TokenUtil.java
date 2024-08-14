@@ -18,14 +18,11 @@ public class TokenUtil {
 
     public static LiteralEnum getLiteralEnum(Token token) {
         return switch (token.getType()) {
-            case MxLexer.IntegerLiteral ->
-                    new LiteralEnum.Int(Integer.parseInt(token.getText()));
+            case MxLexer.IntegerLiteral -> new LiteralEnum.Int(Integer.parseInt(token.getText()));
             case MxLexer.StringLiteral -> new LiteralEnum.Str(unesacpeString(token));
-            case MxLexer.BooleanLiteral ->
-                    new LiteralEnum.Bool(Boolean.parseBoolean(token.getText()));
+            case MxLexer.BooleanLiteral -> new LiteralEnum.Bool(Boolean.parseBoolean(token.getText()));
             case MxLexer.NULL -> LiteralEnum.Null.INSTANCE;
-            default ->
-                    throw new IllegalArgumentException();
+            default -> throw new IllegalArgumentException();
         };
     }
 

@@ -7,7 +7,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 
-public abstract sealed class Symbol {
+public abstract class Symbol {
     public final String name;
     public final Position position;
 
@@ -26,7 +26,7 @@ public abstract sealed class Symbol {
         this(declaration.name, declaration.position);
     }
 
-    public static final class Class extends Symbol {
+    public static class Class extends Symbol {
         @Nullable
         public final Function constructor;
         public final SymbolTable<Function> functions = new SymbolTable<>();
@@ -51,7 +51,7 @@ public abstract sealed class Symbol {
         }
     }
 
-    public static final class Function extends Symbol {
+    public static class Function extends Symbol {
         // we shouldn't use Type.NULL here because we need to distinguish between a function that returns nothing and a function that returns null
         @Nullable
         public final Type returnType;
@@ -71,7 +71,7 @@ public abstract sealed class Symbol {
         }
     }
 
-    public static final class Variable extends Symbol {
+    public static class Variable extends Symbol {
         public final Type type;
 
         public Variable(Scope scope, DeclarationNode.Variable declaration) {
@@ -87,9 +87,10 @@ public abstract sealed class Symbol {
     }
 
     // we need to first declare the type before we can use it in other symbols. every type corresponds to a class
-    public static final class TypeName extends Symbol {
+    public static class TypeName extends Symbol {
         // primitive types are built-in and are not pointers
         public final boolean primitive;
+
         public TypeName(DeclarationNode.Class declaration) {
             super(declaration);
             this.primitive = false;
