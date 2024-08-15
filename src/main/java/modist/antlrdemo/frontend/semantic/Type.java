@@ -48,7 +48,8 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
     }
 
     // return the narrower type if matched, throw exception otherwise
-    public Type tryMatch(Type other, Position position) {
+    // this should be a typical situation of TypeMismatchException
+    private Type tryMatch(Type other, Position position) {
         if (equals(other)) {
             return this;
         }
@@ -78,7 +79,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
     }
 
     // return the result type of the operation, throw exception if the operation is invalid
-    public Type getOperationResult(Operator op, Position position) {
+    private Type getOperationResult(Operator op, Position position) {
         Type result = getOperationResult(op);
         if (result != null) {
             return result;
@@ -86,7 +87,8 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
         throw new CompileException(String.format("Operator '%s' cannot be applied to type '%s'", op, this), position);
     }
 
-    public void testType(Type expectedType, Position position) {
+    // throw InvalidTypeException if not valid
+    private void testType(Type expectedType, Position position) {
         Objects.requireNonNull(expectedType);
         if (equals(expectedType)) {
             return;
@@ -97,11 +99,16 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
         throw new InvalidTypeException(this, expectedType.toString(), position);
     }
 
-    public void testType(Predicate<Type> predicate, String predicateDescription, Position position) {
+    // throw InvalidTypeException if not valid
+    private void testType(Predicate<Type> predicate, String predicateDescription, Position position) {
         if (predicate.test(this)) {
             return;
         }
         throw new InvalidTypeException(this, predicateDescription, position);
+    }
+
+    private Type decreaseDimension() {
+        return new Type(typeName, dimension - 1);
     }
 
     @Override
@@ -110,10 +117,6 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
             return "null";
         }
         return typeName.name + "[]".repeat(dimension);
-    }
-
-    private Type decreaseDimension() {
-        return new Type(typeName, dimension - 1);
     }
 
     public static class Builder {
@@ -133,18 +136,25 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
         }
 
         // return expectedType if matched, throw exception otherwise
-        public void testExpressionType(ExpressionOrArrayNode expressionOrArray, Type expectedType) {
+        // we throw TypeMismatchException instead of InvalidTypeException because this function is used to check an ExpressionOrArrayNode against a declared type
+        public void tryMatchExpression(ExpressionOrArrayNode expressionOrArray, Type expectedType) {
             Objects.requireNonNull(expectedType.typeName());
             switch (expressionOrArray) {
-                case ExpressionNode expression -> build(expression).testType(expectedType, expression.position);
+                case ExpressionNode expression ->
+                        build(expression).tryMatch(expectedType, expression.position); // we use tryMatch just for throwing TypeMismatchException; expectedType is already checked
                 case ArrayNode array -> {
                     if (!expectedType.isArray()) {
                         throw new CompileException(CompileErrorType.TYPE_MISMATCH, "non-array type expected", array.position);
                     }
                     Type expectedElementType = expectedType.decreaseDimension();
-                    array.elements.forEach(child -> testExpressionType(child, expectedElementType));
+                    array.elements.forEach(child -> tryMatchExpression(child, expectedElementType));
                 }
             }
+        }
+
+        // throw InvalidTypeException if not valid
+        public void testExpressionType(ExpressionNode expression, Type expectedType) {
+            build(expression).testType(expectedType, expression.position);
         }
 
         public Type build(ExpressionNode expression) {
@@ -176,7 +186,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
                         }
                         case ArrayCreatorNode.Init init -> {
                             Type type = new Type(typeName, init.dimension);
-                            testExpressionType(init.initializer, type);
+                            tryMatchExpression(init.initializer, type);
                             yield type;
                         }
                     };
@@ -204,7 +214,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
                                 function.name, functionSymbol.parameters.size(), function.arguments.size()), expression.position);
                     }
                     for (int i = 0; i < function.arguments.size(); i++) {
-                        testExpressionType(function.arguments.get(i), functionSymbol.parameters.get(i).type);
+                        tryMatchExpression(function.arguments.get(i), functionSymbol.parameters.get(i).type);
                     }
                     yield functionSymbol.returnType;
                 }
@@ -223,7 +233,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
                     yield build(conditional.trueExpression).tryMatch(build(conditional.falseExpression), conditional.falseExpression.position);
                 }
                 case ExpressionNode.Assign assign -> {
-                    testExpressionType(assign.rightExpression, buildLvalue(assign.leftExpression));
+                    tryMatchExpression(assign.rightExpression, buildLvalue(assign.leftExpression));
                     yield BuiltinFeatures.VOID;
                 }
             };

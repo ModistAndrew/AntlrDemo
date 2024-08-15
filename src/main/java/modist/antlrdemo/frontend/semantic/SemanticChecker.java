@@ -19,11 +19,15 @@ public class SemanticChecker {
         scope = scope.getParent();
     }
 
-    private void checkType(ExpressionOrArrayNode expression, Type expectedType) {
+    private void testExpressionType(ExpressionNode expression, Type expectedType) {
         new Type.Builder(scope).testExpressionType(expression, expectedType);
     }
 
-    // should not use check recursively if some more complicated logic is needed; do it manually
+    private void tryMatchExpression(ExpressionOrArrayNode expression, Type expectedType) {
+        new Type.Builder(scope).tryMatchExpression(expression, expectedType);
+    }
+
+    // should not use check recursively if some more complicated logic is needed
     public void check(@Nullable IAstNode node) {
         switch (node) {
             case null -> { // for convenience of null check
@@ -57,7 +61,7 @@ public class SemanticChecker {
             case StatementNode.VariableDeclarations variableDeclarationsStatement ->
                     variableDeclarationsStatement.variables.forEach(this::check);
             case StatementNode.If ifStatement -> {
-                checkType(ifStatement.condition, BuiltinFeatures.BOOL);
+                testExpressionType(ifStatement.condition, BuiltinFeatures.BOOL);
                 pushScope(new ChildScope(scope, ifStatement));
                 ifStatement.thenStatements.forEach(this::check);
                 popScope();
@@ -71,14 +75,14 @@ public class SemanticChecker {
                 pushScope(new ChildScope(scope, forStatement));
                 check(forStatement.initialization);
                 if (forStatement.condition != null) {
-                    checkType(forStatement.condition, BuiltinFeatures.BOOL);
+                    testExpressionType(forStatement.condition, BuiltinFeatures.BOOL);
                 }
                 check(forStatement.update);
                 forStatement.statements.forEach(this::check);
                 popScope();
             }
             case StatementNode.While whileStatement -> {
-                checkType(whileStatement.condition, BuiltinFeatures.BOOL);
+                testExpressionType(whileStatement.condition, BuiltinFeatures.BOOL);
                 pushScope(new ChildScope(scope, whileStatement));
                 whileStatement.statements.forEach(this::check);
                 popScope();
@@ -104,7 +108,7 @@ public class SemanticChecker {
                 } else if (returnStatement.expression == null) {
                     throw new CompileException("return statement without expression in non-void function", node.getPosition());
                 } else {
-                    checkType(returnStatement.expression, scope.returnType);
+                    tryMatchExpression(returnStatement.expression, scope.returnType);
                 }
             }
             case StatementNode.Expression expressionStatement -> check(expressionStatement.expression);
