@@ -30,6 +30,7 @@ application {
 }
 
 run {
+    args = ['--debug']
     standardInput = System.in
     standardOutput = System.out
 }

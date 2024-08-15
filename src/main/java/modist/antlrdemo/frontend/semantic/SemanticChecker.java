@@ -2,6 +2,7 @@ package modist.antlrdemo.frontend.semantic;
 
 import modist.antlrdemo.frontend.error.CompileException;
 import modist.antlrdemo.frontend.error.InvalidControlFlowException;
+import modist.antlrdemo.frontend.error.PositionRecorder;
 import modist.antlrdemo.frontend.semantic.scope.ChildScope;
 import modist.antlrdemo.frontend.semantic.scope.GlobalScope;
 import modist.antlrdemo.frontend.semantic.scope.Scope;
@@ -19,19 +20,24 @@ public class SemanticChecker {
         scope = scope.getParent();
     }
 
-    private void testExpressionType(ExpressionNode expression, Type expectedType) {
-        new Type.Builder(scope).testExpressionType(expression, expectedType);
+    private void testExpressionType(ExpressionNode node, Type expectedType) {
+        PositionRecorder.push(node.getPosition());
+        new Type.Builder(scope).testExpressionType(node, expectedType);
+        PositionRecorder.pop();
     }
 
-    private void tryMatchExpression(ExpressionOrArrayNode expression, Type expectedType) {
-        new Type.Builder(scope).tryMatchExpression(expression, expectedType);
+    private void tryMatchExpression(ExpressionOrArrayNode node, Type expectedType) {
+        PositionRecorder.push(node.getPosition());
+        new Type.Builder(scope).tryMatchExpression(node, expectedType);
+        PositionRecorder.pop();
     }
 
     // should not use check recursively if some more complicated logic is needed
     public void check(@Nullable IAstNode node) {
+        if (node == null) {
+            return;
+        }
         switch (node) {
-            case null -> { // for convenience of null check
-            }
             case ProgramNode program -> {
                 pushScope(new GlobalScope(program));
                 program.declarations.forEach(this::check);

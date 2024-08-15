@@ -42,14 +42,14 @@ public class GlobalScope extends Scope {
 
     private void checkMainFunction(ProgramNode program) {
         if (!functions.contains("main")) {
-            throw new CompileException("Main function not found");
+            throw new CompileException("Main function not found", program.position);
         }
         Symbol.Function mainFunction = functions.get("main");
-        if (!BuiltinFeatures.INT.equals(mainFunction.returnType)) {
-            throw new CompileException("Main function must return int");
+        if (!mainFunction.returnType.equals(BuiltinFeatures.INT)) {
+            throw new CompileException("Main function must return int", mainFunction.position);
         }
         if (mainFunction.parameters.size() != 0) {
-            throw new CompileException("Main function must have no parameters");
+            throw new CompileException("Main function must have no parameters", mainFunction.position);
         }
     }
 

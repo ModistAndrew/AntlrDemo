@@ -40,7 +40,7 @@ public abstract class Symbol {
             Function constructorTemp = null;
             for (DeclarationNode.Function constructorNode : declaration.constructors) {
                 if (!constructorNode.name.equals(declaration.name)) {
-                    throw new CompileException("Constructor name must be the same as the class name");
+                    throw new CompileException("Constructor name must be the same as the class name", constructorNode.position);
                 }
                 Function constructorSymbol = new Function(scope, constructorNode);
                 if (constructorTemp != null) {
@@ -87,7 +87,7 @@ public abstract class Symbol {
             super(declaration);
             this.type = new Type(scope, declaration.type);
             if (this.type.isVoid()) {
-                throw new InvalidTypeException(this.type, "Variable type cannot be void");
+                throw CompileException.withPosition(new InvalidTypeException(this.type, "Variable type cannot be void"), declaration.type.position);
             }
         }
 

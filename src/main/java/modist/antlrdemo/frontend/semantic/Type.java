@@ -1,9 +1,6 @@
 package modist.antlrdemo.frontend.semantic;
 
-import modist.antlrdemo.frontend.error.CompileException;
-import modist.antlrdemo.frontend.error.DimensionOutOfBoundException;
-import modist.antlrdemo.frontend.error.InvalidTypeException;
-import modist.antlrdemo.frontend.error.TypeMismatchException;
+import modist.antlrdemo.frontend.error.*;
 import modist.antlrdemo.frontend.metadata.LiteralEnum;
 import modist.antlrdemo.frontend.metadata.Operator;
 import modist.antlrdemo.frontend.semantic.scope.Scope;
@@ -162,6 +159,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
         }
 
         public Type build(ExpressionNode expression) {
+            PositionRecorder.push(expression.getPosition());
             boolean isLValueTemp = false;
             Type returnType = switch (expression) {
                 case ExpressionNode.This ignored -> {
@@ -261,6 +259,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
                 }
             };
             isLValue = isLValueTemp;
+            PositionRecorder.pop();
             return returnType;
         }
     }

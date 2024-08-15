@@ -40,8 +40,8 @@ public abstract class Scope {
         if (variableDeclaration.initializer != null) {
             new Type.Builder(this).tryMatchExpression(variableDeclaration.initializer, new Type(this, variableDeclaration.type));
         }
-        Symbol.Variable symbol = new Symbol.Variable(this, variableDeclaration);
         Symbol.Function function = functions.get(variableDeclaration.name);
+        Symbol.Variable symbol = new Symbol.Variable(this, variableDeclaration);
         if (function != null) {
             throw new MultipleDefinitionsException(symbol, function);
         }
@@ -50,8 +50,8 @@ public abstract class Scope {
 
     // check name conflict here
     protected void declareFunction(DeclarationNode.Function functionDeclaration) {
-        Symbol.Function symbol = new Symbol.Function(this, functionDeclaration);
         Symbol.TypeName typeName = getTypeName(functionDeclaration.name);
+        Symbol.Function symbol = new Symbol.Function(this, functionDeclaration);
         if (typeName != null) {
             throw new MultipleDefinitionsException(symbol, typeName);
         }
