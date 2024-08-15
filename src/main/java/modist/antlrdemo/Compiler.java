@@ -16,12 +16,7 @@ import java.io.InputStream;
 
 public class Compiler {
     public static void main(String[] args) throws IOException {
-        try {
             frontend();
-        } catch (CompileException e) {
-            System.out.println(e.errorType.name);
-            System.exit(-1);
-        }
     }
 
     private static void frontend() throws IOException {

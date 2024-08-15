@@ -9,8 +9,7 @@ public abstract sealed class DeclarationNode extends AstNode {
 
     public static final class Class extends DeclarationNode {
         public List<Variable> variables;
-        @Nullable
-        public Function constructor;
+        public List<Function> constructors;
         public List<Function> functions;
     }
 

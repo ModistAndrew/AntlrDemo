@@ -63,7 +63,7 @@ expression
     | <assoc=right> expression QUESTION expression COLON expression # conditionalExpr
     | <assoc=right> expression ASSIGN expressionOrArray # assignExpr
     ;
-arrayCreator: possibleBracketPair* array?;
+arrayCreator: possibleBracketPair+ array?;
 expressionOrArray: expression | array;
 array: LBRACE (expressionOrArray (COMMA expressionOrArray)*)? RBRACE;
 formatString

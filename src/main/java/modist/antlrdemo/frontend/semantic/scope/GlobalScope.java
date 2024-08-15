@@ -1,12 +1,12 @@
 package modist.antlrdemo.frontend.semantic.scope;
 
 import modist.antlrdemo.frontend.error.CompileException;
-import modist.antlrdemo.frontend.metadata.Position;
 import modist.antlrdemo.frontend.semantic.BuiltinFeatures;
 import modist.antlrdemo.frontend.semantic.Symbol;
 import modist.antlrdemo.frontend.semantic.SymbolTable;
 import modist.antlrdemo.frontend.semantic.Type;
 import modist.antlrdemo.frontend.syntax.node.ProgramNode;
+import org.jetbrains.annotations.Nullable;
 
 public class GlobalScope extends Scope {
     private final SymbolTable<Symbol.TypeName> typeNames = new SymbolTable<>();
@@ -42,14 +42,14 @@ public class GlobalScope extends Scope {
 
     private void checkMainFunction(ProgramNode program) {
         if (!functions.contains("main")) {
-            throw new CompileException("Main function not found", program.position);
+            throw new CompileException("Main function not found");
         }
         Symbol.Function mainFunction = functions.get("main");
         if (!BuiltinFeatures.INT.equals(mainFunction.returnType)) {
-            throw new CompileException("Main function must return int", mainFunction.position);
+            throw new CompileException("Main function must return int");
         }
         if (mainFunction.parameters.size() != 0) {
-            throw new CompileException("Main function must have no parameters", mainFunction.position);
+            throw new CompileException("Main function must have no parameters");
         }
     }
 
@@ -59,6 +59,7 @@ public class GlobalScope extends Scope {
     }
 
     @Override
+    @Nullable
     protected Symbol.TypeName getTypeName(String name) {
         return typeNames.get(name);
     }
@@ -69,28 +70,28 @@ public class GlobalScope extends Scope {
     }
 
     @Override
-    public Symbol.Class resolveClass(Type type, Position position) {
+    public Symbol.Class resolveClass(Type type) {
         if (type.typeName() == null) {
-            throw new CompileException("Null type is ambiguous and cannot be resolved for a certain class", position);
+            throw new CompileException("No class for null type");
         }
         if (type.isArray()) {
             return arrayClass;
         }
-        return classes.resolve(type.typeName().name, position);
+        return classes.resolve(type.typeName().name);
     }
 
     @Override
-    public Symbol.TypeName resolveTypeName(String name, Position position) {
-        return typeNames.resolve(name, position);
+    public Symbol.TypeName resolveTypeName(String name) {
+        return typeNames.resolve(name);
     }
 
     @Override
-    public Symbol.Function resolveFunction(String name, Position position) {
-        return functions.resolve(name, position);
+    public Symbol.Function resolveFunction(String name) {
+        return functions.resolve(name);
     }
 
     @Override
-    public Symbol.Variable resolveVariable(String name, Position position) {
-        return variables.resolve(name, position);
+    public Symbol.Variable resolveVariable(String name) {
+        return variables.resolve(name);
     }
 }

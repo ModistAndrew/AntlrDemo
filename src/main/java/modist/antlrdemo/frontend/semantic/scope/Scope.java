@@ -1,7 +1,6 @@
 package modist.antlrdemo.frontend.semantic.scope;
 
-import modist.antlrdemo.frontend.error.SymbolRedefinedException;
-import modist.antlrdemo.frontend.metadata.Position;
+import modist.antlrdemo.frontend.error.MultipleDefinitionsException;
 import modist.antlrdemo.frontend.semantic.Symbol;
 import modist.antlrdemo.frontend.semantic.SymbolTable;
 import modist.antlrdemo.frontend.semantic.Type;
@@ -20,18 +19,19 @@ public abstract class Scope {
 
     protected abstract GlobalScope getGlobalScope();
 
+    @Nullable
     protected abstract Symbol.TypeName getTypeName(String name);
 
     public abstract Scope getParent();
 
-    // should not throw SymbolUndefinedException, but may throw when type is null type
-    public abstract Symbol.Class resolveClass(Type type, Position position);
+    // should not throw UndefinedIdentifierException, but may throw when type is null type
+    public abstract Symbol.Class resolveClass(Type type);
 
-    public abstract Symbol.Function resolveFunction(String name, Position position);
+    public abstract Symbol.Function resolveFunction(String name);
 
-    public abstract Symbol.Variable resolveVariable(String name, Position position);
+    public abstract Symbol.Variable resolveVariable(String name);
 
-    public abstract Symbol.TypeName resolveTypeName(String name, Position position);
+    public abstract Symbol.TypeName resolveTypeName(String name);
 
     // variables don't support forward references
     // we provide a method to declare them out of constructor
@@ -40,19 +40,21 @@ public abstract class Scope {
         if (variableDeclaration.initializer != null) {
             new Type.Builder(this).tryMatchExpression(variableDeclaration.initializer, new Type(this, variableDeclaration.type));
         }
+        Symbol.Variable symbol = new Symbol.Variable(this, variableDeclaration);
         Symbol.Function function = functions.get(variableDeclaration.name);
         if (function != null) {
-            throw new SymbolRedefinedException(variableDeclaration.name, variableDeclaration.position, function.position);
+            throw new MultipleDefinitionsException(symbol, function);
         }
-        variables.declare(new Symbol.Variable(this, variableDeclaration));
+        variables.declare(symbol);
     }
 
     // check name conflict here
     protected void declareFunction(DeclarationNode.Function functionDeclaration) {
+        Symbol.Function symbol = new Symbol.Function(this, functionDeclaration);
         Symbol.TypeName typeName = getTypeName(functionDeclaration.name);
         if (typeName != null) {
-            throw new SymbolRedefinedException(functionDeclaration.name, functionDeclaration.position, typeName.position);
+            throw new MultipleDefinitionsException(symbol, typeName);
         }
-        functions.declare(new Symbol.Function(this, functionDeclaration));
+        functions.declare(symbol);
     }
 }

@@ -2,6 +2,7 @@ package modist.antlrdemo.frontend.semantic;
 
 import modist.antlrdemo.frontend.error.CompileException;
 import modist.antlrdemo.frontend.error.InvalidTypeException;
+import modist.antlrdemo.frontend.error.MultipleDefinitionsException;
 import modist.antlrdemo.frontend.metadata.Position;
 import modist.antlrdemo.frontend.semantic.scope.Scope;
 import modist.antlrdemo.frontend.syntax.node.DeclarationNode;
@@ -36,10 +37,18 @@ public abstract class Symbol {
 
         public Class(Scope scope, DeclarationNode.Class declaration) {
             super(declaration);
-            this.constructor = declaration.constructor != null ? new Function(scope, declaration.constructor) : null;
-            if (this.constructor != null && !this.constructor.name.equals(this.name)) {
-                throw new CompileException("Constructor name must be the same as the class name", this.constructor.position);
+            Function constructorTemp = null;
+            for (DeclarationNode.Function constructorNode : declaration.constructors) {
+                if (!constructorNode.name.equals(declaration.name)) {
+                    throw new CompileException("Constructor name must be the same as the class name");
+                }
+                Function constructorSymbol = new Function(scope, constructorNode);
+                if (constructorTemp != null) {
+                    throw new MultipleDefinitionsException(constructorSymbol, constructorTemp);
+                }
+                constructorTemp = constructorSymbol;
             }
+            this.constructor = constructorTemp;
             declaration.functions.forEach(function -> functions.declare(new Function(scope, function)));
             declaration.variables.forEach(variable -> variables.declare(new Variable(scope, variable)));
         }
@@ -78,7 +87,7 @@ public abstract class Symbol {
             super(declaration);
             this.type = new Type(scope, declaration.type);
             if (this.type.isVoid()) {
-                throw new InvalidTypeException(this.type, "Variable type cannot be void", declaration.position);
+                throw new InvalidTypeException(this.type, "Variable type cannot be void");
             }
         }
 

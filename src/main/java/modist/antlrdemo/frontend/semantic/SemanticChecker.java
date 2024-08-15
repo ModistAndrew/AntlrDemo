@@ -1,7 +1,7 @@
 package modist.antlrdemo.frontend.semantic;
 
-import modist.antlrdemo.frontend.error.CompileErrorType;
 import modist.antlrdemo.frontend.error.CompileException;
+import modist.antlrdemo.frontend.error.InvalidControlFlowException;
 import modist.antlrdemo.frontend.semantic.scope.ChildScope;
 import modist.antlrdemo.frontend.semantic.scope.GlobalScope;
 import modist.antlrdemo.frontend.semantic.scope.Scope;
@@ -41,7 +41,7 @@ public class SemanticChecker {
             case DeclarationNode.Class classDeclaration -> {
                 pushScope(new ChildScope(scope, classDeclaration));
                 classDeclaration.variables.forEach(this::check);
-                check(classDeclaration.constructor);
+                classDeclaration.constructors.forEach(this::check);
                 classDeclaration.functions.forEach(this::check);
                 popScope();
             }
@@ -89,24 +89,24 @@ public class SemanticChecker {
             }
             case StatementNode.Break ignored -> {
                 if (!scope.inLoop) {
-                    throw new CompileException(CompileErrorType.INVALID_CONTROL_FLOW, "break statement not in loop", node.getPosition());
+                    throw new InvalidControlFlowException("break statement not in loop");
                 }
             }
             case StatementNode.Continue ignored -> {
                 if (!scope.inLoop) {
-                    throw new CompileException(CompileErrorType.INVALID_CONTROL_FLOW, "continue statement not in loop", node.getPosition());
+                    throw new InvalidControlFlowException("continue statement not in loop");
                 }
             }
             case StatementNode.Return returnStatement -> {
                 if (scope.returnType == null) {
-                    throw new CompileException("return statement not in function", node.getPosition());
+                    throw new CompileException("return statement not in function");
                 }
                 if (scope.returnType.isVoid()) {
                     if (returnStatement.expression != null) {
-                        throw new CompileException("return statement with expression in non-void function", node.getPosition());
+                        throw new CompileException("return statement with expression in non-void function");
                     }
                 } else if (returnStatement.expression == null) {
-                    throw new CompileException("return statement without expression in non-void function", node.getPosition());
+                    throw new CompileException("return statement without expression in non-void function");
                 } else {
                     tryMatchExpression(returnStatement.expression, scope.returnType);
                 }

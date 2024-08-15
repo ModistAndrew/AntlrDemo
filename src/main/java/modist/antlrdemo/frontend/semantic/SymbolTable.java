@@ -1,8 +1,7 @@
 package modist.antlrdemo.frontend.semantic;
 
-import modist.antlrdemo.frontend.error.SymbolRedefinedException;
-import modist.antlrdemo.frontend.error.SymbolUndefinedException;
-import modist.antlrdemo.frontend.metadata.Position;
+import modist.antlrdemo.frontend.error.MultipleDefinitionsException;
+import modist.antlrdemo.frontend.error.UndefinedIdentifierException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,7 +12,7 @@ public class SymbolTable<T extends Symbol> {
 
     public void declare(T value) {
         table.merge(value.name, value, (oldValue, newValue) -> {
-            throw new SymbolRedefinedException(newValue, oldValue);
+            throw new MultipleDefinitionsException(newValue, oldValue);
         });
     }
 
@@ -25,9 +24,9 @@ public class SymbolTable<T extends Symbol> {
         return table.containsKey(name);
     }
 
-    public T resolve(String name, Position position) {
+    public T resolve(String name) {
         if (!contains(name)) {
-            throw new SymbolUndefinedException(name, position);
+            throw new UndefinedIdentifierException(name);
         }
         return get(name);
     }

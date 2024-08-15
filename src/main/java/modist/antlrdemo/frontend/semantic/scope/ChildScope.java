@@ -1,10 +1,10 @@
 package modist.antlrdemo.frontend.semantic.scope;
 
-import modist.antlrdemo.frontend.metadata.Position;
 import modist.antlrdemo.frontend.semantic.Symbol;
 import modist.antlrdemo.frontend.semantic.Type;
 import modist.antlrdemo.frontend.syntax.node.DeclarationNode;
 import modist.antlrdemo.frontend.syntax.node.StatementNode;
+import org.jetbrains.annotations.Nullable;
 
 public class ChildScope extends Scope {
     private final Scope parent; // the direct parent scope
@@ -54,6 +54,7 @@ public class ChildScope extends Scope {
     }
 
     @Override
+    @Nullable
     protected Symbol.TypeName getTypeName(String name) {
         return globalScope.getTypeName(name);
     }
@@ -64,22 +65,22 @@ public class ChildScope extends Scope {
     }
 
     @Override
-    public Symbol.Class resolveClass(Type type, Position position) {
-        return globalScope.resolveClass(type, position);
+    public Symbol.Class resolveClass(Type type) {
+        return globalScope.resolveClass(type);
     }
 
     @Override
-    public Symbol.TypeName resolveTypeName(String name, Position position) {
-        return globalScope.resolveTypeName(name, position);
+    public Symbol.TypeName resolveTypeName(String name) {
+        return globalScope.resolveTypeName(name);
     }
 
     @Override
-    public Symbol.Function resolveFunction(String name, Position position) {
-        return functions.contains(name) ? functions.get(name) : parent.resolveFunction(name, position);
+    public Symbol.Function resolveFunction(String name) {
+        return functions.contains(name) ? functions.get(name) : parent.resolveFunction(name);
     }
 
     @Override
-    public Symbol.Variable resolveVariable(String name, Position position) {
-        return variables.contains(name) ? variables.get(name) : parent.resolveVariable(name, position);
+    public Symbol.Variable resolveVariable(String name) {
+        return variables.contains(name) ? variables.get(name) : parent.resolveVariable(name);
     }
 }

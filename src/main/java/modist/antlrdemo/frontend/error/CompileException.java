@@ -1,16 +1,11 @@
 package modist.antlrdemo.frontend.error;
 
-import modist.antlrdemo.frontend.metadata.Position;
-
 public class CompileException extends RuntimeException {
-    public final CompileErrorType errorType;
-
-    public CompileException(CompileErrorType errorType, String message, Position position) {
-        super(String.format("%s in [%s]: %s", errorType.name, position, message));
-        this.errorType = errorType;
+    public CompileException(String message) {
+        super(String.format("[%s]: %s", PositionRecorder.get(), message));
     }
 
-    public CompileException(String message, Position position) {
-        this(CompileErrorType.DEFAULT, message, position);
+    public String getErrorType() {
+        return "Compile Error";
     }
 }

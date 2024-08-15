@@ -1,12 +1,11 @@
 package modist.antlrdemo.frontend.semantic;
 
-import modist.antlrdemo.frontend.error.CompileErrorType;
 import modist.antlrdemo.frontend.error.CompileException;
+import modist.antlrdemo.frontend.error.DimensionOutOfBoundException;
 import modist.antlrdemo.frontend.error.InvalidTypeException;
 import modist.antlrdemo.frontend.error.TypeMismatchException;
 import modist.antlrdemo.frontend.metadata.LiteralEnum;
 import modist.antlrdemo.frontend.metadata.Operator;
-import modist.antlrdemo.frontend.metadata.Position;
 import modist.antlrdemo.frontend.semantic.scope.Scope;
 import modist.antlrdemo.frontend.syntax.node.*;
 import org.jetbrains.annotations.Nullable;
@@ -20,7 +19,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
     // typeName==null: null type. type is not fixed and can match any non-primitive type. dimension must be 0
     // typeName==VOID: void type. type is fixed and can only match void type. dimension must be 0
     public Type(Scope scope, TypeNode typeNode) {
-        this(scope.resolveTypeName(typeNode.typeName, typeNode.position), typeNode.dimension);
+        this(scope.resolveTypeName(typeNode.typeName), typeNode.dimension);
     }
 
     public Type(Symbol.TypeName typeName) {
@@ -28,7 +27,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
     }
 
     public Type(Scope scope, DeclarationNode.Class classNode) {
-        this(scope.resolveTypeName(classNode.name, classNode.position));
+        this(scope.resolveTypeName(classNode.name));
     }
 
     public boolean isNull() {
@@ -53,7 +52,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
 
     // return the narrower type if matched, throw exception otherwise
     // this should be a typical situation of TypeMismatchException
-    private Type tryMatch(Type other, Position position) {
+    private Type tryMatch(Type other) {
         if (equals(other)) {
             return this;
         }
@@ -63,12 +62,12 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
         if (other.isNull() && !isPrimitive()) {
             return this;
         }
-        throw new TypeMismatchException(this, other, position);
+        throw new TypeMismatchException(this, other);
     }
 
     // just to simplify the code
     @Nullable
-    private Type getOperationResult(Operator op) {
+    private Type getOperationResultInternal(Operator op) {
         boolean isVoid = isVoid();
         boolean isBool = equals(BuiltinFeatures.BOOL);
         boolean isInt = equals(BuiltinFeatures.INT);
@@ -83,16 +82,16 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
     }
 
     // return the result type of the operation, throw exception if the operation is invalid
-    private Type getOperationResult(Operator op, Position position) {
-        Type result = getOperationResult(op);
+    private Type getOperationResult(Operator op) {
+        Type result = getOperationResultInternal(op);
         if (result != null) {
             return result;
         }
-        throw new CompileException(String.format("Operator '%s' cannot be applied to type '%s'", op, this), position);
+        throw new CompileException(String.format("Operator '%s' cannot be applied to type '%s'", op, this));
     }
 
     // throw InvalidTypeException if not valid
-    private void testType(Type expectedType, Position position) {
+    private void testType(Type expectedType) {
         Objects.requireNonNull(expectedType);
         if (equals(expectedType)) {
             return;
@@ -100,15 +99,15 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
         if (isNull() && !expectedType.isPrimitive()) {
             return;
         }
-        throw new InvalidTypeException(this, expectedType.toString(), position);
+        throw new InvalidTypeException(this, expectedType.toString());
     }
 
     // throw InvalidTypeException if not valid
-    private void testType(Predicate<Type> predicate, String predicateDescription, Position position) {
+    private void testType(Predicate<Type> predicate, String predicateDescription) {
         if (predicate.test(this)) {
             return;
         }
-        throw new InvalidTypeException(this, predicateDescription, position);
+        throw new InvalidTypeException(this, predicateDescription);
     }
 
     private Type decreaseDimension() {
@@ -134,31 +133,32 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
         private Type buildLvalue(ExpressionNode expression) {
             Type type = build(expression);
             if (!isLValue) {
-                throw new CompileException("Expression is not an lvalue", expression.position);
+                throw new CompileException("Expression is not an lvalue");
             }
             return type;
         }
 
         // return expectedType if matched, throw exception otherwise
         // we throw TypeMismatchException instead of InvalidTypeException because this function is used to check an ExpressionOrArrayNode against a declared type
-        public void tryMatchExpression(ExpressionOrArrayNode expressionOrArray, Type expectedType) {
+        public Type tryMatchExpression(ExpressionOrArrayNode expressionOrArray, Type expectedType) {
             Objects.requireNonNull(expectedType.typeName());
-            switch (expressionOrArray) {
+            return switch (expressionOrArray) {
                 case ExpressionNode expression ->
-                        build(expression).tryMatch(expectedType, expression.position); // we use tryMatch just for throwing TypeMismatchException; expectedType is already checked
+                        build(expression).tryMatch(expectedType); // we use tryMatch just for throwing TypeMismatchException; expectedType is already checked
                 case ArrayNode array -> {
                     if (!expectedType.isArray()) {
-                        throw new CompileException(CompileErrorType.TYPE_MISMATCH, "non-array type expected", array.position);
+                        throw new TypeMismatchException("array", expectedType);
                     }
                     Type expectedElementType = expectedType.decreaseDimension();
                     array.elements.forEach(child -> tryMatchExpression(child, expectedElementType));
+                    yield expectedType;
                 }
-            }
+            };
         }
 
         // throw InvalidTypeException if not valid
         public void testExpressionType(ExpressionNode expression, Type expectedType) {
-            build(expression).testType(expectedType, expression.position);
+            build(expression).testType(expectedType);
         }
 
         public Type build(ExpressionNode expression) {
@@ -166,7 +166,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
             Type returnType = switch (expression) {
                 case ExpressionNode.This ignored -> {
                     if (scope.thisType == null) {
-                        throw new CompileException("Use of 'this' outside of class", expression.position);
+                        throw new CompileException("Use of 'this' outside of class");
                     }
                     yield scope.thisType;
                 }
@@ -177,28 +177,47 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
                     case LiteralEnum.Null ignored -> NULL;
                 };
                 case ExpressionNode.FormatString formatString -> {
-                    formatString.expressions.forEach(child -> build(child).testType(Type::canFormat, "string, int or bool", child.position));
+                    formatString.expressions.forEach(child -> build(child).testType(Type::canFormat, "string, int or bool"));
                     yield BuiltinFeatures.STRING;
                 }
                 case ExpressionNode.Creator creator -> {
-                    Symbol.TypeName typeName = scope.resolveTypeName(creator.typeName, expression.position);
-                    yield switch (creator.arrayCreator) {
-                        case null -> new Type(typeName);
-                        case ArrayCreatorNode.Empty empty -> {
-                            empty.dimensionLengths.forEach(child -> build(child).testType(BuiltinFeatures.INT, child.position));
-                            yield new Type(typeName, empty.dimensionLengths.size() + empty.emptyDimension);
+                    Symbol.TypeName typeName = scope.resolveTypeName(creator.typeName);
+                    if (creator.arrayCreator == null) {
+                        yield new Type(typeName);
+                    }
+                    ArrayCreatorNode arrayCreator = creator.arrayCreator;
+                    Type type = new Type(typeName, arrayCreator.dimensions.size());
+                    if (arrayCreator.initializer != null) {
+                        arrayCreator.dimensions.forEach(e -> {
+                            if (e != null) {
+                                throw new CompileException("Brace array initializer should be used with no dimension length specified");
+                            }
+                        });
+                        yield tryMatchExpression(arrayCreator.initializer, type);
+                    }
+                    if (arrayCreator.dimensions.getFirst() == null) {
+                        throw new CompileException("Empty array initializer should be used with at least the first dimension length specified");
+                    }
+                    boolean startEmpty = false;
+                    for (ExpressionNode e : arrayCreator.dimensions) {
+                        if (startEmpty) {
+                            if (e != null) {
+                                throw new CompileException("No dimension length should be specified after an empty dimension");
+                            }
+                        } else {
+                            if (e == null) {
+                                startEmpty = true;
+                            } else {
+                                build(e).testType(BuiltinFeatures.INT);
+                            }
                         }
-                        case ArrayCreatorNode.Init init -> {
-                            Type type = new Type(typeName, init.dimension);
-                            tryMatchExpression(init.initializer, type);
-                            yield type;
-                        }
-                    };
+                    }
+                    yield type;
                 }
                 case ExpressionNode.Subscript subscript -> {
                     Type arrayType = build(subscript.expression);
                     if (!arrayType.isArray()) {
-                        throw new CompileException(CompileErrorType.DIMENSION_OUT_OF_BOUND, "subscripting non-array type", expression.position);
+                        throw new DimensionOutOfBoundException();
                     }
                     testExpressionType(subscript.index, BuiltinFeatures.INT);
                     isLValueTemp = true;
@@ -206,16 +225,16 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
                 }
                 case ExpressionNode.Variable variable -> {
                     isLValueTemp = true;
-                    yield variable.expression == null ? scope.resolveVariable(variable.name, expression.position).type :
-                            scope.resolveClass(build(variable.expression), variable.expression.position).variables.resolve(variable.name, expression.position).type;
+                    yield variable.expression == null ? scope.resolveVariable(variable.name).type :
+                            scope.resolveClass(build(variable.expression)).variables.resolve(variable.name).type;
                 }
                 case ExpressionNode.Function function -> {
                     Symbol.Function functionSymbol = function.expression == null ?
-                            scope.resolveFunction(function.name, expression.position) :
-                            scope.resolveClass(build(function.expression), function.expression.position).functions.resolve(function.name, expression.position);
+                            scope.resolveFunction(function.name) :
+                            scope.resolveClass(build(function.expression)).functions.resolve(function.name);
                     if (functionSymbol.parameters.size() != function.arguments.size()) {
                         throw new CompileException(String.format("Function '%s' expects %d arguments, but %d given",
-                                function.name, functionSymbol.parameters.size(), function.arguments.size()), expression.position);
+                                function.name, functionSymbol.parameters.size(), function.arguments.size()));
                     }
                     for (int i = 0; i < function.arguments.size(); i++) {
                         tryMatchExpression(function.arguments.get(i), functionSymbol.parameters.get(i).type);
@@ -223,18 +242,18 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
                     yield functionSymbol.returnType;
                 }
                 case ExpressionNode.PostUnaryAssign postUnaryAssign ->
-                        buildLvalue(postUnaryAssign.expression).getOperationResult(postUnaryAssign.operator, expression.position);
+                        buildLvalue(postUnaryAssign.expression).getOperationResult(postUnaryAssign.operator);
                 case ExpressionNode.PreUnaryAssign preUnaryAssign -> {
                     isLValueTemp = true;
-                    yield buildLvalue(preUnaryAssign.expression).getOperationResult(preUnaryAssign.operator, expression.position);
+                    yield buildLvalue(preUnaryAssign.expression).getOperationResult(preUnaryAssign.operator);
                 }
                 case ExpressionNode.PreUnary preUnary ->
-                        build(preUnary.expression).getOperationResult(preUnary.operator, expression.position);
+                        build(preUnary.expression).getOperationResult(preUnary.operator);
                 case ExpressionNode.Binary binary ->
-                        build(binary.leftExpression).tryMatch(build(binary.rightExpression), binary.rightExpression.position).getOperationResult(binary.operator, expression.position);
+                        build(binary.leftExpression).tryMatch(build(binary.rightExpression)).getOperationResult(binary.operator);
                 case ExpressionNode.Conditional conditional -> {
-                    build(conditional.condition).testType(BuiltinFeatures.BOOL, conditional.condition.position);
-                    yield build(conditional.trueExpression).tryMatch(build(conditional.falseExpression), conditional.falseExpression.position);
+                    build(conditional.condition).testType(BuiltinFeatures.BOOL);
+                    yield build(conditional.trueExpression).tryMatch(build(conditional.falseExpression));
                 }
                 case ExpressionNode.Assign assign -> {
                     tryMatchExpression(assign.rightExpression, buildLvalue(assign.leftExpression));

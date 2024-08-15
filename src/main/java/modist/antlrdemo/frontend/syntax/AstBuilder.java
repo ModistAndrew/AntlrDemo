@@ -1,10 +1,9 @@
 package modist.antlrdemo.frontend.syntax;
 
-import modist.antlrdemo.frontend.error.*;
 import modist.antlrdemo.frontend.grammar.MxLexer;
-import modist.antlrdemo.frontend.syntax.node.*;
 import modist.antlrdemo.frontend.grammar.MxParser;
 import modist.antlrdemo.frontend.grammar.MxVisitor;
+import modist.antlrdemo.frontend.syntax.node.*;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ErrorNode;
@@ -20,7 +19,7 @@ import java.util.stream.Stream;
 public class AstBuilder implements MxVisitor<IAstNode> {
     @Override
     public ProgramNode visitProgram(MxParser.ProgramContext ctx) {
-        ProgramNode programNode = withPosition(new ProgramNode(), ctx);
+        ProgramNode programNode = new ProgramNode();
         programNode.classes = ctx.classDeclaration().stream().map(this::visitClassDeclaration).toList();
         programNode.functions = ctx.functionDeclaration().stream().map(this::visitFunctionDeclaration).toList();
         programNode.declarations = ctx.children.stream().map(this::visit)
@@ -29,20 +28,14 @@ public class AstBuilder implements MxVisitor<IAstNode> {
                     case DeclarationNode declaration -> Stream.of(declaration);
                     default -> throw new ClassCastException();
                 }).toList();
-        return programNode;
+        return withPosition(programNode, ctx);
     }
 
     @Override
     public DeclarationNode.Class visitClassDeclaration(MxParser.ClassDeclarationContext ctx) {
         DeclarationNode.Class classNode = withPosition(new DeclarationNode.Class(), ctx.Identifier());
         classNode.name = ctx.Identifier().getText();
-        classNode.constructor = null;
-        ctx.constructorDeclaration().stream().map(this::visitConstructorDeclaration).forEach(constructor -> {
-            if (classNode.constructor != null) {
-                throw new SymbolRedefinedException("Constructor", constructor.position, classNode.constructor.position);
-            }
-            classNode.constructor = constructor;
-        });
+        classNode.constructors = ctx.constructorDeclaration().stream().map(this::visitConstructorDeclaration).toList();
         classNode.variables = ctx.variableDeclarations().stream().map(this::visitVariableDeclarations)
                 .flatMap(variableDeclarations -> variableDeclarations.variables.stream()).toList();
         classNode.functions = ctx.functionDeclaration().stream().map(this::visitFunctionDeclaration).toList();
@@ -392,30 +385,10 @@ public class AstBuilder implements MxVisitor<IAstNode> {
     }
 
     public ArrayCreatorNode visitArrayCreator(MxParser.ArrayCreatorContext ctx) {
-        ArrayNode initializer = ctx.array() != null ? visitArray(ctx.array()) : null;
-        boolean acceptExpression = initializer == null;
-        List<ExpressionNode> dimensionLengths = new ArrayList<>();
-        for (MxParser.PossibleBracketPairContext pair : ctx.possibleBracketPair()) {
-            ExpressionNode expression = visitPossibleBracketPair(pair);
-            if (expression == null) {
-                acceptExpression = false;
-            } else if (acceptExpression) {
-                dimensionLengths.add(expression);
-            } else {
-                throw new CompileException("Invalid expression bracket pair in array creator", expression.position);
-            }
-        }
-        if (initializer == null) {
-            ArrayCreatorNode.Empty arrayCreatorNode = withPosition(new ArrayCreatorNode.Empty(), ctx);
-            arrayCreatorNode.dimensionLengths = dimensionLengths;
-            arrayCreatorNode.emptyDimension = ctx.possibleBracketPair().size() - dimensionLengths.size();
-            return arrayCreatorNode;
-        } else {
-            ArrayCreatorNode.Init arrayCreatorNode = withPosition(new ArrayCreatorNode.Init(), ctx);
-            arrayCreatorNode.initializer = initializer;
-            arrayCreatorNode.dimension = ctx.possibleBracketPair().size();
-            return arrayCreatorNode;
-        }
+        ArrayCreatorNode arrayCreatorNode = withPosition(new ArrayCreatorNode(), ctx);
+        arrayCreatorNode.dimensions = ctx.possibleBracketPair().stream().map(this::visitPossibleBracketPair).toList();
+        arrayCreatorNode.initializer = ctx.array() != null ? this.visitArray(ctx.array()) : null;
+        return arrayCreatorNode;
     }
 
     @Override
