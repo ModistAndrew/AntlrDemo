@@ -19,7 +19,7 @@ public class CompileException extends RuntimeException {
     }
 
     public Position getPosition() {
-        return position == null ? PositionRecorder.peek() : position;
+        return position == null ? PositionRecorder.get() : position;
     }
 
     public static <T extends CompileException> T withPosition(T exception, Position position) {

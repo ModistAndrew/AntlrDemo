@@ -84,7 +84,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
         if (result != null) {
             return result;
         }
-        throw new CompileException(String.format("Operator '%s' cannot be applied to type '%s'", op, this));
+        throw new InvalidTypeException(this, String.format("applicable for operator '%s'", op));
     }
 
     // throw InvalidTypeException if not valid
@@ -130,7 +130,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
         private Type buildLvalue(ExpressionNode expression) {
             Type type = build(expression);
             if (!isLValue) {
-                throw new CompileException("Expression is not an lvalue");
+                throw new InvalidTypeException(type, "lvalue");
             }
             return type;
         }
@@ -159,7 +159,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
         }
 
         public Type build(ExpressionNode expression) {
-            PositionRecorder.push(expression.getPosition());
+            PositionRecorder.set(expression.getPosition());
             boolean isLValueTemp = false;
             Type returnType = switch (expression) {
                 case ExpressionNode.This ignored -> {
@@ -259,7 +259,6 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
                 }
             };
             isLValue = isLValueTemp;
-            PositionRecorder.pop();
             return returnType;
         }
     }

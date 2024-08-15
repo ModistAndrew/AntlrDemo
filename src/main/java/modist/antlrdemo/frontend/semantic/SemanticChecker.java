@@ -3,6 +3,7 @@ package modist.antlrdemo.frontend.semantic;
 import modist.antlrdemo.frontend.error.CompileException;
 import modist.antlrdemo.frontend.error.InvalidControlFlowException;
 import modist.antlrdemo.frontend.error.PositionRecorder;
+import modist.antlrdemo.frontend.error.TypeMismatchException;
 import modist.antlrdemo.frontend.semantic.scope.ChildScope;
 import modist.antlrdemo.frontend.semantic.scope.GlobalScope;
 import modist.antlrdemo.frontend.semantic.scope.Scope;
@@ -21,15 +22,11 @@ public class SemanticChecker {
     }
 
     private void testExpressionType(ExpressionNode node, Type expectedType) {
-        PositionRecorder.push(node.getPosition());
         new Type.Builder(scope).testExpressionType(node, expectedType);
-        PositionRecorder.pop();
     }
 
     private void tryMatchExpression(ExpressionOrArrayNode node, Type expectedType) {
-        PositionRecorder.push(node.getPosition());
         new Type.Builder(scope).tryMatchExpression(node, expectedType);
-        PositionRecorder.pop();
     }
 
     // should not use check recursively if some more complicated logic is needed
@@ -37,6 +34,7 @@ public class SemanticChecker {
         if (node == null) {
             return;
         }
+        PositionRecorder.set(node.getPosition());
         switch (node) {
             case ProgramNode program -> {
                 pushScope(new GlobalScope(program));
@@ -109,10 +107,10 @@ public class SemanticChecker {
                 }
                 if (scope.returnType.isVoid()) {
                     if (returnStatement.expression != null) {
-                        throw new CompileException("return statement with expression in non-void function");
+                        throw new TypeMismatchException("non-void", BuiltinFeatures.VOID);
                     }
                 } else if (returnStatement.expression == null) {
-                    throw new CompileException("return statement without expression in non-void function");
+                    throw new TypeMismatchException(BuiltinFeatures.VOID, scope.returnType);
                 } else {
                     tryMatchExpression(returnStatement.expression, scope.returnType);
                 }

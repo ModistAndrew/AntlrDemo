@@ -7,6 +7,6 @@ public class DimensionOutOfBoundException extends CompileException {
 
     @Override
     public String getErrorType() {
-        return "Dimension Out of Bound";
+        return "Dimension Out Of Bound";
     }
 }

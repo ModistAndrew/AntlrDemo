@@ -15,14 +15,8 @@ dependencies {
     antlr "org.antlr:antlr4:4.13.1" // use ANTLR version 4
 }
 
-tasks.register('copyAntlrGeneratedFiles', Copy) {
-    from "$rootDir/build/generated-src/antlr/main"
-    into "$rootDir/generated-src/antlr/main"
-}
-
 generateGrammarSource {
     arguments += ["-visitor", "-no-listener"]
-    finalizedBy 'copyAntlrGeneratedFiles'
 }
 
 application {
