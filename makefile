@@ -6,6 +6,7 @@ ANNOTATIONS_JAR = /ulib/annotations-24.1.0.jar
 MAIN_CLASS = modist.antlrdemo.Compiler
 .PHONY: build
 build:
+	ls /ulib
 	find $(GENERATED_SRC) $(SRC) -name '*.java' | xargs javac -d $(OUTPUT) -cp $(ANNOTATIONS_JAR):$(ANTLR_JAR)
 .PHONY: run
 run:
