@@ -6,7 +6,7 @@ public class CompileException extends RuntimeException {
     public final CompileErrorType errorType;
 
     public CompileException(CompileErrorType errorType, String message, Position position) {
-        super(String.format("[%s]: %s", position, message));
+        super(String.format("%s in [%s]: %s", errorType.name, position, message));
         this.errorType = errorType;
     }
 

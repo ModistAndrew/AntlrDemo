@@ -1,5 +1,6 @@
 package modist.antlrdemo;
 
+import modist.antlrdemo.frontend.error.CompileException;
 import modist.antlrdemo.frontend.semantic.SemanticChecker;
 import modist.antlrdemo.frontend.syntax.AstBuilder;
 import modist.antlrdemo.frontend.syntax.node.ProgramNode;
@@ -15,6 +16,15 @@ import java.io.InputStream;
 
 public class Compiler {
     public static void main(String[] args) throws IOException {
+        try {
+            frontend();
+        } catch (CompileException e) {
+            System.out.println(e.errorType.name);
+            System.exit(-1);
+        }
+    }
+
+    private static void frontend() throws IOException {
         InputStream input = System.in;
         MxLexer lexer = new MxLexer(CharStreams.fromStream(input));
         setFastFailErrorListener(lexer);
@@ -24,7 +34,6 @@ public class Compiler {
         ProgramNode node = astBuilder.visitProgram(parser.program());
         SemanticChecker semanticChecker = new SemanticChecker();
         semanticChecker.check(node);
-        System.out.println("Semantic check passed.");
     }
 
     private static void setFastFailErrorListener(Recognizer<?, ?> recognizer) {
