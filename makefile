@@ -1,12 +1,11 @@
 OUTPUT = bin/
-SRC = src/main/java/
-GENERATED_SRC = generated-src/
+SRC = src/
+GENERATED_SRC = build/generated-src/
 ANTLR_JAR = /ulib/antlr-4.13.1-complete.jar
 ANNOTATIONS_JAR = /ulib/annotations-24.1.0.jar
 MAIN_CLASS = modist.antlrdemo.Compiler
 .PHONY: build
 build:
-	ls /ulib
 	find $(GENERATED_SRC) $(SRC) -name '*.java' | xargs javac -d $(OUTPUT) -cp $(ANNOTATIONS_JAR):$(ANTLR_JAR)
 .PHONY: run
 run:
