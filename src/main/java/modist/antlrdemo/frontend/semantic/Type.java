@@ -47,6 +47,10 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
         return typeName != null && typeName.primitive && dimension == 0;
     }
 
+    public boolean canFormat() {
+        return equals(BuiltinFeatures.INT) || equals(BuiltinFeatures.BOOL) || equals(BuiltinFeatures.STRING);
+    }
+
     // return the narrower type if matched, throw exception otherwise
     // this should be a typical situation of TypeMismatchException
     private Type tryMatch(Type other, Position position) {
@@ -173,7 +177,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
                     case LiteralEnum.Null ignored -> NULL;
                 };
                 case ExpressionNode.FormatString formatString -> {
-                    formatString.expressions.forEach(child -> build(child).testType(Type::isPrimitive, "primitive", child.position));
+                    formatString.expressions.forEach(child -> build(child).testType(Type::canFormat, "string, int or bool", child.position));
                     yield BuiltinFeatures.STRING;
                 }
                 case ExpressionNode.Creator creator -> {

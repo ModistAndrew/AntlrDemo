@@ -19,7 +19,7 @@ public class GlobalScope extends Scope {
         program.classes.forEach(typeNode -> typeNames.declare(new Symbol.TypeName(typeNode)));
         program.classes.forEach(typeNode -> classes.declare(new Symbol.Class(this, typeNode)));
         program.functions.forEach(this::declareFunction);
-        getMainFunction(program);
+        checkMainFunction(program);
     }
 
     private void addBuiltInFeatures() {
@@ -40,7 +40,7 @@ public class GlobalScope extends Scope {
         functions.declare(BuiltinFeatures.TO_STRING);
     }
 
-    private void getMainFunction(ProgramNode program) {
+    private void checkMainFunction(ProgramNode program) {
         if (!functions.contains("main")) {
             throw new CompileException("Main function not found", program.position);
         }
