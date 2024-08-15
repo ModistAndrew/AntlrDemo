@@ -4,8 +4,6 @@ import modist.antlrdemo.frontend.grammar.MxLexer;
 import modist.antlrdemo.frontend.syntax.TokenUtil;
 
 public class BuiltinFeatures {
-
-
     public static final Symbol.TypeName INT_TYPE_NAME = new Symbol.TypeName(TokenUtil.getLiteralName(MxLexer.INT));
     public static final Symbol.TypeName BOOL_TYPE_NAME = new Symbol.TypeName(TokenUtil.getLiteralName(MxLexer.BOOL));
     public static final Symbol.TypeName STRING_TYPE_NAME = new Symbol.TypeName(TokenUtil.getLiteralName(MxLexer.STRING));

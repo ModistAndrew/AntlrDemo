@@ -1,6 +1,8 @@
-package modist.antlrdemo.frontend.semantic;
+package modist.antlrdemo.frontend.semantic.scope;
 
 import modist.antlrdemo.frontend.metadata.Position;
+import modist.antlrdemo.frontend.semantic.Symbol;
+import modist.antlrdemo.frontend.semantic.Type;
 import modist.antlrdemo.frontend.syntax.node.DeclarationNode;
 import modist.antlrdemo.frontend.syntax.node.StatementNode;
 
@@ -12,22 +14,18 @@ public class ChildScope extends Scope {
         this.parent = parent;
         this.globalScope = parent.getGlobalScope();
         this.inLoop = parent.inLoop;
-        this.inFunction = parent.inFunction;
         this.returnType = parent.returnType;
-        this.inClass = parent.inClass;
         this.thisType = parent.thisType;
     }
 
     public ChildScope(Scope parent, DeclarationNode.Class classNode) {
         this(parent);
         classNode.functions.forEach(this::declareFunction);
-        inClass = true;
         thisType = new Type(this, classNode);
     }
 
     public ChildScope(Scope parent, DeclarationNode.Function functionNode) {
         this(parent);
-        inFunction = true;
         returnType = new Type(this, functionNode.returnType);
     }
 

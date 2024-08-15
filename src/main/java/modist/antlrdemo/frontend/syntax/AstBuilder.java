@@ -2,7 +2,6 @@ package modist.antlrdemo.frontend.syntax;
 
 import modist.antlrdemo.frontend.error.*;
 import modist.antlrdemo.frontend.grammar.MxLexer;
-import modist.antlrdemo.frontend.semantic.BuiltinFeatures;
 import modist.antlrdemo.frontend.syntax.node.*;
 import modist.antlrdemo.frontend.grammar.MxParser;
 import modist.antlrdemo.frontend.grammar.MxVisitor;

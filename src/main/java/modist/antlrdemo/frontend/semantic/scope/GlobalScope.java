@@ -1,7 +1,11 @@
-package modist.antlrdemo.frontend.semantic;
+package modist.antlrdemo.frontend.semantic.scope;
 
 import modist.antlrdemo.frontend.error.CompileException;
 import modist.antlrdemo.frontend.metadata.Position;
+import modist.antlrdemo.frontend.semantic.BuiltinFeatures;
+import modist.antlrdemo.frontend.semantic.Symbol;
+import modist.antlrdemo.frontend.semantic.SymbolTable;
+import modist.antlrdemo.frontend.semantic.Type;
 import modist.antlrdemo.frontend.syntax.node.ProgramNode;
 
 public class GlobalScope extends Scope {

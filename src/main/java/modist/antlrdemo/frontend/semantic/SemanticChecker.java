@@ -2,6 +2,9 @@ package modist.antlrdemo.frontend.semantic;
 
 import modist.antlrdemo.frontend.error.CompileErrorType;
 import modist.antlrdemo.frontend.error.CompileException;
+import modist.antlrdemo.frontend.semantic.scope.ChildScope;
+import modist.antlrdemo.frontend.semantic.scope.GlobalScope;
+import modist.antlrdemo.frontend.semantic.scope.Scope;
 import modist.antlrdemo.frontend.syntax.node.*;
 import org.jetbrains.annotations.Nullable;
 
@@ -91,13 +94,15 @@ public class SemanticChecker {
                 }
             }
             case StatementNode.Return returnStatement -> {
-                if (!scope.inFunction) {
+                if (scope.returnType == null) {
                     throw new CompileException("return statement not in function", node.getPosition());
                 }
-                if (returnStatement.expression == null) {
-                    if (scope.returnType != null) {
-                        throw new CompileException("return statement without expression in non-void function", node.getPosition());
+                if (scope.returnType.isVoid()) {
+                    if (returnStatement.expression != null) {
+                        throw new CompileException("return statement with expression in non-void function", node.getPosition());
                     }
+                } else if (returnStatement.expression == null) {
+                    throw new CompileException("return statement without expression in non-void function", node.getPosition());
                 } else {
                     checkType(returnStatement.expression, scope.returnType);
                 }

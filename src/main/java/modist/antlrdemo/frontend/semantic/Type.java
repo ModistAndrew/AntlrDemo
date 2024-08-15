@@ -7,6 +7,7 @@ import modist.antlrdemo.frontend.error.TypeMismatchException;
 import modist.antlrdemo.frontend.metadata.LiteralEnum;
 import modist.antlrdemo.frontend.metadata.Operator;
 import modist.antlrdemo.frontend.metadata.Position;
+import modist.antlrdemo.frontend.semantic.scope.Scope;
 import modist.antlrdemo.frontend.syntax.node.*;
 import org.jetbrains.annotations.Nullable;
 
@@ -150,7 +151,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
             boolean isLValueTemp = false;
             Type returnType = switch (expression) {
                 case ExpressionNode.This ignored -> {
-                    if (!scope.inClass) {
+                    if (scope.thisType == null) {
                         throw new CompileException("Use of 'this' outside of class", expression.position);
                     }
                     yield scope.thisType;

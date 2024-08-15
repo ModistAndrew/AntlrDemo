@@ -3,6 +3,7 @@ package modist.antlrdemo.frontend.semantic;
 import modist.antlrdemo.frontend.error.CompileException;
 import modist.antlrdemo.frontend.error.InvalidTypeException;
 import modist.antlrdemo.frontend.metadata.Position;
+import modist.antlrdemo.frontend.semantic.scope.Scope;
 import modist.antlrdemo.frontend.syntax.node.DeclarationNode;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,7 +59,7 @@ public abstract class Symbol {
 
         public Function(Scope scope, DeclarationNode.Function declaration) {
             super(declaration);
-            this.returnType =  new Type(scope, declaration.returnType);
+            this.returnType = new Type(scope, declaration.returnType);
             declaration.parameters.forEach(parameter -> parameters.declare(new Variable(scope, parameter)));
         }
 

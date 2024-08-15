@@ -1,7 +1,10 @@
-package modist.antlrdemo.frontend.semantic;
+package modist.antlrdemo.frontend.semantic.scope;
 
 import modist.antlrdemo.frontend.error.SymbolRedefinedException;
 import modist.antlrdemo.frontend.metadata.Position;
+import modist.antlrdemo.frontend.semantic.Symbol;
+import modist.antlrdemo.frontend.semantic.SymbolTable;
+import modist.antlrdemo.frontend.semantic.Type;
 import modist.antlrdemo.frontend.syntax.node.DeclarationNode;
 import org.jetbrains.annotations.Nullable;
 
@@ -10,10 +13,8 @@ public abstract class Scope {
     protected final SymbolTable<Symbol.Function> functions = new SymbolTable<>();
     protected final SymbolTable<Symbol.Variable> variables = new SymbolTable<>();
     public boolean inLoop;
-    public boolean inFunction;
     @Nullable
     public Type returnType;
-    public boolean inClass;
     @Nullable
     public Type thisType;
 
