@@ -65,14 +65,14 @@ public class GlobalScope extends Scope {
     }
 
     @Override
-    public Symbol.Class getClass(Type type) {
+    public Symbol.Class resolveClass(Type type, Position position) {
         if (type.typeName() == null) {
-            return null;
+            throw new CompileException("Null type is ambiguous and cannot be resolved for a certain class", position);
         }
         if (type.isArray()) {
             return arrayClass;
         }
-        return classes.get(type.typeName().name);
+        return classes.resolve(type.typeName().name, position);
     }
 
     @Override

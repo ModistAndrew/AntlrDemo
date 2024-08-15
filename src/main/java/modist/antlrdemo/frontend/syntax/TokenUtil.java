@@ -8,6 +8,11 @@ import org.antlr.v4.runtime.Token;
 
 // extract info from token
 public class TokenUtil {
+    public static String getLiteralName(int tokenType) {
+        String str = MxLexer.VOCABULARY.getLiteralName(tokenType);
+        return str.substring(1, str.length() - 1); // it's strange that the literal name is surrounded by single quotes
+    }
+
     public static Position getPosition(Token token) {
         return new Position(token.getLine(), token.getCharPositionInLine());
     }

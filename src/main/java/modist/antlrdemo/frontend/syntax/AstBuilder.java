@@ -1,6 +1,7 @@
 package modist.antlrdemo.frontend.syntax;
 
 import modist.antlrdemo.frontend.error.*;
+import modist.antlrdemo.frontend.grammar.MxLexer;
 import modist.antlrdemo.frontend.semantic.BuiltinFeatures;
 import modist.antlrdemo.frontend.syntax.node.*;
 import modist.antlrdemo.frontend.grammar.MxParser;
@@ -63,7 +64,9 @@ public class AstBuilder implements MxVisitor<IAstNode> {
     public DeclarationNode.Function visitConstructorDeclaration(MxParser.ConstructorDeclarationContext ctx) {
         DeclarationNode.Function constructorNode = withPosition(new DeclarationNode.Function(), ctx.Identifier());
         constructorNode.name = ctx.Identifier().getText();
-        constructorNode.returnType = null;
+        constructorNode.returnType = withPosition(new TypeNode(), ctx.Identifier());
+        constructorNode.returnType.typeName = TokenUtil.getLiteralName(MxLexer.VOID);
+        constructorNode.returnType.dimension = 0; // set to void manually
         constructorNode.parameters = new ArrayList<>();
         constructorNode.body = visitBlock(ctx.block()).statements;
         return constructorNode;
@@ -74,9 +77,6 @@ public class AstBuilder implements MxVisitor<IAstNode> {
         DeclarationNode.Variable parameterNode = withPosition(new DeclarationNode.Variable(), ctx.Identifier());
         parameterNode.name = ctx.Identifier().getText();
         parameterNode.type = visitType(ctx.type());
-        if (parameterNode.type == null) {
-            throw new InvalidTypeException(BuiltinFeatures.VOID, "non-void for parameter", parameterNode.position);
-        }
         parameterNode.initializer = null;
         return parameterNode;
     }
@@ -161,9 +161,6 @@ public class AstBuilder implements MxVisitor<IAstNode> {
             DeclarationNode.Variable variableNode = withPosition(new DeclarationNode.Variable(), declarator.Identifier());
             variableNode.name = declarator.Identifier().getText();
             variableNode.type = visitType(ctx.type());
-            if (variableNode.type == null) {
-                throw new InvalidTypeException(BuiltinFeatures.VOID, "non-void for variable", variableNode.position);
-            }
             variableNode.initializer = declarator.expressionOrArray() != null ? this.visitExpressionOrArray(declarator.expressionOrArray()) : null;
             return variableNode;
         }).toList();
@@ -266,7 +263,7 @@ public class AstBuilder implements MxVisitor<IAstNode> {
     @Override
     public ExpressionNode.Creator visitCreatorExpr(MxParser.CreatorExprContext ctx) {
         ExpressionNode.Creator creatorNode = withPosition(new ExpressionNode.Creator(), ctx);
-        creatorNode.typeName = ctx.typeName().getText();
+        creatorNode.typeName = ctx.typeName() != null ? ctx.typeName().getText() : ctx.Identifier().getText();
         creatorNode.arrayCreator = ctx.arrayCreator() != null ? this.visitArrayCreator(ctx.arrayCreator()) : null;
         return creatorNode;
     }
@@ -324,16 +321,11 @@ public class AstBuilder implements MxVisitor<IAstNode> {
         return withPosition(visitExpression(ctx.expression()), ctx);
     }
 
-    // void type is represented as null in AST and is checked for variable and parameter declarations
     @Override
-    @Nullable
     public TypeNode visitType(MxParser.TypeContext ctx) {
-        if (ctx.typeName() == null) {
-            return null;
-        }
         TypeNode typeNode = withPosition(new TypeNode(), ctx);
-        typeNode.typeName = ctx.typeName().getText();
-        typeNode.dimension = ctx.emptyBracketPair().size();
+        typeNode.typeName = ctx.typeName() != null ? ctx.typeName().getText() : ctx.VOID().getText();
+        typeNode.dimension = ctx.emptyBracketPair() != null ? ctx.emptyBracketPair().size() : 0;
         return typeNode;
     }
 

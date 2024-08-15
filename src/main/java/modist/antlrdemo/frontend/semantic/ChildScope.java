@@ -28,7 +28,7 @@ public class ChildScope extends Scope {
     public ChildScope(Scope parent, DeclarationNode.Function functionNode) {
         this(parent);
         inFunction = true;
-        returnType = functionNode.returnType != null ? new Type(this, functionNode.returnType) : null;
+        returnType = new Type(this, functionNode.returnType);
     }
 
     // you should add local variables manually
@@ -66,8 +66,8 @@ public class ChildScope extends Scope {
     }
 
     @Override
-    public Symbol.Class getClass(Type type) {
-        return globalScope.getClass(type);
+    public Symbol.Class resolveClass(Type type, Position position) {
+        return globalScope.resolveClass(type, position);
     }
 
     @Override

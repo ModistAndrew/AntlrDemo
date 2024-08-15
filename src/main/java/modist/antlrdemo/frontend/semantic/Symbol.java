@@ -1,6 +1,7 @@
 package modist.antlrdemo.frontend.semantic;
 
 import modist.antlrdemo.frontend.error.CompileException;
+import modist.antlrdemo.frontend.error.InvalidTypeException;
 import modist.antlrdemo.frontend.metadata.Position;
 import modist.antlrdemo.frontend.syntax.node.DeclarationNode;
 import org.jetbrains.annotations.Nullable;
@@ -52,19 +53,17 @@ public abstract class Symbol {
     }
 
     public static class Function extends Symbol {
-        // we shouldn't use Type.NULL here because we need to distinguish between a function that returns nothing and a function that returns null
-        @Nullable
         public final Type returnType;
         public final SymbolTable.Ordered<Variable> parameters = new SymbolTable.Ordered<>();
 
         public Function(Scope scope, DeclarationNode.Function declaration) {
             super(declaration);
-            this.returnType = declaration.returnType != null ? new Type(scope, declaration.returnType) : null;
+            this.returnType =  new Type(scope, declaration.returnType);
             declaration.parameters.forEach(parameter -> parameters.declare(new Variable(scope, parameter)));
         }
 
         // for built-in
-        public Function(String name, @Nullable Type returnType, Variable[] parameters) {
+        public Function(String name, Type returnType, Variable[] parameters) {
             super(name);
             this.returnType = returnType;
             Arrays.stream(parameters).forEach(this.parameters::declare);
@@ -77,6 +76,9 @@ public abstract class Symbol {
         public Variable(Scope scope, DeclarationNode.Variable declaration) {
             super(declaration);
             this.type = new Type(scope, declaration.type);
+            if (this.type.isVoid()) {
+                throw new InvalidTypeException(this.type, "Variable type cannot be void", declaration.position);
+            }
         }
 
         // for built-in

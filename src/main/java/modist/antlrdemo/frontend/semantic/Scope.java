@@ -23,7 +23,8 @@ public abstract class Scope {
 
     public abstract Scope getParent();
 
-    public abstract Symbol.Class getClass(Type type);
+    // should not throw SymbolUndefinedException, but may throw when type is null type
+    public abstract Symbol.Class resolveClass(Type type, Position position);
 
     public abstract Symbol.Function resolveFunction(String name, Position position);
 
@@ -36,7 +37,7 @@ public abstract class Scope {
     // what's more, we check the initializer and name conflict here
     public void declareVariable(DeclarationNode.Variable variableDeclaration) {
         if (variableDeclaration.initializer != null) {
-            new ExpressionType.Builder(this).joinType(variableDeclaration.initializer, new Type(this, variableDeclaration.type));
+            new Type.Builder(this).testExpressionType(variableDeclaration.initializer, new Type(this, variableDeclaration.type));
         }
         Symbol.Function function = functions.get(variableDeclaration.name);
         if (function != null) {

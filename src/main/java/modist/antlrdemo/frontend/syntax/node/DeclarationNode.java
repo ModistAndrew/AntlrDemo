@@ -15,7 +15,6 @@ public abstract sealed class DeclarationNode extends AstNode {
     }
 
     public static final class Function extends DeclarationNode {
-        @Nullable
         public TypeNode returnType;
         public List<Variable> parameters;
         public List<StatementNode> body;

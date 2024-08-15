@@ -1,17 +1,15 @@
 package modist.antlrdemo.frontend.semantic;
 
 import modist.antlrdemo.frontend.grammar.MxLexer;
+import modist.antlrdemo.frontend.syntax.TokenUtil;
 
 public class BuiltinFeatures {
-    private static String getLiteralName(int tokenType) {
-        String str = MxLexer.VOCABULARY.getLiteralName(tokenType);
-        return str.substring(1, str.length() - 1); // it's strange that the literal name is surrounded by single quotes
-    }
 
-    public static final Symbol.TypeName INT_TYPE_NAME = new Symbol.TypeName(getLiteralName(MxLexer.INT));
-    public static final Symbol.TypeName BOOL_TYPE_NAME = new Symbol.TypeName(getLiteralName(MxLexer.BOOL));
-    public static final Symbol.TypeName STRING_TYPE_NAME = new Symbol.TypeName(getLiteralName(MxLexer.STRING));
-    public static final Symbol.TypeName VOID_TYPE_NAME = new Symbol.TypeName(getLiteralName(MxLexer.VOID));
+
+    public static final Symbol.TypeName INT_TYPE_NAME = new Symbol.TypeName(TokenUtil.getLiteralName(MxLexer.INT));
+    public static final Symbol.TypeName BOOL_TYPE_NAME = new Symbol.TypeName(TokenUtil.getLiteralName(MxLexer.BOOL));
+    public static final Symbol.TypeName STRING_TYPE_NAME = new Symbol.TypeName(TokenUtil.getLiteralName(MxLexer.STRING));
+    public static final Symbol.TypeName VOID_TYPE_NAME = new Symbol.TypeName(TokenUtil.getLiteralName(MxLexer.VOID));
 
     // cache the type instances for convenience
     public static final Type INT = new Type(INT_TYPE_NAME);
@@ -29,16 +27,16 @@ public class BuiltinFeatures {
     public static final Symbol.Function STRING_ORD = new Symbol.Function("ord", INT, new Symbol.Variable[]{
             new Symbol.Variable("pos", INT)
     });
-    public static final Symbol.Function PRINT = new Symbol.Function("print", null, new Symbol.Variable[]{
+    public static final Symbol.Function PRINT = new Symbol.Function("print", VOID, new Symbol.Variable[]{
             new Symbol.Variable("str", STRING)
     });
-    public static final Symbol.Function PRINTLN = new Symbol.Function("println", null, new Symbol.Variable[]{
+    public static final Symbol.Function PRINTLN = new Symbol.Function("println", VOID, new Symbol.Variable[]{
             new Symbol.Variable("str", STRING)
     });
-    public static final Symbol.Function PRINT_INT = new Symbol.Function("printInt", null, new Symbol.Variable[]{
+    public static final Symbol.Function PRINT_INT = new Symbol.Function("printInt", VOID, new Symbol.Variable[]{
             new Symbol.Variable("n", INT)
     });
-    public static final Symbol.Function PRINTLN_INT = new Symbol.Function("printlnInt", null, new Symbol.Variable[]{
+    public static final Symbol.Function PRINTLN_INT = new Symbol.Function("printlnInt", VOID, new Symbol.Variable[]{
             new Symbol.Variable("n", INT)
     });
     public static final Symbol.Function GET_STRING = new Symbol.Function("getString", STRING, new Symbol.Variable[]{});

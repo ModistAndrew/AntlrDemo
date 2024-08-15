@@ -2,7 +2,6 @@ package modist.antlrdemo.frontend.error;
 
 import modist.antlrdemo.frontend.metadata.Position;
 import modist.antlrdemo.frontend.semantic.Type;
-import org.jetbrains.annotations.Nullable;
 
 public class InvalidTypeException extends CompileException {
 
