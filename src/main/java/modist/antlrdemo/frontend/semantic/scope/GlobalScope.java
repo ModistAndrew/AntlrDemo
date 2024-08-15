@@ -12,6 +12,7 @@ public class GlobalScope extends Scope {
     private final SymbolTable<Symbol.TypeName> typeNames = new SymbolTable<>();
     private final SymbolTable<Symbol.Class> classes = new SymbolTable<>();
     private final Symbol.Class arrayClass = BuiltinFeatures.ARRAY_CLASS; // a virtual class for arrays
+    private final Symbol.Function mainFunction;
 
     // you should add global variables manually
     public GlobalScope(ProgramNode program) {
@@ -19,7 +20,7 @@ public class GlobalScope extends Scope {
         program.classes.forEach(typeNode -> typeNames.declare(new Symbol.TypeName(typeNode)));
         program.classes.forEach(typeNode -> classes.declare(new Symbol.Class(this, typeNode)));
         program.functions.forEach(this::declareFunction);
-        checkMainFunction(program);
+        mainFunction = checkMainFunction(program);
     }
 
     private void addBuiltInFeatures() {
@@ -40,7 +41,7 @@ public class GlobalScope extends Scope {
         functions.declare(BuiltinFeatures.TO_STRING);
     }
 
-    private void checkMainFunction(ProgramNode program) {
+    private Symbol.Function checkMainFunction(ProgramNode program) {
         if (!functions.contains("main")) {
             throw new CompileException("Main function not found", program.position);
         }
@@ -51,6 +52,12 @@ public class GlobalScope extends Scope {
         if (mainFunction.parameters.size() != 0) {
             throw new CompileException("Main function must have no parameters", mainFunction.position);
         }
+        mainFunction.isMain = true;
+        return mainFunction;
+    }
+
+    public Symbol.Function getMainFunction() {
+        return mainFunction;
     }
 
     @Override

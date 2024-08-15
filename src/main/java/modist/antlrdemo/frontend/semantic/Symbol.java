@@ -51,6 +51,7 @@ public abstract class Symbol {
             this.constructor = constructorTemp;
             declaration.functions.forEach(function -> functions.declare(new Function(scope, function)));
             declaration.variables.forEach(variable -> variables.declare(new Variable(scope, variable)));
+            declaration.symbol = this;
         }
 
         // for built-in
@@ -65,11 +66,13 @@ public abstract class Symbol {
     public static class Function extends Symbol {
         public final Type returnType;
         public final SymbolTable.Ordered<Variable> parameters = new SymbolTable.Ordered<>();
+        public boolean isMain;
 
         public Function(Scope scope, DeclarationNode.Function declaration) {
             super(declaration);
             this.returnType = new Type(scope, declaration.returnType);
             declaration.parameters.forEach(parameter -> parameters.declare(new Variable(scope, parameter)));
+            declaration.symbol = this;
         }
 
         // for built-in
@@ -77,6 +80,10 @@ public abstract class Symbol {
             super(name);
             this.returnType = returnType;
             Arrays.stream(parameters).forEach(this.parameters::declare);
+        }
+
+        public boolean shouldReturn() {
+            return !returnType.isVoid() && !isMain;
         }
     }
 
@@ -89,6 +96,7 @@ public abstract class Symbol {
             if (this.type.isVoid()) {
                 throw CompileException.withPosition(new InvalidTypeException(this.type, "Variable type cannot be void"), declaration.type.position);
             }
+            declaration.symbol = this;
         }
 
         // for built-in
@@ -106,6 +114,7 @@ public abstract class Symbol {
         public TypeName(DeclarationNode.Class declaration) {
             super(declaration);
             this.primitive = false;
+            declaration.typeNameSymbol = this;
         }
 
         // for built-in

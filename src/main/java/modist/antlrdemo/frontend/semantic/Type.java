@@ -23,10 +23,6 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
         this(typeName, 0);
     }
 
-    public Type(Scope scope, DeclarationNode.Class classNode) {
-        this(scope.resolveTypeName(classNode.name));
-    }
-
     public boolean isNull() {
         return typeName == null;
     }

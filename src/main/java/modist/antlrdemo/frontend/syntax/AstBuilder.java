@@ -20,14 +20,22 @@ public class AstBuilder implements MxVisitor<IAstNode> {
     @Override
     public ProgramNode visitProgram(MxParser.ProgramContext ctx) {
         ProgramNode programNode = new ProgramNode();
-        programNode.classes = ctx.classDeclaration().stream().map(this::visitClassDeclaration).toList();
-        programNode.functions = ctx.functionDeclaration().stream().map(this::visitFunctionDeclaration).toList();
+        programNode.classes = new ArrayList<>();
+        programNode.functions = new ArrayList<>();
         programNode.declarations = ctx.children.stream().map(this::visit)
                 .flatMap(node -> switch (node) {
                     case StatementNode.VariableDeclarations declarations -> declarations.variables.stream();
                     case DeclarationNode declaration -> Stream.of(declaration);
                     default -> throw new ClassCastException();
                 }).toList();
+        programNode.declarations.forEach(declaration -> {
+            switch (declaration) {
+                case DeclarationNode.Class classNode -> programNode.classes.add(classNode);
+                case DeclarationNode.Function functionNode -> programNode.functions.add(functionNode);
+                case DeclarationNode.Variable ignored -> {
+                }
+            }
+        });
         return withPosition(programNode, ctx);
     }
 

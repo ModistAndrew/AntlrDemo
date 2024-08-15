@@ -1,9 +1,6 @@
 package modist.antlrdemo.frontend.semantic;
 
-import modist.antlrdemo.frontend.error.CompileException;
-import modist.antlrdemo.frontend.error.InvalidControlFlowException;
-import modist.antlrdemo.frontend.error.PositionRecorder;
-import modist.antlrdemo.frontend.error.TypeMismatchException;
+import modist.antlrdemo.frontend.error.*;
 import modist.antlrdemo.frontend.semantic.scope.ChildScope;
 import modist.antlrdemo.frontend.semantic.scope.GlobalScope;
 import modist.antlrdemo.frontend.semantic.scope.Scope;
@@ -12,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class SemanticChecker {
     private Scope scope;
+    private boolean returned;
 
     private void pushScope(Scope newScope) {
         scope = newScope;
@@ -52,7 +50,11 @@ public class SemanticChecker {
             case DeclarationNode.Function functionDeclaration -> {
                 pushScope(new ChildScope(scope, functionDeclaration));
                 functionDeclaration.parameters.forEach(this::check);
+                returned = false;
                 functionDeclaration.body.forEach(this::check);
+                if (!returned && functionDeclaration.symbol.shouldReturn()) {
+                    throw new MissingReturnStatementException();
+                }
                 popScope();
             }
             case DeclarationNode.Variable variableDeclaration -> scope.declareVariable(variableDeclaration);
@@ -114,6 +116,7 @@ public class SemanticChecker {
                 } else {
                     tryMatchExpression(returnStatement.expression, scope.returnType);
                 }
+                returned = true;
             }
             case StatementNode.Expression expressionStatement -> check(expressionStatement.expression);
             case StatementNode.Empty ignored -> {
