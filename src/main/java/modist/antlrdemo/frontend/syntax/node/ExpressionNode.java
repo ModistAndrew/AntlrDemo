@@ -6,16 +6,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public abstract sealed class ExpressionNode extends AstNode implements ForInitializationNode {
+public abstract sealed class ExpressionNode extends AstNode implements ForInitializationNode, ExpressionOrArrayNode {
     public static final class This extends ExpressionNode {
     }
 
     public static final class Literal extends ExpressionNode {
         public LiteralEnum value;
-    }
-
-    public static final class Array extends ExpressionNode {
-        public List<ExpressionNode> elements;
     }
 
     public static final class FormatString extends ExpressionNode {
@@ -44,7 +40,7 @@ public abstract sealed class ExpressionNode extends AstNode implements ForInitia
         @Nullable
         public ExpressionNode expression;
         public String name;
-        public List<ExpressionNode> arguments;
+        public List<ExpressionOrArrayNode> arguments;
     }
 
     public static final class PostUnaryAssign extends ExpressionNode {
@@ -76,6 +72,6 @@ public abstract sealed class ExpressionNode extends AstNode implements ForInitia
 
     public static final class Assign extends ExpressionNode {
         public ExpressionNode leftExpression;
-        public ExpressionNode rightExpression;
+        public ExpressionOrArrayNode rightExpression;
     }
 }

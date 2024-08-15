@@ -2,7 +2,7 @@ package modist.antlrdemo.frontend.syntax.node;
 
 import modist.antlrdemo.frontend.metadata.Position;
 
-public abstract sealed class AstNode implements IAstNode permits ArrayCreatorNode, DeclarationNode, ExpressionNode, ProgramNode, StatementNode, TypeNode {
+public abstract sealed class AstNode implements IAstNode permits ArrayCreatorNode, ArrayNode, DeclarationNode, ExpressionNode, ProgramNode, StatementNode, TypeNode {
     public Position position;
 
     @Override

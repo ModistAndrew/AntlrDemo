@@ -10,6 +10,6 @@ public abstract sealed class ArrayCreatorNode extends AstNode {
 
     public static final class Init extends ArrayCreatorNode {
         public int dimension;
-        public ExpressionNode.Array initializer;
+        public ArrayNode initializer;
     }
 }

@@ -43,7 +43,7 @@ public abstract sealed class StatementNode extends AstNode {
 
     public static final class Return extends StatementNode {
         @Nullable
-        public ExpressionNode expression;
+        public ExpressionOrArrayNode expression;
     }
 
     public static final class Expression extends StatementNode {

@@ -1,7 +1,9 @@
 package modist.antlrdemo.frontend.semantic;
 
+import modist.antlrdemo.frontend.error.CompileErrorType;
+import modist.antlrdemo.frontend.error.CompileException;
+import modist.antlrdemo.frontend.error.InvalidTypeException;
 import modist.antlrdemo.frontend.error.TypeMismatchException;
-import modist.antlrdemo.frontend.error.SemanticException;
 import modist.antlrdemo.frontend.metadata.LiteralEnum;
 import modist.antlrdemo.frontend.metadata.Operator;
 import modist.antlrdemo.frontend.metadata.Position;
@@ -32,7 +34,7 @@ public record ExpressionType(@Nullable Type type, boolean isLValue) {
         private Type testSolidType(ExpressionNode expression, Predicate<Type> predicate, String predicateDescription) {
             Type type = getSolidType(expression); // not null for the convenience of the predicate
             if (!predicate.test(type)) {
-                throw new TypeMismatchException(type, predicateDescription, expression.position);
+                throw new InvalidTypeException(type, predicateDescription, expression.position);
             }
             return type;
         }
@@ -58,10 +60,10 @@ public record ExpressionType(@Nullable Type type, boolean isLValue) {
         private Type getType(ExpressionNode expression, boolean checkLvalue, boolean checkNull) {
             ExpressionType expressionType = build(expression);
             if (checkNull && expressionType.type == null) {
-                throw new TypeMismatchException(expressionType.type, "non-void", expression.position);
+                throw new TypeException(expressionType.type, "non-void", expression.position);
             }
             if (checkLvalue && !expressionType.isLValue) {
-                throw new SemanticException("Expression is not an lvalue", expression.position);
+                throw new CompileException("Expression is not an lvalue", expression.position);
             }
             return expressionType.type;
         }
@@ -96,7 +98,7 @@ public record ExpressionType(@Nullable Type type, boolean isLValue) {
         private Type testOperator(Type type, Operator op, Position position) {
             Type result = getOperationResult(type, op);
             if (result == null) {
-                throw new SemanticException(String.format("Operator '%s' cannot be applied to type '%s'", op, type), position);
+                throw new CompileException(String.format("Operator '%s' cannot be applied to type '%s'", op, type), position);
             }
             return result;
         }
@@ -105,7 +107,7 @@ public record ExpressionType(@Nullable Type type, boolean isLValue) {
             return switch (expression) {
                 case This ignored -> {
                     if (!scope.inClass) {
-                        throw new SemanticException("Use of 'this' outside of class", expression.position);
+                        throw new CompileException("Use of 'this' outside of class", expression.position);
                     }
                     yield new ExpressionType(scope.thisType);
                 }
@@ -118,7 +120,7 @@ public record ExpressionType(@Nullable Type type, boolean isLValue) {
                 case Array array -> {
                     Type elementType = array.elements.isEmpty() ? Type.NULL : joinTypes(array.elements.toArray(ExpressionNode[]::new));
                     if (elementType == null) {
-                        throw new TypeMismatchException(elementType, "non-void", expression.position);
+                        throw new TypeException(elementType, "non-void", expression.position);
                     }
                     yield new ExpressionType(elementType.increaseDimension());
                 }
@@ -140,7 +142,11 @@ public record ExpressionType(@Nullable Type type, boolean isLValue) {
                 }
                 case Subscript subscript -> {
                     joinType(subscript.index, BuiltinFeatures.INT);
-                    yield new ExpressionType(testSolidType(subscript.expression, Type::isArray, "array").decreaseDimension(), true);
+                    Type arrayType = getSolidType(subscript.expression);
+                    if (!arrayType.isArray()) {
+                        throw new CompileException(CompileErrorType.DIMENSION_OUT_OF_BOUND, "subscripting non-array type", expression.position);
+                    }
+                    yield new ExpressionType(arrayType.decreaseDimension(), true);
                 }
                 case Variable variable ->
                         variable.expression == null ? new ExpressionType(scope.resolveVariable(variable.name, expression.position).type, true) :
@@ -150,7 +156,7 @@ public record ExpressionType(@Nullable Type type, boolean isLValue) {
                             scope.resolveFunction(function.name, expression.position) :
                             scope.getClass(getSolidType(function.expression)).functions.resolve(function.name, expression.position);
                     if (functionSymbol.parameters.size() != function.arguments.size()) {
-                        throw new SemanticException(String.format("Function '%s' expects %d arguments, but %d given",
+                        throw new CompileException(String.format("Function '%s' expects %d arguments, but %d given",
                                 function.name, functionSymbol.parameters.size(), function.arguments.size()), expression.position);
                     }
                     for (int i = 0; i < function.arguments.size(); i++) {

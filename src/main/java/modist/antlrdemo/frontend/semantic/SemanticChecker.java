@@ -1,6 +1,7 @@
 package modist.antlrdemo.frontend.semantic;
 
-import modist.antlrdemo.frontend.error.SemanticException;
+import modist.antlrdemo.frontend.error.CompileErrorType;
+import modist.antlrdemo.frontend.error.CompileException;
 import modist.antlrdemo.frontend.syntax.node.*;
 import org.jetbrains.annotations.Nullable;
 
@@ -77,21 +78,21 @@ public class SemanticChecker {
             }
             case StatementNode.Break ignored -> {
                 if (!scope.inLoop) {
-                    throw new SemanticException("break statement not in loop", node.getPosition());
+                    throw new CompileException(CompileErrorType.INVALID_CONTROL_FLOW, "break statement not in loop", node.getPosition());
                 }
             }
             case StatementNode.Continue ignored -> {
                 if (!scope.inLoop) {
-                    throw new SemanticException("continue statement not in loop", node.getPosition());
+                    throw new CompileException(CompileErrorType.INVALID_CONTROL_FLOW, "continue statement not in loop", node.getPosition());
                 }
             }
             case StatementNode.Return returnStatement -> {
                 if (!scope.inFunction) {
-                    throw new SemanticException("return statement not in function", node.getPosition());
+                    throw new CompileException("return statement not in function", node.getPosition());
                 }
                 if (returnStatement.expression == null) {
                     if (scope.returnType != null) {
-                        throw new SemanticException("return statement without expression in non-void function", node.getPosition());
+                        throw new CompileException("return statement without expression in non-void function", node.getPosition());
                     }
                 } else {
                     new ExpressionType.Builder(scope).joinType(returnStatement.expression, scope.returnType);

@@ -24,6 +24,6 @@ public abstract sealed class DeclarationNode extends AstNode {
     public static final class Variable extends DeclarationNode {
         public TypeNode type;
         @Nullable
-        public ExpressionNode initializer;
+        public ExpressionOrArrayNode initializer;
     }
 }

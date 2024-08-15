@@ -1,6 +1,6 @@
 package modist.antlrdemo.frontend.semantic;
 
-import modist.antlrdemo.frontend.error.SemanticException;
+import modist.antlrdemo.frontend.error.CompileException;
 import modist.antlrdemo.frontend.metadata.Position;
 import modist.antlrdemo.frontend.syntax.node.DeclarationNode;
 import org.jetbrains.annotations.Nullable;
@@ -11,7 +11,7 @@ public abstract class Symbol {
     public final String name;
     public final Position position;
 
-    private Symbol(String name, Position position) {
+    public Symbol(String name, Position position) {
         this.name = name;
         this.position = position;
     }
@@ -36,7 +36,7 @@ public abstract class Symbol {
             super(declaration);
             this.constructor = declaration.constructor != null ? new Function(scope, declaration.constructor) : null;
             if (this.constructor != null && !this.constructor.name.equals(this.name)) {
-                throw new SemanticException("Constructor name must be the same as the class name", this.constructor.position);
+                throw new CompileException("Constructor name must be the same as the class name", this.constructor.position);
             }
             declaration.functions.forEach(function -> functions.declare(new Function(scope, function)));
             declaration.variables.forEach(variable -> variables.declare(new Variable(scope, variable)));

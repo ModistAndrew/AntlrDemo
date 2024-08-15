@@ -1,6 +1,6 @@
 package modist.antlrdemo.frontend.semantic;
 
-import modist.antlrdemo.frontend.error.SemanticException;
+import modist.antlrdemo.frontend.error.CompileException;
 import modist.antlrdemo.frontend.metadata.Position;
 import modist.antlrdemo.frontend.syntax.node.ProgramNode;
 
@@ -8,7 +8,6 @@ public class GlobalScope extends Scope {
     private final SymbolTable<Symbol.TypeName> typeNames = new SymbolTable<>();
     private final SymbolTable<Symbol.Class> classes = new SymbolTable<>();
     private final Symbol.Class arrayClass = BuiltinFeatures.ARRAY_CLASS; // a virtual class for arrays
-    private final Symbol.Class nullClass = BuiltinFeatures.NULL_CLASS; // a virtual class for null
 
     // you should add global variables manually
     public GlobalScope(ProgramNode program) {
@@ -23,9 +22,11 @@ public class GlobalScope extends Scope {
         typeNames.declare(BuiltinFeatures.INT_TYPE_NAME);
         typeNames.declare(BuiltinFeatures.BOOL_TYPE_NAME);
         typeNames.declare(BuiltinFeatures.STRING_TYPE_NAME);
+        typeNames.declare(BuiltinFeatures.VOID_TYPE_NAME);
         classes.declare(BuiltinFeatures.INT_CLASS);
         classes.declare(BuiltinFeatures.BOOL_CLASS);
         classes.declare(BuiltinFeatures.STRING_CLASS);
+        classes.declare(BuiltinFeatures.VOID_CLASS);
         functions.declare(BuiltinFeatures.PRINT);
         functions.declare(BuiltinFeatures.PRINTLN);
         functions.declare(BuiltinFeatures.PRINT_INT);
@@ -37,14 +38,14 @@ public class GlobalScope extends Scope {
 
     private void getMainFunction(ProgramNode program) {
         if (!functions.contains("main")) {
-            throw new SemanticException("Main function not found", program.position);
+            throw new CompileException("Main function not found", program.position);
         }
         Symbol.Function mainFunction = functions.get("main");
         if (!BuiltinFeatures.INT.equals(mainFunction.returnType)) {
-            throw new SemanticException("Main function must return int", mainFunction.position);
+            throw new CompileException("Main function must return int", mainFunction.position);
         }
         if (mainFunction.parameters.size() != 0) {
-            throw new SemanticException("Main function must have no parameters", mainFunction.position);
+            throw new CompileException("Main function must have no parameters", mainFunction.position);
         }
     }
 
@@ -65,11 +66,11 @@ public class GlobalScope extends Scope {
 
     @Override
     public Symbol.Class getClass(Type type) {
+        if (type.typeName() == null) {
+            return null;
+        }
         if (type.isArray()) {
             return arrayClass;
-        }
-        if (type.typeName() == null) {
-            return nullClass;
         }
         return classes.get(type.typeName().name);
     }

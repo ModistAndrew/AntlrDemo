@@ -11,7 +11,7 @@ program: (classDeclaration | variableDeclarations | functionDeclaration)*;
 classDeclaration: CLASS Identifier LBRACE (variableDeclarations | functionDeclaration | constructorDeclaration)* RBRACE SEMI; // must end with ';'
 
 // function
-functionDeclaration: (VOID | type) Identifier LPAREN (parameterDeclaration (COMMA parameterDeclaration)*)? RPAREN block;
+functionDeclaration: type Identifier LPAREN (parameterDeclaration (COMMA parameterDeclaration)*)? RPAREN block;
 constructorDeclaration: Identifier emptyParenthesisPair block; // constructor has no formal parameters
 parameterDeclaration: type Identifier;
 block: LBRACE statement* RBRACE;
@@ -25,13 +25,13 @@ statement
     | WHILE condition statement # whileStmt
     | BREAK SEMI # breakStmt
     | CONTINUE SEMI # continueStmt
-    | RETURN expression? SEMI # returnStmt
+    | RETURN expressionOrArray? SEMI # returnStmt
     | expression SEMI # expressionStmt
     | SEMI # emptyStmt
     ;
 variableDeclarationsBody: type variableDeclarator (COMMA variableDeclarator)*;
 variableDeclarations: variableDeclarationsBody SEMI;
-variableDeclarator: Identifier (ASSIGN expression)?;
+variableDeclarator: Identifier (ASSIGN expressionOrArray)?;
 forInitialization: variableDeclarationsBody | expression;
 
 // expression
@@ -39,10 +39,9 @@ expression
     : LPAREN expression RPAREN # parenExpr
     | THIS # thisExpr
     | literal # literalExpr
-    | array # arrayExpr
     | formatString # formatStringExpr
-    | NEW typeName=(INT | BOOL | STRING | Identifier) arrayCreator # creatorExpr
-    | NEW typeName=Identifier emptyParenthesisPair? # creatorExpr
+    | NEW typeName arrayCreator # creatorExpr
+    | NEW Identifier emptyParenthesisPair? # creatorExpr
     | expression expressionBracketPair # subscriptExpr
     | Identifier # variableExpr
     | expression DOT Identifier # variableExpr
@@ -62,20 +61,24 @@ expression
     | expression op=LOGICAL_AND expression # binaryExpr
     | expression op=LOGICAL_OR expression # binaryExpr
     | <assoc=right> expression QUESTION expression COLON expression # conditionalExpr
-    | <assoc=right> expression ASSIGN expression # assignExpr
+    | <assoc=right> expression ASSIGN expressionOrArray # assignExpr
     ;
 arrayCreator: possibleBracketPair* array?;
-array: LBRACE (expression (COMMA expression)*)? RBRACE;
+expressionOrArray: expression | array;
+array: LBRACE (expressionOrArray (COMMA expressionOrArray)*)? RBRACE;
 formatString
     : formatStringText+=FormatStringAtom
     | formatStringText+=FormatStringBegin expression (formatStringText+=FormatStringMiddle expression)* formatStringText+=FormatStringEnd
     ;
 literal: IntegerLiteral | BooleanLiteral | StringLiteral | NULL;
-argumentList: LPAREN (expression (COMMA expression)*)? RPAREN;
+argumentList: LPAREN (expressionOrArray (COMMA expressionOrArray)*)? RPAREN;
 condition: LPAREN expression RPAREN;
 
 // type
-type: typeName=(INT | BOOL | STRING | Identifier) emptyBracketPair*;
+type
+    : VOID
+    | typeName emptyBracketPair*;
+typeName: INT | BOOL | STRING | Identifier;
 emptyBracketPair: LBRACK RBRACK;
 expressionBracketPair: LBRACK expression RBRACK;
 possibleBracketPair: LBRACK expression? RBRACK;

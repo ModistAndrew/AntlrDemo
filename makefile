@@ -1,6 +1,6 @@
 .PHONY: build
 build:
-	gradle build
+	@echo skip
 .PHONY: run
 run:
-	gradle run
+	java -cp /ulib/antlr-4.13.1-complete.jar:AntlrDemo.jar modist.antlrdemo.Compiler

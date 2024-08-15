@@ -11,11 +11,13 @@ public class BuiltinFeatures {
     public static final Symbol.TypeName INT_TYPE_NAME = new Symbol.TypeName(getLiteralName(MxLexer.INT));
     public static final Symbol.TypeName BOOL_TYPE_NAME = new Symbol.TypeName(getLiteralName(MxLexer.BOOL));
     public static final Symbol.TypeName STRING_TYPE_NAME = new Symbol.TypeName(getLiteralName(MxLexer.STRING));
+    public static final Symbol.TypeName VOID_TYPE_NAME = new Symbol.TypeName(getLiteralName(MxLexer.VOID));
 
     // cache the type instances for convenience
     public static final Type INT = new Type(INT_TYPE_NAME);
     public static final Type BOOL = new Type(BOOL_TYPE_NAME);
     public static final Type STRING = new Type(STRING_TYPE_NAME);
+    public static final Type VOID = new Type(VOID_TYPE_NAME);
 
     public static final Symbol.Function ARRAY_SIZE = new Symbol.Function("size", INT, new Symbol.Variable[]{});
     public static final Symbol.Function STRING_LENGTH = new Symbol.Function("length", INT, new Symbol.Variable[]{});
@@ -53,8 +55,8 @@ public class BuiltinFeatures {
             STRING_PARSE_INT,
             STRING_ORD
     }, new Symbol.Variable[]{});
+    public static final Symbol.Class VOID_CLASS = new Symbol.Class(VOID_TYPE_NAME.name, null, new Symbol.Function[]{}, new Symbol.Variable[]{});
     public static final Symbol.Class ARRAY_CLASS = new Symbol.Class("array", null, new Symbol.Function[]{
             ARRAY_SIZE
     }, new Symbol.Variable[]{});
-    public static final Symbol.Class NULL_CLASS = new Symbol.Class("null", null, new Symbol.Function[]{}, new Symbol.Variable[]{});
 }

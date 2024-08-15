@@ -3,9 +3,10 @@ package modist.antlrdemo.frontend.error;
 import modist.antlrdemo.frontend.metadata.Position;
 import modist.antlrdemo.frontend.semantic.Symbol;
 
-public class SymbolRedefinedException extends SemanticException {
+public class SymbolRedefinedException extends CompileException {
     public SymbolRedefinedException(String name, Position position, Position previous) {
-        super(String.format("Symbol '%s' redefined, previous definition at [%s]", name, previous), position);
+        super(CompileErrorType.MULTIPLE_DEFINITIONS,
+                String.format("Symbol '%s' redefined, previous definition at [%s]", name, previous), position);
     }
 
     public SymbolRedefinedException(Symbol symbol, Symbol previous) {
