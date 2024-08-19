@@ -2,8 +2,8 @@ package modist.antlrdemo.frontend.semantic.scope;
 
 import modist.antlrdemo.frontend.semantic.Symbol;
 import modist.antlrdemo.frontend.semantic.Type;
-import modist.antlrdemo.frontend.syntax.node.DeclarationNode;
-import modist.antlrdemo.frontend.syntax.node.StatementNode;
+import modist.antlrdemo.frontend.ast.node.DeclarationNode;
+import modist.antlrdemo.frontend.ast.node.StatementNode;
 import org.jetbrains.annotations.Nullable;
 
 public class ChildScope extends Scope {
@@ -21,7 +21,7 @@ public class ChildScope extends Scope {
     public ChildScope(Scope parent, DeclarationNode.Class classNode) {
         this(parent);
         classNode.functions.forEach(this::declareFunction);
-        thisType = new Type(classNode.typeNameSymbol);
+        thisType = new Type(classNode.typeName);
     }
 
     public ChildScope(Scope parent, DeclarationNode.Function functionNode) {

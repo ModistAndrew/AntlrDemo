@@ -1,12 +1,15 @@
-package modist.antlrdemo.frontend.syntax.node;
+package modist.antlrdemo.frontend.ast.node;
 
-import modist.antlrdemo.frontend.metadata.LiteralEnum;
-import modist.antlrdemo.frontend.metadata.Operator;
+import modist.antlrdemo.frontend.ast.metadata.LiteralEnum;
+import modist.antlrdemo.frontend.ast.metadata.Operator;
+import modist.antlrdemo.frontend.semantic.Type;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 public abstract sealed class ExpressionNode extends AstNode implements ForInitializationNode, ExpressionOrArrayNode {
+    public Type type;
+
     public static final class This extends ExpressionNode {
     }
 

@@ -1,4 +1,4 @@
-package modist.antlrdemo.frontend.syntax.node;
+package modist.antlrdemo.frontend.ast.node;
 
 public final class TypeNode extends AstNode {
     public String typeName;

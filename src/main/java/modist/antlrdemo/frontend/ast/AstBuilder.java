@@ -1,9 +1,9 @@
-package modist.antlrdemo.frontend.syntax;
+package modist.antlrdemo.frontend.ast;
 
 import modist.antlrdemo.frontend.grammar.MxLexer;
 import modist.antlrdemo.frontend.grammar.MxParser;
 import modist.antlrdemo.frontend.grammar.MxVisitor;
-import modist.antlrdemo.frontend.syntax.node.*;
+import modist.antlrdemo.frontend.ast.node.*;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ErrorNode;
@@ -20,14 +20,14 @@ public class AstBuilder implements MxVisitor<IAstNode> {
     @Override
     public ProgramNode visitProgram(MxParser.ProgramContext ctx) {
         ProgramNode programNode = new ProgramNode();
-        programNode.classes = new ArrayList<>();
-        programNode.functions = new ArrayList<>();
         programNode.declarations = ctx.children.stream().map(this::visit)
                 .flatMap(node -> switch (node) {
                     case StatementNode.VariableDeclarations declarations -> declarations.variables.stream();
                     case DeclarationNode declaration -> Stream.of(declaration);
                     default -> throw new ClassCastException();
                 }).toList();
+        programNode.classes = new ArrayList<>();
+        programNode.functions = new ArrayList<>();
         programNode.declarations.forEach(declaration -> {
             switch (declaration) {
                 case DeclarationNode.Class classNode -> programNode.classes.add(classNode);

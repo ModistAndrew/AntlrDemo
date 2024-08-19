@@ -1,4 +1,4 @@
-package modist.antlrdemo.frontend.metadata;
+package modist.antlrdemo.frontend.ast.metadata;
 
 public sealed interface LiteralEnum {
     record Int(int value) implements LiteralEnum {

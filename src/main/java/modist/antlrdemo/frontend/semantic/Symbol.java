@@ -3,9 +3,9 @@ package modist.antlrdemo.frontend.semantic;
 import modist.antlrdemo.frontend.error.CompileException;
 import modist.antlrdemo.frontend.error.InvalidTypeException;
 import modist.antlrdemo.frontend.error.MultipleDefinitionsException;
-import modist.antlrdemo.frontend.metadata.Position;
+import modist.antlrdemo.frontend.ast.metadata.Position;
 import modist.antlrdemo.frontend.semantic.scope.Scope;
-import modist.antlrdemo.frontend.syntax.node.DeclarationNode;
+import modist.antlrdemo.frontend.ast.node.DeclarationNode;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -32,6 +32,7 @@ public abstract class Symbol {
     public static class Class extends Symbol {
         @Nullable
         public final Function constructor;
+        // for reference
         public final SymbolTable<Function> functions = new SymbolTable<>();
         public final SymbolTable<Variable> variables = new SymbolTable<>();
 
@@ -107,14 +108,16 @@ public abstract class Symbol {
     }
 
     // we need to first declare the type before we can use it in other symbols. every type corresponds to a class
+    // a virtual class array does not have a corresponding typeName and is not stored in symbol table
     public static class TypeName extends Symbol {
         // primitive types are built-in and are not pointers
         public final boolean primitive;
 
+        // for custom
         public TypeName(DeclarationNode.Class declaration) {
             super(declaration);
             this.primitive = false;
-            declaration.typeNameSymbol = this;
+            declaration.typeName = this;
         }
 
         // for built-in

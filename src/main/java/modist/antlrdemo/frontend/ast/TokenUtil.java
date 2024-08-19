@@ -1,8 +1,8 @@
-package modist.antlrdemo.frontend.syntax;
+package modist.antlrdemo.frontend.ast;
 
-import modist.antlrdemo.frontend.metadata.LiteralEnum;
-import modist.antlrdemo.frontend.metadata.Operator;
-import modist.antlrdemo.frontend.metadata.Position;
+import modist.antlrdemo.frontend.ast.metadata.LiteralEnum;
+import modist.antlrdemo.frontend.ast.metadata.Operator;
+import modist.antlrdemo.frontend.ast.metadata.Position;
 import modist.antlrdemo.frontend.grammar.MxLexer;
 import org.antlr.v4.runtime.Token;
 

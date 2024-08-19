@@ -1,4 +1,4 @@
-package modist.antlrdemo.frontend.metadata;
+package modist.antlrdemo.frontend.ast.metadata;
 
 public enum Operator {
     INC, DEC, NOT, LOGICAL_NOT,

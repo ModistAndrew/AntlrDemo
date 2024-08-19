@@ -4,7 +4,7 @@ import modist.antlrdemo.frontend.error.*;
 import modist.antlrdemo.frontend.semantic.scope.ChildScope;
 import modist.antlrdemo.frontend.semantic.scope.GlobalScope;
 import modist.antlrdemo.frontend.semantic.scope.Scope;
-import modist.antlrdemo.frontend.syntax.node.*;
+import modist.antlrdemo.frontend.ast.node.*;
 import org.jetbrains.annotations.Nullable;
 
 public class SemanticChecker {
@@ -19,20 +19,11 @@ public class SemanticChecker {
         scope = scope.getParent();
     }
 
-    private void testExpressionType(ExpressionNode node, Type expectedType) {
-        new Type.Builder(scope).testExpressionType(node, expectedType);
-    }
-
-    private void tryMatchExpression(ExpressionOrArrayNode node, Type expectedType) {
-        new Type.Builder(scope).tryMatchExpression(node, expectedType);
-    }
-
-    // should not use check recursively if some more complicated logic is needed
     public void check(@Nullable IAstNode node) {
         if (node == null) {
             return;
         }
-        PositionRecorder.set(node.getPosition());
+        PositionRecord.set(node.getPosition());
         switch (node) {
             case ProgramNode program -> {
                 pushScope(new GlobalScope(program));
@@ -67,7 +58,8 @@ public class SemanticChecker {
             case StatementNode.VariableDeclarations variableDeclarationsStatement ->
                     variableDeclarationsStatement.variables.forEach(this::check);
             case StatementNode.If ifStatement -> {
-                testExpressionType(ifStatement.condition, BuiltinFeatures.BOOL);
+                check(ifStatement.condition);
+                ifStatement.condition.type.testType(BuiltinFeatures.BOOL);
                 pushScope(new ChildScope(scope, ifStatement));
                 ifStatement.thenStatements.forEach(this::check);
                 popScope();
@@ -81,14 +73,16 @@ public class SemanticChecker {
                 pushScope(new ChildScope(scope, forStatement));
                 check(forStatement.initialization);
                 if (forStatement.condition != null) {
-                    testExpressionType(forStatement.condition, BuiltinFeatures.BOOL);
+                    check(forStatement.condition);
+                    forStatement.condition.type.testType(BuiltinFeatures.BOOL);
                 }
                 check(forStatement.update);
                 forStatement.statements.forEach(this::check);
                 popScope();
             }
             case StatementNode.While whileStatement -> {
-                testExpressionType(whileStatement.condition, BuiltinFeatures.BOOL);
+                check(whileStatement.condition);
+                whileStatement.condition.type.testType(BuiltinFeatures.BOOL);
                 pushScope(new ChildScope(scope, whileStatement));
                 whileStatement.statements.forEach(this::check);
                 popScope();
@@ -114,7 +108,7 @@ public class SemanticChecker {
                 } else if (returnStatement.expression == null) {
                     throw new TypeMismatchException(BuiltinFeatures.VOID, scope.returnType);
                 } else {
-                    tryMatchExpression(returnStatement.expression, scope.returnType);
+                    new Type.Builder(scope).tryMatchExpression(returnStatement.expression, scope.returnType);
                 }
                 returned = true;
             }
@@ -122,7 +116,7 @@ public class SemanticChecker {
             case StatementNode.Empty ignored -> {
             }
             case TypeNode ignored -> throw new UnsupportedOperationException();
-            case ArrayNode ignored -> throw new UnsupportedOperationException();
+            case ArrayNode ignored -> throw new UnsupportedOperationException(); // cannot visit this directly. have to use tryMatchExpression for type info
         }
     }
 }

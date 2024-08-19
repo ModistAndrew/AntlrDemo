@@ -5,7 +5,7 @@ import modist.antlrdemo.frontend.semantic.BuiltinFeatures;
 import modist.antlrdemo.frontend.semantic.Symbol;
 import modist.antlrdemo.frontend.semantic.SymbolTable;
 import modist.antlrdemo.frontend.semantic.Type;
-import modist.antlrdemo.frontend.syntax.node.ProgramNode;
+import modist.antlrdemo.frontend.ast.node.ProgramNode;
 import org.jetbrains.annotations.Nullable;
 
 public class GlobalScope extends Scope {

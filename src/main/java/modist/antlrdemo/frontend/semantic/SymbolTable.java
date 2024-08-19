@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+//TODO: keep order of declaration
 public class SymbolTable<T extends Symbol> {
     private final HashMap<String, T> table = new HashMap<>();
 

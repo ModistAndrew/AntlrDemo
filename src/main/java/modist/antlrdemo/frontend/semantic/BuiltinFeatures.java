@@ -1,7 +1,7 @@
 package modist.antlrdemo.frontend.semantic;
 
 import modist.antlrdemo.frontend.grammar.MxLexer;
-import modist.antlrdemo.frontend.syntax.TokenUtil;
+import modist.antlrdemo.frontend.ast.TokenUtil;
 
 public class BuiltinFeatures {
     public static final Symbol.TypeName INT_TYPE_NAME = new Symbol.TypeName(TokenUtil.getLiteralName(MxLexer.INT));

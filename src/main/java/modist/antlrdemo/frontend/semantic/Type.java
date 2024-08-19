@@ -1,20 +1,20 @@
 package modist.antlrdemo.frontend.semantic;
 
 import modist.antlrdemo.frontend.error.*;
-import modist.antlrdemo.frontend.metadata.LiteralEnum;
-import modist.antlrdemo.frontend.metadata.Operator;
+import modist.antlrdemo.frontend.ast.metadata.LiteralEnum;
+import modist.antlrdemo.frontend.ast.metadata.Operator;
 import modist.antlrdemo.frontend.semantic.scope.Scope;
-import modist.antlrdemo.frontend.syntax.node.*;
+import modist.antlrdemo.frontend.ast.node.*;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.function.Predicate;
 
 public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
-    public static final Type NULL = new Type(null);
-
     // typeName==null: null type. type is not fixed and can match any non-primitive type. dimension must be 0
     // typeName==VOID: void type. type is fixed and can only match void type. dimension must be 0
+    public static final Type NULL = new Type(null);
+
     public Type(Scope scope, TypeNode typeNode) {
         this(scope.resolveTypeName(typeNode.typeName), typeNode.dimension);
     }
@@ -84,7 +84,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
     }
 
     // throw InvalidTypeException if not valid
-    private void testType(Type expectedType) {
+    public void testType(Type expectedType) {
         Objects.requireNonNull(expectedType);
         if (equals(expectedType)) {
             return;
@@ -149,13 +149,8 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
             };
         }
 
-        // throw InvalidTypeException if not valid
-        public void testExpressionType(ExpressionNode expression, Type expectedType) {
-            build(expression).testType(expectedType);
-        }
-
         public Type build(ExpressionNode expression) {
-            PositionRecorder.set(expression.getPosition());
+            PositionRecord.set(expression.getPosition());
             boolean isLValueTemp = false;
             Type returnType = switch (expression) {
                 case ExpressionNode.This ignored -> {
@@ -213,7 +208,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
                     if (!arrayType.isArray()) {
                         throw new DimensionOutOfBoundException();
                     }
-                    testExpressionType(subscript.index, BuiltinFeatures.INT);
+                    build(subscript.index).testType(BuiltinFeatures.INT);
                     isLValueTemp = true;
                     yield arrayType.decreaseDimension();
                 }
@@ -255,6 +250,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
                 }
             };
             isLValue = isLValueTemp;
+            expression.type = returnType;
             return returnType;
         }
     }

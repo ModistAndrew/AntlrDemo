@@ -1,6 +1,6 @@
 package modist.antlrdemo.frontend.error;
 
-import modist.antlrdemo.frontend.metadata.Position;
+import modist.antlrdemo.frontend.ast.metadata.Position;
 
 public class CompileException extends RuntimeException {
     protected Position position;
@@ -19,7 +19,7 @@ public class CompileException extends RuntimeException {
     }
 
     public Position getPosition() {
-        return position == null ? PositionRecorder.get() : position;
+        return position == null ? PositionRecord.get() : position;
     }
 
     public static <T extends CompileException> T withPosition(T exception, Position position) {
