@@ -16,55 +16,55 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-public class AstBuilder implements MxVisitor<IAstNode> {
+public class AstBuilder implements MxVisitor<IAst> {
     @Override
-    public ProgramNode visitProgram(MxParser.ProgramContext ctx) {
-        ProgramNode programNode = new ProgramNode();
-        programNode.declarations = ctx.children.stream().map(this::visit)
+    public ProgramAst visitProgram(MxParser.ProgramContext ctx) {
+        ProgramAst programAst = new ProgramAst();
+        programAst.definitions = ctx.children.stream().map(this::visit)
                 .flatMap(node -> switch (node) {
-                    case StatementNode.VariableDeclarations declarations -> declarations.variables.stream();
-                    case DeclarationNode declaration -> Stream.of(declaration);
+                    case StatementAst.VariableDefinitions variableDefinitions -> variableDefinitions.variables.stream();
+                    case DefinitionAst definition -> Stream.of(definition);
                     default -> throw new ClassCastException();
                 }).toList();
-        programNode.classes = new ArrayList<>();
-        programNode.functions = new ArrayList<>();
-        programNode.declarations.forEach(declaration -> {
-            switch (declaration) {
-                case DeclarationNode.Class classNode -> programNode.classes.add(classNode);
-                case DeclarationNode.Function functionNode -> programNode.functions.add(functionNode);
-                case DeclarationNode.Variable ignored -> {
+        programAst.classes = new ArrayList<>();
+        programAst.functions = new ArrayList<>();
+        programAst.definitions.forEach(definition -> {
+            switch (definition) {
+                case DefinitionAst.Class classNode -> programAst.classes.add(classNode);
+                case DefinitionAst.Function functionNode -> programAst.functions.add(functionNode);
+                case DefinitionAst.Variable ignored -> {
                 }
             }
         });
-        return withPosition(programNode, ctx);
+        return withPosition(programAst, ctx);
     }
 
     @Override
-    public DeclarationNode.Class visitClassDeclaration(MxParser.ClassDeclarationContext ctx) {
-        DeclarationNode.Class classNode = withPosition(new DeclarationNode.Class(), ctx.Identifier());
+    public DefinitionAst.Class visitClassDefinition(MxParser.ClassDefinitionContext ctx) {
+        DefinitionAst.Class classNode = withPosition(new DefinitionAst.Class(), ctx.Identifier());
         classNode.name = ctx.Identifier().getText();
-        classNode.constructors = ctx.constructorDeclaration().stream().map(this::visitConstructorDeclaration).toList();
-        classNode.variables = ctx.variableDeclarations().stream().map(this::visitVariableDeclarations)
-                .flatMap(variableDeclarations -> variableDeclarations.variables.stream()).toList();
-        classNode.functions = ctx.functionDeclaration().stream().map(this::visitFunctionDeclaration).toList();
+        classNode.constructors = ctx.constructorDefinition().stream().map(this::visitConstructorDefinition).toList();
+        classNode.variables = ctx.variableDefinitions().stream().map(this::visitVariableDefinitions)
+                .flatMap(variableDefinitions -> variableDefinitions.variables.stream()).toList();
+        classNode.functions = ctx.functionDefinition().stream().map(this::visitFunctionDefinition).toList();
         return classNode;
     }
 
     @Override
-    public DeclarationNode.Function visitFunctionDeclaration(MxParser.FunctionDeclarationContext ctx) {
-        DeclarationNode.Function functionNode = withPosition(new DeclarationNode.Function(), ctx.Identifier());
+    public DefinitionAst.Function visitFunctionDefinition(MxParser.FunctionDefinitionContext ctx) {
+        DefinitionAst.Function functionNode = withPosition(new DefinitionAst.Function(), ctx.Identifier());
         functionNode.name = ctx.Identifier().getText();
         functionNode.returnType = this.visitType(ctx.type());
-        functionNode.parameters = ctx.parameterDeclaration().stream().map(this::visitParameterDeclaration).toList();
+        functionNode.parameters = ctx.parameterDefinition().stream().map(this::visitParameterDefinition).toList();
         functionNode.body = visitBlock(ctx.block()).statements;
         return functionNode;
     }
 
     @Override
-    public DeclarationNode.Function visitConstructorDeclaration(MxParser.ConstructorDeclarationContext ctx) {
-        DeclarationNode.Function constructorNode = withPosition(new DeclarationNode.Function(), ctx.Identifier());
+    public DefinitionAst.Function visitConstructorDefinition(MxParser.ConstructorDefinitionContext ctx) {
+        DefinitionAst.Function constructorNode = withPosition(new DefinitionAst.Function(), ctx.Identifier());
         constructorNode.name = ctx.Identifier().getText();
-        constructorNode.returnType = withPosition(new TypeNode(), ctx.Identifier());
+        constructorNode.returnType = withPosition(new TypeAst(), ctx.Identifier());
         constructorNode.returnType.typeName = TokenUtil.getLiteralName(MxLexer.VOID);
         constructorNode.returnType.dimension = 0; // set to void manually
         constructorNode.parameters = new ArrayList<>();
@@ -73,8 +73,8 @@ public class AstBuilder implements MxVisitor<IAstNode> {
     }
 
     @Override
-    public DeclarationNode.Variable visitParameterDeclaration(MxParser.ParameterDeclarationContext ctx) {
-        DeclarationNode.Variable parameterNode = withPosition(new DeclarationNode.Variable(), ctx.Identifier());
+    public DefinitionAst.Variable visitParameterDefinition(MxParser.ParameterDefinitionContext ctx) {
+        DefinitionAst.Variable parameterNode = withPosition(new DefinitionAst.Variable(), ctx.Identifier());
         parameterNode.name = ctx.Identifier().getText();
         parameterNode.type = visitType(ctx.type());
         parameterNode.initializer = null;
@@ -82,25 +82,25 @@ public class AstBuilder implements MxVisitor<IAstNode> {
     }
 
     @Override
-    public StatementNode.Block visitBlock(MxParser.BlockContext ctx) {
-        StatementNode.Block blockNode = withPosition(new StatementNode.Block(), ctx);
+    public StatementAst.Block visitBlock(MxParser.BlockContext ctx) {
+        StatementAst.Block blockNode = withPosition(new StatementAst.Block(), ctx);
         blockNode.statements = ctx.statement().stream().map(this::visitStatement).toList();
         return blockNode;
     }
 
     @Override
-    public StatementNode.Block visitBlockStmt(MxParser.BlockStmtContext ctx) {
+    public StatementAst.Block visitBlockStmt(MxParser.BlockStmtContext ctx) {
         return withPosition(visitBlock(ctx.block()), ctx);
     }
 
     @Override
-    public StatementNode.VariableDeclarations visitVariableDeclarationsStmt(MxParser.VariableDeclarationsStmtContext ctx) {
-        return withPosition(visitVariableDeclarations(ctx.variableDeclarations()), ctx);
+    public StatementAst.VariableDefinitions visitVariableDefinitionsStmt(MxParser.VariableDefinitionsStmtContext ctx) {
+        return withPosition(visitVariableDefinitions(ctx.variableDefinitions()), ctx);
     }
 
     @Override
-    public StatementNode.If visitIfStmt(MxParser.IfStmtContext ctx) {
-        StatementNode.If ifNode = withPosition(new StatementNode.If(), ctx);
+    public StatementAst.If visitIfStmt(MxParser.IfStmtContext ctx) {
+        StatementAst.If ifNode = withPosition(new StatementAst.If(), ctx);
         ifNode.condition = visitCondition(ctx.condition());
         ifNode.thenStatements = getStatementList(ctx.ifThenStmt);
         ifNode.elseStatements = ctx.ifElseStmt != null ? this.getStatementList(ctx.ifElseStmt) : null;
@@ -108,8 +108,8 @@ public class AstBuilder implements MxVisitor<IAstNode> {
     }
 
     @Override
-    public StatementNode.For visitForStmt(MxParser.ForStmtContext ctx) {
-        StatementNode.For forNode = withPosition(new StatementNode.For(), ctx);
+    public StatementAst.For visitForStmt(MxParser.ForStmtContext ctx) {
+        StatementAst.For forNode = withPosition(new StatementAst.For(), ctx);
         forNode.initialization = ctx.forInit != null ? this.visitForInitialization(ctx.forInit) : null;
         forNode.condition = ctx.forCondition != null ? this.visitExpression(ctx.forCondition) : null;
         forNode.update = ctx.forUpdate != null ? this.visitExpression(ctx.forUpdate) : null;
@@ -118,116 +118,116 @@ public class AstBuilder implements MxVisitor<IAstNode> {
     }
 
     @Override
-    public StatementNode.While visitWhileStmt(MxParser.WhileStmtContext ctx) {
-        StatementNode.While whileNode = withPosition(new StatementNode.While(), ctx);
+    public StatementAst.While visitWhileStmt(MxParser.WhileStmtContext ctx) {
+        StatementAst.While whileNode = withPosition(new StatementAst.While(), ctx);
         whileNode.condition = visitCondition(ctx.condition());
         whileNode.statements = getStatementList(ctx.statement());
         return whileNode;
     }
 
     @Override
-    public StatementNode.Break visitBreakStmt(MxParser.BreakStmtContext ctx) {
-        return withPosition(new StatementNode.Break(), ctx);
+    public StatementAst.Break visitBreakStmt(MxParser.BreakStmtContext ctx) {
+        return withPosition(new StatementAst.Break(), ctx);
     }
 
     @Override
-    public StatementNode.Continue visitContinueStmt(MxParser.ContinueStmtContext ctx) {
-        return withPosition(new StatementNode.Continue(), ctx);
+    public StatementAst.Continue visitContinueStmt(MxParser.ContinueStmtContext ctx) {
+        return withPosition(new StatementAst.Continue(), ctx);
     }
 
     @Override
-    public StatementNode.Return visitReturnStmt(MxParser.ReturnStmtContext ctx) {
-        StatementNode.Return returnNode = withPosition(new StatementNode.Return(), ctx);
+    public StatementAst.Return visitReturnStmt(MxParser.ReturnStmtContext ctx) {
+        StatementAst.Return returnNode = withPosition(new StatementAst.Return(), ctx);
         returnNode.expression = ctx.expressionOrArray() != null ? this.visitExpressionOrArray(ctx.expressionOrArray()) : null;
         return returnNode;
     }
 
     @Override
-    public StatementNode.Expression visitExpressionStmt(MxParser.ExpressionStmtContext ctx) {
-        StatementNode.Expression expressionNode = withPosition(new StatementNode.Expression(), ctx);
+    public StatementAst.Expression visitExpressionStmt(MxParser.ExpressionStmtContext ctx) {
+        StatementAst.Expression expressionNode = withPosition(new StatementAst.Expression(), ctx);
         expressionNode.expression = visitExpression(ctx.expression());
         return expressionNode;
     }
 
     @Override
-    public StatementNode.Empty visitEmptyStmt(MxParser.EmptyStmtContext ctx) {
-        return withPosition(new StatementNode.Empty(), ctx);
+    public StatementAst.Empty visitEmptyStmt(MxParser.EmptyStmtContext ctx) {
+        return withPosition(new StatementAst.Empty(), ctx);
     }
 
     @Override
-    public StatementNode.VariableDeclarations visitVariableDeclarationsBody(MxParser.VariableDeclarationsBodyContext ctx) {
-        StatementNode.VariableDeclarations variableDeclarationsNode = withPosition(new StatementNode.VariableDeclarations(), ctx);
-        variableDeclarationsNode.variables = ctx.variableDeclarator().stream().map(declarator -> {
-            DeclarationNode.Variable variableNode = withPosition(new DeclarationNode.Variable(), declarator.Identifier());
+    public StatementAst.VariableDefinitions visitVariableDefinitionsBody(MxParser.VariableDefinitionsBodyContext ctx) {
+        StatementAst.VariableDefinitions variableDefinitionsNode = withPosition(new StatementAst.VariableDefinitions(), ctx);
+        variableDefinitionsNode.variables = ctx.variableDeclarator().stream().map(declarator -> {
+            DefinitionAst.Variable variableNode = withPosition(new DefinitionAst.Variable(), declarator.Identifier());
             variableNode.name = declarator.Identifier().getText();
             variableNode.type = visitType(ctx.type());
             variableNode.initializer = declarator.expressionOrArray() != null ? this.visitExpressionOrArray(declarator.expressionOrArray()) : null;
             return variableNode;
         }).toList();
-        return variableDeclarationsNode;
+        return variableDefinitionsNode;
     }
 
     @Override
-    public StatementNode.VariableDeclarations visitVariableDeclarations(MxParser.VariableDeclarationsContext ctx) {
-        return withPosition(visitVariableDeclarationsBody(ctx.variableDeclarationsBody()), ctx);
+    public StatementAst.VariableDefinitions visitVariableDefinitions(MxParser.VariableDefinitionsContext ctx) {
+        return withPosition(visitVariableDefinitionsBody(ctx.variableDefinitionsBody()), ctx);
     }
 
     @Override
-    public IAstNode visitVariableDeclarator(MxParser.VariableDeclaratorContext ctx) {
+    public IAst visitVariableDeclarator(MxParser.VariableDeclaratorContext ctx) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public ForInitializationNode visitForInitialization(MxParser.ForInitializationContext ctx) {
-        return withPosition((ForInitializationNode) visit(ctx.getChild(0)), ctx);
+    public ForInitializationAst visitForInitialization(MxParser.ForInitializationContext ctx) {
+        return withPosition((ForInitializationAst) visit(ctx.getChild(0)), ctx);
     }
 
     @Override
-    public ExpressionNode.PreUnaryAssign visitPreUnaryAssignExpr(MxParser.PreUnaryAssignExprContext ctx) {
-        ExpressionNode.PreUnaryAssign preUnaryAssignNode = withPosition(new ExpressionNode.PreUnaryAssign(), ctx.op);
+    public ExpressionAst.PreUnaryAssign visitPreUnaryAssignExpr(MxParser.PreUnaryAssignExprContext ctx) {
+        ExpressionAst.PreUnaryAssign preUnaryAssignNode = withPosition(new ExpressionAst.PreUnaryAssign(), ctx.op);
         preUnaryAssignNode.expression = visitExpression(ctx.expression());
         preUnaryAssignNode.operator = TokenUtil.getOperator(ctx.op);
         return preUnaryAssignNode;
     }
 
     @Override
-    public ExpressionNode.This visitThisExpr(MxParser.ThisExprContext ctx) {
-        return withPosition(new ExpressionNode.This(), ctx);
+    public ExpressionAst.This visitThisExpr(MxParser.ThisExprContext ctx) {
+        return withPosition(new ExpressionAst.This(), ctx);
     }
 
     @Override
-    public ExpressionNode.Subscript visitSubscriptExpr(MxParser.SubscriptExprContext ctx) {
-        ExpressionNode.Subscript subscriptNode = withPosition(new ExpressionNode.Subscript(), ctx);
+    public ExpressionAst.Subscript visitSubscriptExpr(MxParser.SubscriptExprContext ctx) {
+        ExpressionAst.Subscript subscriptNode = withPosition(new ExpressionAst.Subscript(), ctx);
         subscriptNode.expression = visitExpression(ctx.expression());
         subscriptNode.index = visitExpressionBracketPair(ctx.expressionBracketPair());
         return subscriptNode;
     }
 
     @Override
-    public ExpressionNode.Binary visitBinaryExpr(MxParser.BinaryExprContext ctx) {
-        ExpressionNode.Binary binaryNode = withPosition(new ExpressionNode.Binary(), ctx.op);
-        binaryNode.leftExpression = visitExpression(ctx.expression(0));
-        binaryNode.rightExpression = visitExpression(ctx.expression(1));
+    public ExpressionAst.Binary visitBinaryExpr(MxParser.BinaryExprContext ctx) {
+        ExpressionAst.Binary binaryNode = withPosition(new ExpressionAst.Binary(), ctx.op);
+        binaryNode.left = visitExpression(ctx.expression(0));
+        binaryNode.right = visitExpression(ctx.expression(1));
         binaryNode.operator = TokenUtil.getOperator(ctx.op);
         return binaryNode;
     }
 
     @Override
-    public ExpressionNode.PostUnaryAssign visitPostUnaryAssignExpr(MxParser.PostUnaryAssignExprContext ctx) {
-        ExpressionNode.PostUnaryAssign postUnaryAssignNode = withPosition(new ExpressionNode.PostUnaryAssign(), ctx.op);
+    public ExpressionAst.PostUnaryAssign visitPostUnaryAssignExpr(MxParser.PostUnaryAssignExprContext ctx) {
+        ExpressionAst.PostUnaryAssign postUnaryAssignNode = withPosition(new ExpressionAst.PostUnaryAssign(), ctx.op);
         postUnaryAssignNode.expression = visitExpression(ctx.expression());
         postUnaryAssignNode.operator = TokenUtil.getOperator(ctx.op);
         return postUnaryAssignNode;
     }
 
     @Override
-    public ExpressionNode visitParenExpr(MxParser.ParenExprContext ctx) {
+    public ExpressionAst visitParenExpr(MxParser.ParenExprContext ctx) {
         return withPosition(visitExpression(ctx.expression()), ctx);
     }
 
     @Override
-    public ExpressionNode.Function visitFunctionExpr(MxParser.FunctionExprContext ctx) {
-        ExpressionNode.Function functionNode = withPosition(new ExpressionNode.Function(), ctx);
+    public ExpressionAst.Function visitFunctionExpr(MxParser.FunctionExprContext ctx) {
+        ExpressionAst.Function functionNode = withPosition(new ExpressionAst.Function(), ctx);
         functionNode.expression = ctx.expression() != null ? this.visitExpression(ctx.expression()) : null;
         functionNode.name = ctx.Identifier().getText();
         functionNode.arguments = getArgumentList(ctx.argumentList());
@@ -235,50 +235,50 @@ public class AstBuilder implements MxVisitor<IAstNode> {
     }
 
     @Override
-    public ExpressionNode.Variable visitVariableExpr(MxParser.VariableExprContext ctx) {
-        ExpressionNode.Variable variableNode = withPosition(new ExpressionNode.Variable(), ctx);
+    public ExpressionAst.Variable visitVariableExpr(MxParser.VariableExprContext ctx) {
+        ExpressionAst.Variable variableNode = withPosition(new ExpressionAst.Variable(), ctx);
         variableNode.expression = ctx.expression() != null ? this.visitExpression(ctx.expression()) : null;
         variableNode.name = ctx.Identifier().getText();
         return variableNode;
     }
 
     @Override
-    public ExpressionNode.PreUnary visitPreUnaryExpr(MxParser.PreUnaryExprContext ctx) {
-        ExpressionNode.PreUnary preUnaryNode = withPosition(new ExpressionNode.PreUnary(), ctx.op);
+    public ExpressionAst.PreUnary visitPreUnaryExpr(MxParser.PreUnaryExprContext ctx) {
+        ExpressionAst.PreUnary preUnaryNode = withPosition(new ExpressionAst.PreUnary(), ctx.op);
         preUnaryNode.expression = visitExpression(ctx.expression());
         preUnaryNode.operator = TokenUtil.getOperator(ctx.op);
         return preUnaryNode;
     }
 
     @Override
-    public ExpressionNode.Literal visitLiteralExpr(MxParser.LiteralExprContext ctx) {
+    public ExpressionAst.Literal visitLiteralExpr(MxParser.LiteralExprContext ctx) {
         return withPosition(visitLiteral(ctx.literal()), ctx);
     }
 
     @Override
-    public ExpressionNode.FormatString visitFormatStringExpr(MxParser.FormatStringExprContext ctx) {
+    public ExpressionAst.FormatString visitFormatStringExpr(MxParser.FormatStringExprContext ctx) {
         return withPosition(visitFormatString(ctx.formatString()), ctx);
     }
 
     @Override
-    public ExpressionNode.Creator visitCreatorExpr(MxParser.CreatorExprContext ctx) {
-        ExpressionNode.Creator creatorNode = withPosition(new ExpressionNode.Creator(), ctx);
+    public ExpressionAst.Creator visitCreatorExpr(MxParser.CreatorExprContext ctx) {
+        ExpressionAst.Creator creatorNode = withPosition(new ExpressionAst.Creator(), ctx);
         creatorNode.typeName = ctx.typeName() != null ? ctx.typeName().getText() : ctx.Identifier().getText();
         creatorNode.arrayCreator = ctx.arrayCreator() != null ? this.visitArrayCreator(ctx.arrayCreator()) : null;
         return creatorNode;
     }
 
     @Override
-    public ExpressionNode.Assign visitAssignExpr(MxParser.AssignExprContext ctx) {
-        ExpressionNode.Assign assignNode = withPosition(new ExpressionNode.Assign(), ctx.ASSIGN());
-        assignNode.leftExpression = visitExpression(ctx.expression());
-        assignNode.rightExpression = visitExpressionOrArray(ctx.expressionOrArray());
+    public ExpressionAst.Assign visitAssignExpr(MxParser.AssignExprContext ctx) {
+        ExpressionAst.Assign assignNode = withPosition(new ExpressionAst.Assign(), ctx.ASSIGN());
+        assignNode.left = visitExpression(ctx.expression());
+        assignNode.right = visitExpressionOrArray(ctx.expressionOrArray());
         return assignNode;
     }
 
     @Override
-    public ExpressionNode.Conditional visitConditionalExpr(MxParser.ConditionalExprContext ctx) {
-        ExpressionNode.Conditional conditionalNode = withPosition(new ExpressionNode.Conditional(), ctx);
+    public ExpressionAst.Conditional visitConditionalExpr(MxParser.ConditionalExprContext ctx) {
+        ExpressionAst.Conditional conditionalNode = withPosition(new ExpressionAst.Conditional(), ctx);
         conditionalNode.condition = visitExpression(ctx.expression(0));
         conditionalNode.trueExpression = visitExpression(ctx.expression(1));
         conditionalNode.falseExpression = visitExpression(ctx.expression(2));
@@ -286,134 +286,134 @@ public class AstBuilder implements MxVisitor<IAstNode> {
     }
 
     @Override
-    public ArrayNode visitArray(MxParser.ArrayContext ctx) {
-        ArrayNode arrayNode = withPosition(new ArrayNode(), ctx);
-        arrayNode.elements = ctx.expressionOrArray().stream().map(this::visitExpressionOrArray).toList();
-        return arrayNode;
+    public ArrayAst visitArray(MxParser.ArrayContext ctx) {
+        ArrayAst arrayAst = withPosition(new ArrayAst(), ctx);
+        arrayAst.elements = ctx.expressionOrArray().stream().map(this::visitExpressionOrArray).toList();
+        return arrayAst;
     }
 
     @Override
-    public ExpressionNode.FormatString visitFormatString(MxParser.FormatStringContext ctx) {
-        ExpressionNode.FormatString formatStringNode = withPosition(new ExpressionNode.FormatString(), ctx);
+    public ExpressionAst.FormatString visitFormatString(MxParser.FormatStringContext ctx) {
+        ExpressionAst.FormatString formatStringNode = withPosition(new ExpressionAst.FormatString(), ctx);
         formatStringNode.texts = ctx.formatStringText.stream().map(TokenUtil::unesacpeString).toList();
         formatStringNode.expressions = ctx.expression().stream().map(this::visitExpression).toList();
         return formatStringNode;
     }
 
     @Override
-    public ExpressionNode.Literal visitLiteral(MxParser.LiteralContext ctx) {
-        ExpressionNode.Literal literalNode = withPosition(new ExpressionNode.Literal(), ctx);
+    public ExpressionAst.Literal visitLiteral(MxParser.LiteralContext ctx) {
+        ExpressionAst.Literal literalNode = withPosition(new ExpressionAst.Literal(), ctx);
         literalNode.value = TokenUtil.getLiteralEnum(ctx.start);
         return literalNode;
     }
 
     @Override
-    public IAstNode visitArgumentList(MxParser.ArgumentListContext ctx) {
+    public IAst visitArgumentList(MxParser.ArgumentListContext ctx) {
         throw new UnsupportedOperationException();
     }
 
-    public List<ExpressionOrArrayNode> getArgumentList(MxParser.ArgumentListContext ctx) {
+    public List<ExpressionOrArrayAst> getArgumentList(MxParser.ArgumentListContext ctx) {
         return ctx.expressionOrArray().stream().map(this::visitExpressionOrArray).toList();
     }
 
     @Override
-    public ExpressionNode visitCondition(MxParser.ConditionContext ctx) {
+    public ExpressionAst visitCondition(MxParser.ConditionContext ctx) {
         return withPosition(visitExpression(ctx.expression()), ctx);
     }
 
     @Override
-    public TypeNode visitType(MxParser.TypeContext ctx) {
-        TypeNode typeNode = withPosition(new TypeNode(), ctx);
-        typeNode.typeName = ctx.typeName() != null ? ctx.typeName().getText() : ctx.VOID().getText();
-        typeNode.dimension = ctx.emptyBracketPair() != null ? ctx.emptyBracketPair().size() : 0;
-        return typeNode;
+    public TypeAst visitType(MxParser.TypeContext ctx) {
+        TypeAst typeAst = withPosition(new TypeAst(), ctx);
+        typeAst.typeName = ctx.typeName() != null ? ctx.typeName().getText() : ctx.VOID().getText();
+        typeAst.dimension = ctx.emptyBracketPair() != null ? ctx.emptyBracketPair().size() : 0;
+        return typeAst;
     }
 
     @Override
-    public IAstNode visitTypeName(MxParser.TypeNameContext ctx) {
+    public IAst visitTypeName(MxParser.TypeNameContext ctx) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public IAstNode visitEmptyBracketPair(MxParser.EmptyBracketPairContext ctx) {
+    public IAst visitEmptyBracketPair(MxParser.EmptyBracketPairContext ctx) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public ExpressionNode visitExpressionBracketPair(MxParser.ExpressionBracketPairContext ctx) {
+    public ExpressionAst visitExpressionBracketPair(MxParser.ExpressionBracketPairContext ctx) {
         return withPosition(visitExpression(ctx.expression()), ctx);
     }
 
     @Override
     @Nullable
-    public ExpressionNode visitPossibleBracketPair(MxParser.PossibleBracketPairContext ctx) {
+    public ExpressionAst visitPossibleBracketPair(MxParser.PossibleBracketPairContext ctx) {
         return ctx.expression() != null ? withPosition(visitExpression(ctx.expression()), ctx) : null;
     }
 
     @Override
-    public IAstNode visitEmptyParenthesisPair(MxParser.EmptyParenthesisPairContext ctx) {
+    public IAst visitEmptyParenthesisPair(MxParser.EmptyParenthesisPairContext ctx) {
         throw new UnsupportedOperationException();
     }
 
     // convenience method for double dispatch. should not call on self
     // use visitXXX methods for covariant return types
     @Override
-    public IAstNode visit(ParseTree parseTree) {
+    public IAst visit(ParseTree parseTree) {
         return parseTree.accept(this);
     }
 
     @Override
-    public IAstNode visitChildren(RuleNode ruleNode) {
+    public IAst visitChildren(RuleNode ruleNode) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public IAstNode visitTerminal(TerminalNode terminalNode) {
+    public IAst visitTerminal(TerminalNode terminalNode) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public IAstNode visitErrorNode(ErrorNode errorNode) {
+    public IAst visitErrorNode(ErrorNode errorNode) {
         throw new UnsupportedOperationException();
     }
 
-    public StatementNode visitStatement(MxParser.StatementContext ctx) {
-        return (StatementNode) visit(ctx);
+    public StatementAst visitStatement(MxParser.StatementContext ctx) {
+        return (StatementAst) visit(ctx);
     }
 
-    public List<StatementNode> getStatementList(MxParser.StatementContext ctx) {
+    public List<StatementAst> getStatementList(MxParser.StatementContext ctx) {
         return switch (visitStatement(ctx)) {
-            case StatementNode.Block block -> block.statements;
-            case StatementNode s -> List.of(s);
+            case StatementAst.Block block -> block.statements;
+            case StatementAst s -> List.of(s);
         };
     }
 
-    public ExpressionNode visitExpression(MxParser.ExpressionContext ctx) {
-        return (ExpressionNode) visit(ctx);
+    public ExpressionAst visitExpression(MxParser.ExpressionContext ctx) {
+        return (ExpressionAst) visit(ctx);
     }
 
-    public ArrayCreatorNode visitArrayCreator(MxParser.ArrayCreatorContext ctx) {
-        ArrayCreatorNode arrayCreatorNode = withPosition(new ArrayCreatorNode(), ctx);
-        arrayCreatorNode.dimensions = ctx.possibleBracketPair().stream().map(this::visitPossibleBracketPair).toList();
-        arrayCreatorNode.initializer = ctx.array() != null ? this.visitArray(ctx.array()) : null;
-        return arrayCreatorNode;
+    public ArrayCreatorAst visitArrayCreator(MxParser.ArrayCreatorContext ctx) {
+        ArrayCreatorAst arrayCreatorAst = withPosition(new ArrayCreatorAst(), ctx);
+        arrayCreatorAst.dimensions = ctx.possibleBracketPair().stream().map(this::visitPossibleBracketPair).toList();
+        arrayCreatorAst.initializer = ctx.array() != null ? this.visitArray(ctx.array()) : null;
+        return arrayCreatorAst;
     }
 
     @Override
-    public ExpressionOrArrayNode visitExpressionOrArray(MxParser.ExpressionOrArrayContext ctx) {
-        return withPosition((ExpressionOrArrayNode) visit(ctx.getChild(0)), ctx);
+    public ExpressionOrArrayAst visitExpressionOrArray(MxParser.ExpressionOrArrayContext ctx) {
+        return withPosition((ExpressionOrArrayAst) visit(ctx.getChild(0)), ctx);
     }
 
-    private <T extends IAstNode> T withPosition(T astNode, Token token) {
+    private <T extends IAst> T withPosition(T astNode, Token token) {
         astNode.setPosition(TokenUtil.getPosition(token));
         return astNode;
     }
 
-    private <T extends IAstNode> T withPosition(T astNode, ParserRuleContext ctx) {
+    private <T extends IAst> T withPosition(T astNode, ParserRuleContext ctx) {
         return withPosition(astNode, ctx.getStart());
     }
 
-    private <T extends IAstNode> T withPosition(T astNode, TerminalNode terminal) {
+    private <T extends IAst> T withPosition(T astNode, TerminalNode terminal) {
         return withPosition(astNode, terminal.getSymbol());
     }
 }

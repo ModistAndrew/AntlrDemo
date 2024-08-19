@@ -29,9 +29,9 @@ public class MxParser extends Parser {
 		RPAREN=51, QUESTION=52, COLON=53, SEMI=54, COMMA=55, LBRACE=56, RBRACE=57, 
 		WhiteSpace=58, LineComment=59, BlockComment=60;
 	public static final int
-		RULE_program = 0, RULE_classDeclaration = 1, RULE_functionDeclaration = 2, 
-		RULE_constructorDeclaration = 3, RULE_parameterDeclaration = 4, RULE_block = 5, 
-		RULE_statement = 6, RULE_variableDeclarationsBody = 7, RULE_variableDeclarations = 8, 
+		RULE_program = 0, RULE_classDefinition = 1, RULE_functionDefinition = 2, 
+		RULE_constructorDefinition = 3, RULE_parameterDefinition = 4, RULE_block = 5, 
+		RULE_statement = 6, RULE_variableDefinitionsBody = 7, RULE_variableDefinitions = 8, 
 		RULE_variableDeclarator = 9, RULE_forInitialization = 10, RULE_expression = 11, 
 		RULE_arrayCreator = 12, RULE_expressionOrArray = 13, RULE_array = 14, 
 		RULE_formatString = 15, RULE_literal = 16, RULE_argumentList = 17, RULE_condition = 18, 
@@ -39,9 +39,9 @@ public class MxParser extends Parser {
 		RULE_possibleBracketPair = 23, RULE_emptyParenthesisPair = 24;
 	private static String[] makeRuleNames() {
 		return new String[] {
-			"program", "classDeclaration", "functionDeclaration", "constructorDeclaration", 
-			"parameterDeclaration", "block", "statement", "variableDeclarationsBody", 
-			"variableDeclarations", "variableDeclarator", "forInitialization", "expression", 
+			"program", "classDefinition", "functionDefinition", "constructorDefinition", 
+			"parameterDefinition", "block", "statement", "variableDefinitionsBody", 
+			"variableDefinitions", "variableDeclarator", "forInitialization", "expression", 
 			"arrayCreator", "expressionOrArray", "array", "formatString", "literal", 
 			"argumentList", "condition", "type", "typeName", "emptyBracketPair", 
 			"expressionBracketPair", "possibleBracketPair", "emptyParenthesisPair"
@@ -127,23 +127,23 @@ public class MxParser extends Parser {
 
 	@SuppressWarnings("CheckReturnValue")
 	public static class ProgramContext extends ParserRuleContext {
-		public List<ClassDeclarationContext> classDeclaration() {
-			return getRuleContexts(ClassDeclarationContext.class);
+		public List<ClassDefinitionContext> classDefinition() {
+			return getRuleContexts(ClassDefinitionContext.class);
 		}
-		public ClassDeclarationContext classDeclaration(int i) {
-			return getRuleContext(ClassDeclarationContext.class,i);
+		public ClassDefinitionContext classDefinition(int i) {
+			return getRuleContext(ClassDefinitionContext.class,i);
 		}
-		public List<VariableDeclarationsContext> variableDeclarations() {
-			return getRuleContexts(VariableDeclarationsContext.class);
+		public List<VariableDefinitionsContext> variableDefinitions() {
+			return getRuleContexts(VariableDefinitionsContext.class);
 		}
-		public VariableDeclarationsContext variableDeclarations(int i) {
-			return getRuleContext(VariableDeclarationsContext.class,i);
+		public VariableDefinitionsContext variableDefinitions(int i) {
+			return getRuleContext(VariableDefinitionsContext.class,i);
 		}
-		public List<FunctionDeclarationContext> functionDeclaration() {
-			return getRuleContexts(FunctionDeclarationContext.class);
+		public List<FunctionDefinitionContext> functionDefinition() {
+			return getRuleContexts(FunctionDefinitionContext.class);
 		}
-		public FunctionDeclarationContext functionDeclaration(int i) {
-			return getRuleContext(FunctionDeclarationContext.class,i);
+		public FunctionDefinitionContext functionDefinition(int i) {
+			return getRuleContext(FunctionDefinitionContext.class,i);
 		}
 		public ProgramContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -174,19 +174,19 @@ public class MxParser extends Parser {
 				case 1:
 					{
 					setState(50);
-					classDeclaration();
+					classDefinition();
 					}
 					break;
 				case 2:
 					{
 					setState(51);
-					variableDeclarations();
+					variableDefinitions();
 					}
 					break;
 				case 3:
 					{
 					setState(52);
-					functionDeclaration();
+					functionDefinition();
 					}
 					break;
 				}
@@ -209,44 +209,44 @@ public class MxParser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ClassDeclarationContext extends ParserRuleContext {
+	public static class ClassDefinitionContext extends ParserRuleContext {
 		public TerminalNode CLASS() { return getToken(MxParser.CLASS, 0); }
 		public TerminalNode Identifier() { return getToken(MxParser.Identifier, 0); }
 		public TerminalNode LBRACE() { return getToken(MxParser.LBRACE, 0); }
 		public TerminalNode RBRACE() { return getToken(MxParser.RBRACE, 0); }
 		public TerminalNode SEMI() { return getToken(MxParser.SEMI, 0); }
-		public List<VariableDeclarationsContext> variableDeclarations() {
-			return getRuleContexts(VariableDeclarationsContext.class);
+		public List<VariableDefinitionsContext> variableDefinitions() {
+			return getRuleContexts(VariableDefinitionsContext.class);
 		}
-		public VariableDeclarationsContext variableDeclarations(int i) {
-			return getRuleContext(VariableDeclarationsContext.class,i);
+		public VariableDefinitionsContext variableDefinitions(int i) {
+			return getRuleContext(VariableDefinitionsContext.class,i);
 		}
-		public List<FunctionDeclarationContext> functionDeclaration() {
-			return getRuleContexts(FunctionDeclarationContext.class);
+		public List<FunctionDefinitionContext> functionDefinition() {
+			return getRuleContexts(FunctionDefinitionContext.class);
 		}
-		public FunctionDeclarationContext functionDeclaration(int i) {
-			return getRuleContext(FunctionDeclarationContext.class,i);
+		public FunctionDefinitionContext functionDefinition(int i) {
+			return getRuleContext(FunctionDefinitionContext.class,i);
 		}
-		public List<ConstructorDeclarationContext> constructorDeclaration() {
-			return getRuleContexts(ConstructorDeclarationContext.class);
+		public List<ConstructorDefinitionContext> constructorDefinition() {
+			return getRuleContexts(ConstructorDefinitionContext.class);
 		}
-		public ConstructorDeclarationContext constructorDeclaration(int i) {
-			return getRuleContext(ConstructorDeclarationContext.class,i);
+		public ConstructorDefinitionContext constructorDefinition(int i) {
+			return getRuleContext(ConstructorDefinitionContext.class,i);
 		}
-		public ClassDeclarationContext(ParserRuleContext parent, int invokingState) {
+		public ClassDefinitionContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
-		@Override public int getRuleIndex() { return RULE_classDeclaration; }
+		@Override public int getRuleIndex() { return RULE_classDefinition; }
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof MxVisitor ) return ((MxVisitor<? extends T>)visitor).visitClassDeclaration(this);
+			if ( visitor instanceof MxVisitor ) return ((MxVisitor<? extends T>)visitor).visitClassDefinition(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	public final ClassDeclarationContext classDeclaration() throws RecognitionException {
-		ClassDeclarationContext _localctx = new ClassDeclarationContext(_ctx, getState());
-		enterRule(_localctx, 2, RULE_classDeclaration);
+	public final ClassDefinitionContext classDefinition() throws RecognitionException {
+		ClassDefinitionContext _localctx = new ClassDefinitionContext(_ctx, getState());
+		enterRule(_localctx, 2, RULE_classDefinition);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
@@ -268,19 +268,19 @@ public class MxParser extends Parser {
 				case 1:
 					{
 					setState(61);
-					variableDeclarations();
+					variableDefinitions();
 					}
 					break;
 				case 2:
 					{
 					setState(62);
-					functionDeclaration();
+					functionDefinition();
 					}
 					break;
 				case 3:
 					{
 					setState(63);
-					constructorDeclaration();
+					constructorDefinition();
 					}
 					break;
 				}
@@ -307,7 +307,7 @@ public class MxParser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class FunctionDeclarationContext extends ParserRuleContext {
+	public static class FunctionDefinitionContext extends ParserRuleContext {
 		public TypeContext type() {
 			return getRuleContext(TypeContext.class,0);
 		}
@@ -317,30 +317,30 @@ public class MxParser extends Parser {
 		public BlockContext block() {
 			return getRuleContext(BlockContext.class,0);
 		}
-		public List<ParameterDeclarationContext> parameterDeclaration() {
-			return getRuleContexts(ParameterDeclarationContext.class);
+		public List<ParameterDefinitionContext> parameterDefinition() {
+			return getRuleContexts(ParameterDefinitionContext.class);
 		}
-		public ParameterDeclarationContext parameterDeclaration(int i) {
-			return getRuleContext(ParameterDeclarationContext.class,i);
+		public ParameterDefinitionContext parameterDefinition(int i) {
+			return getRuleContext(ParameterDefinitionContext.class,i);
 		}
 		public List<TerminalNode> COMMA() { return getTokens(MxParser.COMMA); }
 		public TerminalNode COMMA(int i) {
 			return getToken(MxParser.COMMA, i);
 		}
-		public FunctionDeclarationContext(ParserRuleContext parent, int invokingState) {
+		public FunctionDefinitionContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
-		@Override public int getRuleIndex() { return RULE_functionDeclaration; }
+		@Override public int getRuleIndex() { return RULE_functionDefinition; }
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof MxVisitor ) return ((MxVisitor<? extends T>)visitor).visitFunctionDeclaration(this);
+			if ( visitor instanceof MxVisitor ) return ((MxVisitor<? extends T>)visitor).visitFunctionDefinition(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	public final FunctionDeclarationContext functionDeclaration() throws RecognitionException {
-		FunctionDeclarationContext _localctx = new FunctionDeclarationContext(_ctx, getState());
-		enterRule(_localctx, 4, RULE_functionDeclaration);
+	public final FunctionDefinitionContext functionDefinition() throws RecognitionException {
+		FunctionDefinitionContext _localctx = new FunctionDefinitionContext(_ctx, getState());
+		enterRule(_localctx, 4, RULE_functionDefinition);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
@@ -357,7 +357,7 @@ public class MxParser extends Parser {
 			if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 8388638L) != 0)) {
 				{
 				setState(75);
-				parameterDeclaration();
+				parameterDefinition();
 				setState(80);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
@@ -367,7 +367,7 @@ public class MxParser extends Parser {
 					setState(76);
 					match(COMMA);
 					setState(77);
-					parameterDeclaration();
+					parameterDefinition();
 					}
 					}
 					setState(82);
@@ -395,7 +395,7 @@ public class MxParser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ConstructorDeclarationContext extends ParserRuleContext {
+	public static class ConstructorDefinitionContext extends ParserRuleContext {
 		public TerminalNode Identifier() { return getToken(MxParser.Identifier, 0); }
 		public EmptyParenthesisPairContext emptyParenthesisPair() {
 			return getRuleContext(EmptyParenthesisPairContext.class,0);
@@ -403,20 +403,20 @@ public class MxParser extends Parser {
 		public BlockContext block() {
 			return getRuleContext(BlockContext.class,0);
 		}
-		public ConstructorDeclarationContext(ParserRuleContext parent, int invokingState) {
+		public ConstructorDefinitionContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
-		@Override public int getRuleIndex() { return RULE_constructorDeclaration; }
+		@Override public int getRuleIndex() { return RULE_constructorDefinition; }
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof MxVisitor ) return ((MxVisitor<? extends T>)visitor).visitConstructorDeclaration(this);
+			if ( visitor instanceof MxVisitor ) return ((MxVisitor<? extends T>)visitor).visitConstructorDefinition(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	public final ConstructorDeclarationContext constructorDeclaration() throws RecognitionException {
-		ConstructorDeclarationContext _localctx = new ConstructorDeclarationContext(_ctx, getState());
-		enterRule(_localctx, 6, RULE_constructorDeclaration);
+	public final ConstructorDefinitionContext constructorDefinition() throws RecognitionException {
+		ConstructorDefinitionContext _localctx = new ConstructorDefinitionContext(_ctx, getState());
+		enterRule(_localctx, 6, RULE_constructorDefinition);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
@@ -440,25 +440,25 @@ public class MxParser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class ParameterDeclarationContext extends ParserRuleContext {
+	public static class ParameterDefinitionContext extends ParserRuleContext {
 		public TypeContext type() {
 			return getRuleContext(TypeContext.class,0);
 		}
 		public TerminalNode Identifier() { return getToken(MxParser.Identifier, 0); }
-		public ParameterDeclarationContext(ParserRuleContext parent, int invokingState) {
+		public ParameterDefinitionContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
-		@Override public int getRuleIndex() { return RULE_parameterDeclaration; }
+		@Override public int getRuleIndex() { return RULE_parameterDefinition; }
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof MxVisitor ) return ((MxVisitor<? extends T>)visitor).visitParameterDeclaration(this);
+			if ( visitor instanceof MxVisitor ) return ((MxVisitor<? extends T>)visitor).visitParameterDefinition(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	public final ParameterDeclarationContext parameterDeclaration() throws RecognitionException {
-		ParameterDeclarationContext _localctx = new ParameterDeclarationContext(_ctx, getState());
-		enterRule(_localctx, 8, RULE_parameterDeclaration);
+	public final ParameterDefinitionContext parameterDefinition() throws RecognitionException {
+		ParameterDefinitionContext _localctx = new ParameterDefinitionContext(_ctx, getState());
+		enterRule(_localctx, 8, RULE_parameterDefinition);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
@@ -656,6 +656,18 @@ public class MxParser extends Parser {
 		}
 	}
 	@SuppressWarnings("CheckReturnValue")
+	public static class VariableDefinitionsStmtContext extends StatementContext {
+		public VariableDefinitionsContext variableDefinitions() {
+			return getRuleContext(VariableDefinitionsContext.class,0);
+		}
+		public VariableDefinitionsStmtContext(StatementContext ctx) { copyFrom(ctx); }
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof MxVisitor ) return ((MxVisitor<? extends T>)visitor).visitVariableDefinitionsStmt(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	@SuppressWarnings("CheckReturnValue")
 	public static class EmptyStmtContext extends StatementContext {
 		public TerminalNode SEMI() { return getToken(MxParser.SEMI, 0); }
 		public EmptyStmtContext(StatementContext ctx) { copyFrom(ctx); }
@@ -676,18 +688,6 @@ public class MxParser extends Parser {
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MxVisitor ) return ((MxVisitor<? extends T>)visitor).visitReturnStmt(this);
-			else return visitor.visitChildren(this);
-		}
-	}
-	@SuppressWarnings("CheckReturnValue")
-	public static class VariableDeclarationsStmtContext extends StatementContext {
-		public VariableDeclarationsContext variableDeclarations() {
-			return getRuleContext(VariableDeclarationsContext.class,0);
-		}
-		public VariableDeclarationsStmtContext(StatementContext ctx) { copyFrom(ctx); }
-		@Override
-		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof MxVisitor ) return ((MxVisitor<? extends T>)visitor).visitVariableDeclarationsStmt(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -720,11 +720,11 @@ public class MxParser extends Parser {
 				}
 				break;
 			case 2:
-				_localctx = new VariableDeclarationsStmtContext(_localctx);
+				_localctx = new VariableDefinitionsStmtContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
 				setState(105);
-				variableDeclarations();
+				variableDefinitions();
 				}
 				break;
 			case 3:
@@ -883,7 +883,7 @@ public class MxParser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class VariableDeclarationsBodyContext extends ParserRuleContext {
+	public static class VariableDefinitionsBodyContext extends ParserRuleContext {
 		public TypeContext type() {
 			return getRuleContext(TypeContext.class,0);
 		}
@@ -897,20 +897,20 @@ public class MxParser extends Parser {
 		public TerminalNode COMMA(int i) {
 			return getToken(MxParser.COMMA, i);
 		}
-		public VariableDeclarationsBodyContext(ParserRuleContext parent, int invokingState) {
+		public VariableDefinitionsBodyContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
-		@Override public int getRuleIndex() { return RULE_variableDeclarationsBody; }
+		@Override public int getRuleIndex() { return RULE_variableDefinitionsBody; }
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof MxVisitor ) return ((MxVisitor<? extends T>)visitor).visitVariableDeclarationsBody(this);
+			if ( visitor instanceof MxVisitor ) return ((MxVisitor<? extends T>)visitor).visitVariableDefinitionsBody(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	public final VariableDeclarationsBodyContext variableDeclarationsBody() throws RecognitionException {
-		VariableDeclarationsBodyContext _localctx = new VariableDeclarationsBodyContext(_ctx, getState());
-		enterRule(_localctx, 14, RULE_variableDeclarationsBody);
+	public final VariableDefinitionsBodyContext variableDefinitionsBody() throws RecognitionException {
+		VariableDefinitionsBodyContext _localctx = new VariableDefinitionsBodyContext(_ctx, getState());
+		enterRule(_localctx, 14, RULE_variableDefinitionsBody);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
@@ -949,30 +949,30 @@ public class MxParser extends Parser {
 	}
 
 	@SuppressWarnings("CheckReturnValue")
-	public static class VariableDeclarationsContext extends ParserRuleContext {
-		public VariableDeclarationsBodyContext variableDeclarationsBody() {
-			return getRuleContext(VariableDeclarationsBodyContext.class,0);
+	public static class VariableDefinitionsContext extends ParserRuleContext {
+		public VariableDefinitionsBodyContext variableDefinitionsBody() {
+			return getRuleContext(VariableDefinitionsBodyContext.class,0);
 		}
 		public TerminalNode SEMI() { return getToken(MxParser.SEMI, 0); }
-		public VariableDeclarationsContext(ParserRuleContext parent, int invokingState) {
+		public VariableDefinitionsContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
-		@Override public int getRuleIndex() { return RULE_variableDeclarations; }
+		@Override public int getRuleIndex() { return RULE_variableDefinitions; }
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof MxVisitor ) return ((MxVisitor<? extends T>)visitor).visitVariableDeclarations(this);
+			if ( visitor instanceof MxVisitor ) return ((MxVisitor<? extends T>)visitor).visitVariableDefinitions(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	public final VariableDeclarationsContext variableDeclarations() throws RecognitionException {
-		VariableDeclarationsContext _localctx = new VariableDeclarationsContext(_ctx, getState());
-		enterRule(_localctx, 16, RULE_variableDeclarations);
+	public final VariableDefinitionsContext variableDefinitions() throws RecognitionException {
+		VariableDefinitionsContext _localctx = new VariableDefinitionsContext(_ctx, getState());
+		enterRule(_localctx, 16, RULE_variableDefinitions);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
 			setState(156);
-			variableDeclarationsBody();
+			variableDefinitionsBody();
 			setState(157);
 			match(SEMI);
 			}
@@ -1042,8 +1042,8 @@ public class MxParser extends Parser {
 
 	@SuppressWarnings("CheckReturnValue")
 	public static class ForInitializationContext extends ParserRuleContext {
-		public VariableDeclarationsBodyContext variableDeclarationsBody() {
-			return getRuleContext(VariableDeclarationsBodyContext.class,0);
+		public VariableDefinitionsBodyContext variableDefinitionsBody() {
+			return getRuleContext(VariableDefinitionsBodyContext.class,0);
 		}
 		public ExpressionContext expression() {
 			return getRuleContext(ExpressionContext.class,0);
@@ -1070,7 +1070,7 @@ public class MxParser extends Parser {
 				enterOuterAlt(_localctx, 1);
 				{
 				setState(164);
-				variableDeclarationsBody();
+				variableDefinitionsBody();
 				}
 				break;
 			case 2:

@@ -2,8 +2,8 @@ package modist.antlrdemo.frontend.semantic.scope;
 
 import modist.antlrdemo.frontend.semantic.Symbol;
 import modist.antlrdemo.frontend.semantic.Type;
-import modist.antlrdemo.frontend.ast.node.DeclarationNode;
-import modist.antlrdemo.frontend.ast.node.StatementNode;
+import modist.antlrdemo.frontend.ast.node.DefinitionAst;
+import modist.antlrdemo.frontend.ast.node.StatementAst;
 import org.jetbrains.annotations.Nullable;
 
 public class ChildScope extends Scope {
@@ -18,33 +18,33 @@ public class ChildScope extends Scope {
         this.thisType = parent.thisType;
     }
 
-    public ChildScope(Scope parent, DeclarationNode.Class classNode) {
+    public ChildScope(Scope parent, DefinitionAst.Class classNode) {
         this(parent);
         classNode.functions.forEach(this::declareFunction);
         thisType = new Type(classNode.typeName);
     }
 
-    public ChildScope(Scope parent, DeclarationNode.Function functionNode) {
+    public ChildScope(Scope parent, DefinitionAst.Function functionNode) {
         this(parent);
         returnType = new Type(this, functionNode.returnType);
     }
 
     // you should add local variables manually
-    public ChildScope(Scope parent, StatementNode.For forNode) {
+    public ChildScope(Scope parent, StatementAst.For forNode) {
         this(parent);
         inLoop = true;
     }
 
-    public ChildScope(Scope parent, StatementNode.While whileNode) {
+    public ChildScope(Scope parent, StatementAst.While whileNode) {
         this(parent);
         inLoop = true;
     }
 
-    public ChildScope(Scope parent, StatementNode.Block blockNode) {
+    public ChildScope(Scope parent, StatementAst.Block blockNode) {
         this(parent);
     }
 
-    public ChildScope(Scope parent, StatementNode.If ifNode) {
+    public ChildScope(Scope parent, StatementAst.If ifNode) {
         this(parent);
     }
 

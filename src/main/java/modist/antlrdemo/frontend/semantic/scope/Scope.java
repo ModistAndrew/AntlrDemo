@@ -4,7 +4,7 @@ import modist.antlrdemo.frontend.error.MultipleDefinitionsException;
 import modist.antlrdemo.frontend.semantic.Symbol;
 import modist.antlrdemo.frontend.semantic.SymbolTable;
 import modist.antlrdemo.frontend.semantic.Type;
-import modist.antlrdemo.frontend.ast.node.DeclarationNode;
+import modist.antlrdemo.frontend.ast.node.DefinitionAst;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class Scope {
@@ -38,12 +38,12 @@ public abstract class Scope {
     // we provide a method to declare them out of constructor
     // check name conflict here
     // what's more, we check the initializer after symbol is created but before it is declared, for convenience
-    public void declareVariable(DeclarationNode.Variable variableDeclaration) {
-        Symbol.Variable symbol = new Symbol.Variable(this, variableDeclaration);
-        if (variableDeclaration.initializer != null) {
-            new Type.Builder(this).tryMatchExpression(variableDeclaration.initializer, symbol.type);
+    public void declareVariable(DefinitionAst.Variable variableDefinition) {
+        Symbol.Variable symbol = new Symbol.Variable(this, variableDefinition);
+        if (variableDefinition.initializer != null) {
+            new Type.Builder(this).tryMatchExpression(variableDefinition.initializer, symbol.type);
         }
-        Symbol.Function function = functions.get(variableDeclaration.name);
+        Symbol.Function function = functions.get(variableDefinition.name);
         if (function != null) {
             throw new MultipleDefinitionsException(symbol, function);
         }
@@ -51,9 +51,9 @@ public abstract class Scope {
     }
 
     // check name conflict here
-    protected void declareFunction(DeclarationNode.Function functionDeclaration) {
-        Symbol.Function symbol = new Symbol.Function(this, functionDeclaration);
-        Symbol.TypeName typeName = getTypeName(functionDeclaration.name);
+    protected void declareFunction(DefinitionAst.Function functionDefinition) {
+        Symbol.Function symbol = new Symbol.Function(this, functionDefinition);
+        Symbol.TypeName typeName = getTypeName(functionDefinition.name);
         if (typeName != null) {
             throw new MultipleDefinitionsException(symbol, typeName);
         }

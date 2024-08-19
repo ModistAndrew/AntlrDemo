@@ -15,8 +15,8 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
     // typeName==VOID: void type. type is fixed and can only match void type. dimension must be 0
     public static final Type NULL = new Type(null);
 
-    public Type(Scope scope, TypeNode typeNode) {
-        this(scope.resolveTypeName(typeNode.typeName), typeNode.dimension);
+    public Type(Scope scope, TypeAst typeAst) {
+        this(scope.resolveTypeName(typeAst.typeName), typeAst.dimension);
     }
 
     public Type(Symbol.TypeName typeName) {
@@ -123,7 +123,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
             this.scope = scope;
         }
 
-        private Type buildLvalue(ExpressionNode expression) {
+        private Type buildLvalue(ExpressionAst expression) {
             Type type = build(expression);
             if (!isLValue) {
                 throw new InvalidTypeException(type, "lvalue");
@@ -132,13 +132,13 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
         }
 
         // return expectedType if matched, throw exception otherwise
-        // we throw TypeMismatchException instead of InvalidTypeException because this function is used to check an ExpressionOrArrayNode against a declared type
-        public Type tryMatchExpression(ExpressionOrArrayNode expressionOrArray, Type expectedType) {
+        // we throw TypeMismatchException instead of InvalidTypeException because this function is used to check an ExpressionOrArrayAst against a declared type
+        public Type tryMatchExpression(ExpressionOrArrayAst expressionOrArray, Type expectedType) {
             Objects.requireNonNull(expectedType.typeName());
             return switch (expressionOrArray) {
-                case ExpressionNode expression ->
+                case ExpressionAst expression ->
                         build(expression).tryMatch(expectedType); // we use tryMatch just for throwing TypeMismatchException; expectedType is already checked
-                case ArrayNode array -> {
+                case ArrayAst array -> {
                     if (!expectedType.isArray()) {
                         throw new TypeMismatchException("array", expectedType);
                     }
@@ -149,32 +149,32 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
             };
         }
 
-        public Type build(ExpressionNode expression) {
+        public Type build(ExpressionAst expression) {
             PositionRecord.set(expression.getPosition());
             boolean isLValueTemp = false;
             Type returnType = switch (expression) {
-                case ExpressionNode.This ignored -> {
+                case ExpressionAst.This ignored -> {
                     if (scope.thisType == null) {
                         throw new CompileException("Use of 'this' outside of class");
                     }
                     yield scope.thisType;
                 }
-                case ExpressionNode.Literal literal -> switch (literal.value) {
+                case ExpressionAst.Literal literal -> switch (literal.value) {
                     case LiteralEnum.Int ignored -> BuiltinFeatures.INT;
                     case LiteralEnum.Bool ignored -> BuiltinFeatures.BOOL;
                     case LiteralEnum.Str ignored -> BuiltinFeatures.STRING;
                     case LiteralEnum.Null ignored -> NULL;
                 };
-                case ExpressionNode.FormatString formatString -> {
+                case ExpressionAst.FormatString formatString -> {
                     formatString.expressions.forEach(child -> build(child).testType(Type::canFormat, "string, int or bool"));
                     yield BuiltinFeatures.STRING;
                 }
-                case ExpressionNode.Creator creator -> {
+                case ExpressionAst.Creator creator -> {
                     Symbol.TypeName typeName = scope.resolveTypeName(creator.typeName);
                     if (creator.arrayCreator == null) {
                         yield new Type(typeName);
                     }
-                    ArrayCreatorNode arrayCreator = creator.arrayCreator;
+                    ArrayCreatorAst arrayCreator = creator.arrayCreator;
                     Type type = new Type(typeName, arrayCreator.dimensions.size());
                     if (arrayCreator.initializer != null) {
                         arrayCreator.dimensions.forEach(e -> {
@@ -188,7 +188,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
                         throw new CompileException("Empty array initializer should be used with at least the first dimension length specified");
                     }
                     boolean startEmpty = false;
-                    for (ExpressionNode e : arrayCreator.dimensions) {
+                    for (ExpressionAst e : arrayCreator.dimensions) {
                         if (startEmpty) {
                             if (e != null) {
                                 throw new CompileException("No dimension length should be specified after an empty dimension");
@@ -203,7 +203,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
                     }
                     yield type;
                 }
-                case ExpressionNode.Subscript subscript -> {
+                case ExpressionAst.Subscript subscript -> {
                     Type arrayType = build(subscript.expression);
                     if (!arrayType.isArray()) {
                         throw new DimensionOutOfBoundException();
@@ -212,12 +212,12 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
                     isLValueTemp = true;
                     yield arrayType.decreaseDimension();
                 }
-                case ExpressionNode.Variable variable -> {
+                case ExpressionAst.Variable variable -> {
                     isLValueTemp = true;
                     yield variable.expression == null ? scope.resolveVariable(variable.name).type :
                             scope.resolveClass(build(variable.expression)).variables.resolve(variable.name).type;
                 }
-                case ExpressionNode.Function function -> {
+                case ExpressionAst.Function function -> {
                     Symbol.Function functionSymbol = function.expression == null ?
                             scope.resolveFunction(function.name) :
                             scope.resolveClass(build(function.expression)).functions.resolve(function.name);
@@ -230,22 +230,22 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
                     }
                     yield functionSymbol.returnType;
                 }
-                case ExpressionNode.PostUnaryAssign postUnaryAssign ->
+                case ExpressionAst.PostUnaryAssign postUnaryAssign ->
                         buildLvalue(postUnaryAssign.expression).getOperationResult(postUnaryAssign.operator);
-                case ExpressionNode.PreUnaryAssign preUnaryAssign -> {
+                case ExpressionAst.PreUnaryAssign preUnaryAssign -> {
                     isLValueTemp = true;
                     yield buildLvalue(preUnaryAssign.expression).getOperationResult(preUnaryAssign.operator);
                 }
-                case ExpressionNode.PreUnary preUnary ->
+                case ExpressionAst.PreUnary preUnary ->
                         build(preUnary.expression).getOperationResult(preUnary.operator);
-                case ExpressionNode.Binary binary ->
-                        build(binary.leftExpression).tryMatch(build(binary.rightExpression)).getOperationResult(binary.operator);
-                case ExpressionNode.Conditional conditional -> {
+                case ExpressionAst.Binary binary ->
+                        build(binary.left).tryMatch(build(binary.right)).getOperationResult(binary.operator);
+                case ExpressionAst.Conditional conditional -> {
                     build(conditional.condition).testType(BuiltinFeatures.BOOL);
                     yield build(conditional.trueExpression).tryMatch(build(conditional.falseExpression));
                 }
-                case ExpressionNode.Assign assign -> {
-                    tryMatchExpression(assign.rightExpression, buildLvalue(assign.leftExpression));
+                case ExpressionAst.Assign assign -> {
+                    tryMatchExpression(assign.right, buildLvalue(assign.left));
                     yield BuiltinFeatures.VOID;
                 }
             };

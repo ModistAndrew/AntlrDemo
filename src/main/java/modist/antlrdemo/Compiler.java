@@ -3,7 +3,7 @@ package modist.antlrdemo;
 import modist.antlrdemo.frontend.error.CompileException;
 import modist.antlrdemo.frontend.semantic.SemanticChecker;
 import modist.antlrdemo.frontend.ast.AstBuilder;
-import modist.antlrdemo.frontend.ast.node.ProgramNode;
+import modist.antlrdemo.frontend.ast.node.ProgramAst;
 import modist.antlrdemo.frontend.error.FastFailErrorListener;
 import modist.antlrdemo.frontend.grammar.MxLexer;
 import modist.antlrdemo.frontend.grammar.MxParser;
@@ -38,7 +38,7 @@ public class Compiler {
         MxParser parser = new MxParser(new CommonTokenStream(lexer));
         setFastFailErrorListener(parser);
         AstBuilder astBuilder = new AstBuilder();
-        ProgramNode node = astBuilder.visitProgram(parser.program());
+        ProgramAst node = astBuilder.visitProgram(parser.program());
         SemanticChecker semanticChecker = new SemanticChecker();
         semanticChecker.check(node);
     }

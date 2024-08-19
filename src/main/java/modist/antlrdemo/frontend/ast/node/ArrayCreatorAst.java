@@ -4,9 +4,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public final class ArrayCreatorNode extends AstNode {
+public final class ArrayCreatorAst extends Ast {
     // not empty, may contain null
-    public List<ExpressionNode> dimensions;
+    public List<ExpressionAst> dimensions;
     @Nullable
-    public ArrayNode initializer;
+    public ArrayAst initializer;
 }

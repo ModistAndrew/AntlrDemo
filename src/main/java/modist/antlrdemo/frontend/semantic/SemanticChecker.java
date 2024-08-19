@@ -19,45 +19,45 @@ public class SemanticChecker {
         scope = scope.getParent();
     }
 
-    public void check(@Nullable IAstNode node) {
+    public void check(@Nullable IAst node) {
         if (node == null) {
             return;
         }
         PositionRecord.set(node.getPosition());
         switch (node) {
-            case ProgramNode program -> {
+            case ProgramAst program -> {
                 pushScope(new GlobalScope(program));
-                program.declarations.forEach(this::check);
+                program.definitions.forEach(this::check);
                 popScope();
             }
-            case ArrayCreatorNode ignored -> throw new UnsupportedOperationException();
-            case DeclarationNode.Class classDeclaration -> {
-                pushScope(new ChildScope(scope, classDeclaration));
-                classDeclaration.variables.forEach(this::check);
-                classDeclaration.constructors.forEach(this::check);
-                classDeclaration.functions.forEach(this::check);
+            case ArrayCreatorAst ignored -> throw new UnsupportedOperationException();
+            case DefinitionAst.Class classDefinition -> {
+                pushScope(new ChildScope(scope, classDefinition));
+                classDefinition.variables.forEach(this::check);
+                classDefinition.constructors.forEach(this::check);
+                classDefinition.functions.forEach(this::check);
                 popScope();
             }
-            case DeclarationNode.Function functionDeclaration -> {
-                pushScope(new ChildScope(scope, functionDeclaration));
-                functionDeclaration.parameters.forEach(this::check);
+            case DefinitionAst.Function functionDefinition -> {
+                pushScope(new ChildScope(scope, functionDefinition));
+                functionDefinition.parameters.forEach(this::check);
                 returned = false;
-                functionDeclaration.body.forEach(this::check);
-                if (!returned && functionDeclaration.symbol.shouldReturn()) {
+                functionDefinition.body.forEach(this::check);
+                if (!returned && functionDefinition.symbol.shouldReturn()) {
                     throw new MissingReturnStatementException();
                 }
                 popScope();
             }
-            case DeclarationNode.Variable variableDeclaration -> scope.declareVariable(variableDeclaration);
-            case ExpressionNode expression -> new Type.Builder(scope).build(expression);
-            case StatementNode.Block blockStatement -> {
+            case DefinitionAst.Variable variableDefinition -> scope.declareVariable(variableDefinition);
+            case ExpressionAst expression -> new Type.Builder(scope).build(expression);
+            case StatementAst.Block blockStatement -> {
                 pushScope(new ChildScope(scope, blockStatement));
                 blockStatement.statements.forEach(this::check);
                 popScope();
             }
-            case StatementNode.VariableDeclarations variableDeclarationsStatement ->
-                    variableDeclarationsStatement.variables.forEach(this::check);
-            case StatementNode.If ifStatement -> {
+            case StatementAst.VariableDefinitions variableDefinitionsStatement ->
+                    variableDefinitionsStatement.variables.forEach(this::check);
+            case StatementAst.If ifStatement -> {
                 check(ifStatement.condition);
                 ifStatement.condition.type.testType(BuiltinFeatures.BOOL);
                 pushScope(new ChildScope(scope, ifStatement));
@@ -69,7 +69,7 @@ public class SemanticChecker {
                     popScope();
                 }
             }
-            case StatementNode.For forStatement -> {
+            case StatementAst.For forStatement -> {
                 pushScope(new ChildScope(scope, forStatement));
                 check(forStatement.initialization);
                 if (forStatement.condition != null) {
@@ -80,24 +80,24 @@ public class SemanticChecker {
                 forStatement.statements.forEach(this::check);
                 popScope();
             }
-            case StatementNode.While whileStatement -> {
+            case StatementAst.While whileStatement -> {
                 check(whileStatement.condition);
                 whileStatement.condition.type.testType(BuiltinFeatures.BOOL);
                 pushScope(new ChildScope(scope, whileStatement));
                 whileStatement.statements.forEach(this::check);
                 popScope();
             }
-            case StatementNode.Break ignored -> {
+            case StatementAst.Break ignored -> {
                 if (!scope.inLoop) {
                     throw new InvalidControlFlowException("break statement not in loop");
                 }
             }
-            case StatementNode.Continue ignored -> {
+            case StatementAst.Continue ignored -> {
                 if (!scope.inLoop) {
                     throw new InvalidControlFlowException("continue statement not in loop");
                 }
             }
-            case StatementNode.Return returnStatement -> {
+            case StatementAst.Return returnStatement -> {
                 if (scope.returnType == null) {
                     throw new CompileException("return statement not in function");
                 }
@@ -112,11 +112,11 @@ public class SemanticChecker {
                 }
                 returned = true;
             }
-            case StatementNode.Expression expressionStatement -> check(expressionStatement.expression);
-            case StatementNode.Empty ignored -> {
+            case StatementAst.Expression expressionStatement -> check(expressionStatement.expression);
+            case StatementAst.Empty ignored -> {
             }
-            case TypeNode ignored -> throw new UnsupportedOperationException();
-            case ArrayNode ignored -> throw new UnsupportedOperationException(); // cannot visit this directly. have to use tryMatchExpression for type info
+            case TypeAst ignored -> throw new UnsupportedOperationException();
+            case ArrayAst ignored -> throw new UnsupportedOperationException(); // cannot visit this directly. have to use tryMatchExpression for type info
         }
     }
 }

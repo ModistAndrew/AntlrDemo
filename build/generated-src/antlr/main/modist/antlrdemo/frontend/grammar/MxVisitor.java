@@ -19,29 +19,29 @@ public interface MxVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitProgram(MxParser.ProgramContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link MxParser#classDeclaration}.
+	 * Visit a parse tree produced by {@link MxParser#classDefinition}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitClassDeclaration(MxParser.ClassDeclarationContext ctx);
+	T visitClassDefinition(MxParser.ClassDefinitionContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link MxParser#functionDeclaration}.
+	 * Visit a parse tree produced by {@link MxParser#functionDefinition}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitFunctionDeclaration(MxParser.FunctionDeclarationContext ctx);
+	T visitFunctionDefinition(MxParser.FunctionDefinitionContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link MxParser#constructorDeclaration}.
+	 * Visit a parse tree produced by {@link MxParser#constructorDefinition}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitConstructorDeclaration(MxParser.ConstructorDeclarationContext ctx);
+	T visitConstructorDefinition(MxParser.ConstructorDefinitionContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link MxParser#parameterDeclaration}.
+	 * Visit a parse tree produced by {@link MxParser#parameterDefinition}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitParameterDeclaration(MxParser.ParameterDeclarationContext ctx);
+	T visitParameterDefinition(MxParser.ParameterDefinitionContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link MxParser#block}.
 	 * @param ctx the parse tree
@@ -56,12 +56,12 @@ public interface MxVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitBlockStmt(MxParser.BlockStmtContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code variableDeclarationsStmt}
+	 * Visit a parse tree produced by the {@code variableDefinitionsStmt}
 	 * labeled alternative in {@link MxParser#statement}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitVariableDeclarationsStmt(MxParser.VariableDeclarationsStmtContext ctx);
+	T visitVariableDefinitionsStmt(MxParser.VariableDefinitionsStmtContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code ifStmt}
 	 * labeled alternative in {@link MxParser#statement}.
@@ -119,17 +119,17 @@ public interface MxVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitEmptyStmt(MxParser.EmptyStmtContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link MxParser#variableDeclarationsBody}.
+	 * Visit a parse tree produced by {@link MxParser#variableDefinitionsBody}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitVariableDeclarationsBody(MxParser.VariableDeclarationsBodyContext ctx);
+	T visitVariableDefinitionsBody(MxParser.VariableDefinitionsBodyContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link MxParser#variableDeclarations}.
+	 * Visit a parse tree produced by {@link MxParser#variableDefinitions}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitVariableDeclarations(MxParser.VariableDeclarationsContext ctx);
+	T visitVariableDefinitions(MxParser.VariableDefinitionsContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link MxParser#variableDeclarator}.
 	 * @param ctx the parse tree

@@ -126,14 +126,14 @@ BlockComment
 
 rule names:
 program
-classDeclaration
-functionDeclaration
-constructorDeclaration
-parameterDeclaration
+classDefinition
+functionDefinition
+constructorDefinition
+parameterDefinition
 block
 statement
-variableDeclarationsBody
-variableDeclarations
+variableDefinitionsBody
+variableDefinitions
 variableDeclarator
 forInitialization
 expression

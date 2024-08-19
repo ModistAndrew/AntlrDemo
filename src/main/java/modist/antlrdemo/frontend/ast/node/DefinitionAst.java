@@ -5,11 +5,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public abstract sealed class DeclarationNode extends AstNode {
+public abstract sealed class DefinitionAst extends Ast {
     public String name;
 
     // store symbol here for convenience
-    public static final class Class extends DeclarationNode {
+    public static final class Class extends DefinitionAst {
         public List<Variable> variables;
         public List<Function> constructors;
         public List<Function> functions;
@@ -17,17 +17,17 @@ public abstract sealed class DeclarationNode extends AstNode {
         public Symbol.TypeName typeName;
     }
 
-    public static final class Function extends DeclarationNode {
-        public TypeNode returnType;
+    public static final class Function extends DefinitionAst {
+        public TypeAst returnType;
         public List<Variable> parameters;
-        public List<StatementNode> body;
+        public List<StatementAst> body;
         public Symbol.Function symbol;
     }
 
-    public static final class Variable extends DeclarationNode {
-        public TypeNode type;
+    public static final class Variable extends DefinitionAst {
+        public TypeAst type;
         @Nullable
-        public ExpressionOrArrayNode initializer;
+        public ExpressionOrArrayAst initializer;
         public Symbol.Variable symbol;
     }
 }

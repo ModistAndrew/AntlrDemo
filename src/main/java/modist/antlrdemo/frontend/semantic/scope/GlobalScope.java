@@ -5,7 +5,7 @@ import modist.antlrdemo.frontend.semantic.BuiltinFeatures;
 import modist.antlrdemo.frontend.semantic.Symbol;
 import modist.antlrdemo.frontend.semantic.SymbolTable;
 import modist.antlrdemo.frontend.semantic.Type;
-import modist.antlrdemo.frontend.ast.node.ProgramNode;
+import modist.antlrdemo.frontend.ast.node.ProgramAst;
 import org.jetbrains.annotations.Nullable;
 
 public class GlobalScope extends Scope {
@@ -15,7 +15,7 @@ public class GlobalScope extends Scope {
     private final Symbol.Function mainFunction;
 
     // you should add global variables manually
-    public GlobalScope(ProgramNode program) {
+    public GlobalScope(ProgramAst program) {
         addBuiltInFeatures();
         program.classes.forEach(typeNode -> typeNames.declare(new Symbol.TypeName(typeNode)));
         program.classes.forEach(typeNode -> classes.declare(new Symbol.Class(this, typeNode)));
@@ -41,7 +41,7 @@ public class GlobalScope extends Scope {
         functions.declare(BuiltinFeatures.TO_STRING);
     }
 
-    private Symbol.Function checkMainFunction(ProgramNode program) {
+    private Symbol.Function checkMainFunction(ProgramAst program) {
         if (!functions.contains("main")) {
             throw new CompileException("Main function not found", program.position);
         }

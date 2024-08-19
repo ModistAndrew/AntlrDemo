@@ -7,19 +7,19 @@ grammar Mx;
 // PARSER
 
 // program and class
-program: (classDeclaration | variableDeclarations | functionDeclaration)*;
-classDeclaration: CLASS Identifier LBRACE (variableDeclarations | functionDeclaration | constructorDeclaration)* RBRACE SEMI; // must end with ';'
+program: (classDefinition | variableDefinitions | functionDefinition)*;
+classDefinition: CLASS Identifier LBRACE (variableDefinitions | functionDefinition | constructorDefinition)* RBRACE SEMI; // must end with ';'
 
 // function
-functionDeclaration: type Identifier LPAREN (parameterDeclaration (COMMA parameterDeclaration)*)? RPAREN block;
-constructorDeclaration: Identifier emptyParenthesisPair block; // constructor has no formal parameters
-parameterDeclaration: type Identifier;
+functionDefinition: type Identifier LPAREN (parameterDefinition (COMMA parameterDefinition)*)? RPAREN block;
+constructorDefinition: Identifier emptyParenthesisPair block; // constructor has no formal parameters
+parameterDefinition: type Identifier;
 block: LBRACE statement* RBRACE;
 
 // statement
 statement
     : block # blockStmt
-    | variableDeclarations # variableDeclarationsStmt
+    | variableDefinitions # variableDefinitionsStmt
     | IF condition ifThenStmt=statement (ELSE ifElseStmt=statement)? # ifStmt
     | FOR LPAREN forInit=forInitialization? SEMI forCondition=expression? SEMI forUpdate=expression? RPAREN statement # forStmt
     | WHILE condition statement # whileStmt
@@ -29,10 +29,10 @@ statement
     | expression SEMI # expressionStmt
     | SEMI # emptyStmt
     ;
-variableDeclarationsBody: type variableDeclarator (COMMA variableDeclarator)*;
-variableDeclarations: variableDeclarationsBody SEMI;
+variableDefinitionsBody: type variableDeclarator (COMMA variableDeclarator)*;
+variableDefinitions: variableDefinitionsBody SEMI;
 variableDeclarator: Identifier (ASSIGN expressionOrArray)?;
-forInitialization: variableDeclarationsBody | expression;
+forInitialization: variableDefinitionsBody | expression;
 
 // expression
 expression

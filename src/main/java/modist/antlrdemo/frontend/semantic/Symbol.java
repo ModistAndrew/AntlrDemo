@@ -5,7 +5,7 @@ import modist.antlrdemo.frontend.error.InvalidTypeException;
 import modist.antlrdemo.frontend.error.MultipleDefinitionsException;
 import modist.antlrdemo.frontend.ast.metadata.Position;
 import modist.antlrdemo.frontend.semantic.scope.Scope;
-import modist.antlrdemo.frontend.ast.node.DeclarationNode;
+import modist.antlrdemo.frontend.ast.node.DefinitionAst;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -25,8 +25,8 @@ public abstract class Symbol {
         this.position = Position.BUILTIN;
     }
 
-    public Symbol(DeclarationNode declaration) {
-        this(declaration.name, declaration.position);
+    public Symbol(DefinitionAst definition) {
+        this(definition.name, definition.position);
     }
 
     public static class Class extends Symbol {
@@ -36,11 +36,11 @@ public abstract class Symbol {
         public final SymbolTable<Function> functions = new SymbolTable<>();
         public final SymbolTable<Variable> variables = new SymbolTable<>();
 
-        public Class(Scope scope, DeclarationNode.Class declaration) {
-            super(declaration);
+        public Class(Scope scope, DefinitionAst.Class definition) {
+            super(definition);
             Function constructorTemp = null;
-            for (DeclarationNode.Function constructorNode : declaration.constructors) {
-                if (!constructorNode.name.equals(declaration.name)) {
+            for (DefinitionAst.Function constructorNode : definition.constructors) {
+                if (!constructorNode.name.equals(definition.name)) {
                     throw new CompileException("Constructor name must be the same as the class name", constructorNode.position);
                 }
                 Function constructorSymbol = new Function(scope, constructorNode);
@@ -50,9 +50,9 @@ public abstract class Symbol {
                 constructorTemp = constructorSymbol;
             }
             this.constructor = constructorTemp;
-            declaration.functions.forEach(function -> functions.declare(new Function(scope, function)));
-            declaration.variables.forEach(variable -> variables.declare(new Variable(scope, variable)));
-            declaration.symbol = this;
+            definition.functions.forEach(function -> functions.declare(new Function(scope, function)));
+            definition.variables.forEach(variable -> variables.declare(new Variable(scope, variable)));
+            definition.symbol = this;
         }
 
         // for built-in
@@ -69,11 +69,11 @@ public abstract class Symbol {
         public final SymbolTable.Ordered<Variable> parameters = new SymbolTable.Ordered<>();
         public boolean isMain;
 
-        public Function(Scope scope, DeclarationNode.Function declaration) {
-            super(declaration);
-            this.returnType = new Type(scope, declaration.returnType);
-            declaration.parameters.forEach(parameter -> parameters.declare(new Variable(scope, parameter)));
-            declaration.symbol = this;
+        public Function(Scope scope, DefinitionAst.Function definition) {
+            super(definition);
+            this.returnType = new Type(scope, definition.returnType);
+            definition.parameters.forEach(parameter -> parameters.declare(new Variable(scope, parameter)));
+            definition.symbol = this;
         }
 
         // for built-in
@@ -91,13 +91,13 @@ public abstract class Symbol {
     public static class Variable extends Symbol {
         public final Type type;
 
-        public Variable(Scope scope, DeclarationNode.Variable declaration) {
-            super(declaration);
-            this.type = new Type(scope, declaration.type);
+        public Variable(Scope scope, DefinitionAst.Variable definition) {
+            super(definition);
+            this.type = new Type(scope, definition.type);
             if (this.type.isVoid()) {
-                throw CompileException.withPosition(new InvalidTypeException(this.type, "Variable type cannot be void"), declaration.type.position);
+                throw CompileException.withPosition(new InvalidTypeException(this.type, "Variable type cannot be void"), definition.type.position);
             }
-            declaration.symbol = this;
+            definition.symbol = this;
         }
 
         // for built-in
@@ -114,10 +114,10 @@ public abstract class Symbol {
         public final boolean primitive;
 
         // for custom
-        public TypeName(DeclarationNode.Class declaration) {
-            super(declaration);
+        public TypeName(DefinitionAst.Class definition) {
+            super(definition);
             this.primitive = false;
-            declaration.typeName = this;
+            definition.typeName = this;
         }
 
         // for built-in
