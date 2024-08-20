@@ -7,8 +7,18 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public abstract sealed class ExpressionAst extends Ast implements ForInitializationAst, ExpressionOrArrayAst {
+public abstract sealed class ExpressionAst extends BaseAst implements ForInitializationAst, ExpressionOrArrayAst {
     public Type type;
+
+    @Override
+    public Type getType() {
+        return type;
+    }
+
+    @Override
+    public void setType(Type type) {
+        this.type = type;
+    }
 
     public static final class This extends ExpressionAst {
     }

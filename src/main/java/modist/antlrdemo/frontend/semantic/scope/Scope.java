@@ -8,7 +8,7 @@ import modist.antlrdemo.frontend.ast.node.DefinitionAst;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class Scope {
-    // declaration order: typeName -> class -> function -> variable(out of constructor)
+    // declaration order: typeName -> class -> function -> variable(out of scope constructor)
     // build scope and store symbols in ast nodes
     protected final SymbolTable<Symbol.Function> functions = new SymbolTable<>();
     protected final SymbolTable<Symbol.Variable> variables = new SymbolTable<>();
@@ -16,7 +16,7 @@ public abstract class Scope {
     @Nullable
     public Type returnType;
     @Nullable
-    public Type thisType;
+    public Symbol.TypeName thisType;
 
     protected abstract GlobalScope getGlobalScope();
 

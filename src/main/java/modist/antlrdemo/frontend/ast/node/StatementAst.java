@@ -4,7 +4,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public abstract sealed class StatementAst extends Ast {
+public abstract sealed class StatementAst extends BaseAst {
     public static final class Block extends StatementAst {
         public List<StatementAst> statements;
     }

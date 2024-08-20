@@ -3,9 +3,7 @@ package modist.antlrdemo.frontend.semantic;
 import modist.antlrdemo.frontend.error.MultipleDefinitionsException;
 import modist.antlrdemo.frontend.error.UndefinedIdentifierException;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 //TODO: keep order of symbols
 public class SymbolTable<T extends Symbol> {
@@ -36,17 +34,4 @@ public class SymbolTable<T extends Symbol> {
         return table.size();
     }
 
-    public static class Ordered<T extends Symbol> extends SymbolTable<T> {
-        private final List<T> list = new ArrayList<>();
-
-        @Override
-        public void declare(T value) {
-            super.declare(value);
-            list.add(value);
-        }
-
-        public T get(int index) {
-            return list.get(index);
-        }
-    }
 }

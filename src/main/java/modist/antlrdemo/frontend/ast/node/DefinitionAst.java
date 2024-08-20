@@ -5,7 +5,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public abstract sealed class DefinitionAst extends Ast {
+public abstract sealed class DefinitionAst extends BaseAst {
     public String name;
 
     // store symbol here for convenience
@@ -13,8 +13,7 @@ public abstract sealed class DefinitionAst extends Ast {
         public List<Variable> variables;
         public List<Function> constructors;
         public List<Function> functions;
-        public Symbol.Class symbol;
-        public Symbol.TypeName typeName;
+        public Symbol.TypeName symbol;
     }
 
     public static final class Function extends DefinitionAst {

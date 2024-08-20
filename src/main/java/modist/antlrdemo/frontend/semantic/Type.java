@@ -11,12 +11,12 @@ import java.util.Objects;
 import java.util.function.Predicate;
 
 public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
-    // typeName==null: null type. type is not fixed and can match any non-primitive type. dimension must be 0
+    // typeName==null: null type. type is not fixed and can match any non-builtin type. dimension must be 0
     // typeName==VOID: void type. type is fixed and can only match void type. dimension must be 0
     public static final Type NULL = new Type(null);
 
-    public Type(Scope scope, TypeAst typeAst) {
-        this(scope.resolveTypeName(typeAst.typeName), typeAst.dimension);
+    public Type(Scope scope, TypeAst typeNode) {
+        this(scope.resolveTypeName(typeNode.typeName), typeNode.dimension);
     }
 
     public Type(Symbol.TypeName typeName) {
@@ -35,8 +35,8 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
         return dimension > 0;
     }
 
-    public boolean isPrimitive() {
-        return typeName != null && typeName.primitive && dimension == 0;
+    public boolean isBuiltin() {
+        return typeName != null && typeName.builtin && dimension == 0;
     }
 
     public boolean canFormat() {
@@ -45,14 +45,14 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
 
     // return the narrower type if matched, throw exception otherwise
     // this should be a typical situation of TypeMismatchException
-    private Type tryMatch(Type other) {
+    public Type tryMatch(Type other) {
         if (equals(other)) {
             return this;
         }
-        if (isNull() && !other.isPrimitive()) {
+        if (isNull() && !other.isBuiltin()) {
             return other;
         }
-        if (other.isNull() && !isPrimitive()) {
+        if (other.isNull() && !isBuiltin()) {
             return this;
         }
         throw new TypeMismatchException(this, other);
@@ -75,7 +75,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
     }
 
     // return the result type of the operation, throw exception if the operation is invalid
-    private Type getOperationResult(Operator op) {
+    public Type getOperationResult(Operator op) {
         Type result = getOperationResultInternal(op);
         if (result != null) {
             return result;
@@ -89,21 +89,21 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
         if (equals(expectedType)) {
             return;
         }
-        if (isNull() && !expectedType.isPrimitive()) {
+        if (isNull() && !expectedType.isBuiltin()) {
             return;
         }
         throw new InvalidTypeException(this, expectedType.toString());
     }
 
     // throw InvalidTypeException if not valid
-    private void testType(Predicate<Type> predicate, String predicateDescription) {
+    public void testType(Predicate<Type> predicate, String predicateDescription) {
         if (predicate.test(this)) {
             return;
         }
         throw new InvalidTypeException(this, predicateDescription);
     }
 
-    private Type decreaseDimension() {
+    public Type decreaseDimension() {
         return new Type(typeName, dimension - 1);
     }
 
@@ -115,6 +115,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
         return typeName.name + "[]".repeat(dimension);
     }
 
+    // store the type in the expression node
     public static class Builder {
         private final Scope scope;
         private boolean isLValue;
@@ -123,7 +124,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
             this.scope = scope;
         }
 
-        private Type buildLvalue(ExpressionAst expression) {
+        public Type buildLvalue(ExpressionAst expression) {
             Type type = build(expression);
             if (!isLValue) {
                 throw new InvalidTypeException(type, "lvalue");
@@ -135,6 +136,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
         // we throw TypeMismatchException instead of InvalidTypeException because this function is used to check an ExpressionOrArrayAst against a declared type
         public Type tryMatchExpression(ExpressionOrArrayAst expressionOrArray, Type expectedType) {
             Objects.requireNonNull(expectedType.typeName());
+            expressionOrArray.setType(expectedType);
             return switch (expressionOrArray) {
                 case ExpressionAst expression ->
                         build(expression).tryMatch(expectedType); // we use tryMatch just for throwing TypeMismatchException; expectedType is already checked
@@ -157,7 +159,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
                     if (scope.thisType == null) {
                         throw new CompileException("Use of 'this' outside of class");
                     }
-                    yield scope.thisType;
+                    yield new Type(scope.thisType);
                 }
                 case ExpressionAst.Literal literal -> switch (literal.value) {
                     case LiteralEnum.Int ignored -> BuiltinFeatures.INT;

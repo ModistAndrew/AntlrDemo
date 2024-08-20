@@ -7,8 +7,11 @@ import modist.antlrdemo.frontend.semantic.scope.Scope;
 import modist.antlrdemo.frontend.ast.node.*;
 import org.jetbrains.annotations.Nullable;
 
+// check the semantic correctness of the AST
+// also store data for ir building
 public class SemanticChecker {
     private Scope scope;
+    private final SymbolRenamer renamer = new SymbolRenamer();
     private boolean returned;
 
     private void pushScope(Scope newScope) {
@@ -19,7 +22,7 @@ public class SemanticChecker {
         scope = scope.getParent();
     }
 
-    public void check(@Nullable IAst node) {
+    public void check(@Nullable Ast node) {
         if (node == null) {
             return;
         }
@@ -33,6 +36,11 @@ public class SemanticChecker {
             case ArrayCreatorAst ignored -> throw new UnsupportedOperationException();
             case DefinitionAst.Class classDefinition -> {
                 pushScope(new ChildScope(scope, classDefinition));
+                classDefinition.variables.forEach(variable -> {
+                    if (variable.initializer != null) {
+                        throw new CompileException("class variable cannot have initializer", variable.position);
+                    }
+                });
                 classDefinition.variables.forEach(this::check);
                 classDefinition.constructors.forEach(this::check);
                 classDefinition.functions.forEach(this::check);
@@ -116,7 +124,8 @@ public class SemanticChecker {
             case StatementAst.Empty ignored -> {
             }
             case TypeAst ignored -> throw new UnsupportedOperationException();
-            case ArrayAst ignored -> throw new UnsupportedOperationException(); // cannot visit this directly. have to use tryMatchExpression for type info
+            case ArrayAst ignored ->
+                    throw new UnsupportedOperationException(); // cannot visit this directly. have to use tryMatchExpression for type info
         }
     }
 }

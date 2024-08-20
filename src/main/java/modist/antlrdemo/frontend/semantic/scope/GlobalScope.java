@@ -10,17 +10,15 @@ import org.jetbrains.annotations.Nullable;
 
 public class GlobalScope extends Scope {
     private final SymbolTable<Symbol.TypeName> typeNames = new SymbolTable<>();
-    private final SymbolTable<Symbol.Class> classes = new SymbolTable<>();
     private final Symbol.Class arrayClass = BuiltinFeatures.ARRAY_CLASS; // a virtual class for arrays
-    private final Symbol.Function mainFunction;
 
     // you should add global variables manually
     public GlobalScope(ProgramAst program) {
         addBuiltInFeatures();
         program.classes.forEach(typeNode -> typeNames.declare(new Symbol.TypeName(typeNode)));
-        program.classes.forEach(typeNode -> classes.declare(new Symbol.Class(this, typeNode)));
+        program.classes.forEach(typeNode -> typeNode.symbol.setClass(new Symbol.Class(this, typeNode)));
         program.functions.forEach(this::declareFunction);
-        mainFunction = checkMainFunction(program);
+        checkMainFunction(program);
     }
 
     private void addBuiltInFeatures() {
@@ -28,10 +26,10 @@ public class GlobalScope extends Scope {
         typeNames.declare(BuiltinFeatures.BOOL_TYPE_NAME);
         typeNames.declare(BuiltinFeatures.STRING_TYPE_NAME);
         typeNames.declare(BuiltinFeatures.VOID_TYPE_NAME);
-        classes.declare(BuiltinFeatures.INT_CLASS);
-        classes.declare(BuiltinFeatures.BOOL_CLASS);
-        classes.declare(BuiltinFeatures.STRING_CLASS);
-        classes.declare(BuiltinFeatures.VOID_CLASS);
+        BuiltinFeatures.INT_TYPE_NAME.setClass(BuiltinFeatures.INT_CLASS);
+        BuiltinFeatures.BOOL_TYPE_NAME.setClass(BuiltinFeatures.BOOL_CLASS);
+        BuiltinFeatures.STRING_TYPE_NAME.setClass(BuiltinFeatures.STRING_CLASS);
+        BuiltinFeatures.VOID_TYPE_NAME.setClass(BuiltinFeatures.VOID_CLASS);
         functions.declare(BuiltinFeatures.PRINT);
         functions.declare(BuiltinFeatures.PRINTLN);
         functions.declare(BuiltinFeatures.PRINT_INT);
@@ -41,7 +39,7 @@ public class GlobalScope extends Scope {
         functions.declare(BuiltinFeatures.TO_STRING);
     }
 
-    private Symbol.Function checkMainFunction(ProgramAst program) {
+    private void checkMainFunction(ProgramAst program) {
         if (!functions.contains("main")) {
             throw new CompileException("Main function not found", program.position);
         }
@@ -53,11 +51,6 @@ public class GlobalScope extends Scope {
             throw new CompileException("Main function must have no parameters", mainFunction.position);
         }
         mainFunction.isMain = true;
-        return mainFunction;
-    }
-
-    public Symbol.Function getMainFunction() {
-        return mainFunction;
     }
 
     @Override
@@ -84,7 +77,7 @@ public class GlobalScope extends Scope {
         if (type.isArray()) {
             return arrayClass;
         }
-        return classes.resolve(type.typeName().name);
+        return type.typeName().definition;
     }
 
     @Override

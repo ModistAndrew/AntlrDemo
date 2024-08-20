@@ -16,27 +16,27 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-public class AstBuilder implements MxVisitor<IAst> {
+public class AstBuilder implements MxVisitor<Ast> {
     @Override
     public ProgramAst visitProgram(MxParser.ProgramContext ctx) {
-        ProgramAst programAst = new ProgramAst();
-        programAst.definitions = ctx.children.stream().map(this::visit)
+        ProgramAst programNode = new ProgramAst();
+        programNode.definitions = ctx.children.stream().map(this::visit)
                 .flatMap(node -> switch (node) {
                     case StatementAst.VariableDefinitions variableDefinitions -> variableDefinitions.variables.stream();
                     case DefinitionAst definition -> Stream.of(definition);
                     default -> throw new ClassCastException();
                 }).toList();
-        programAst.classes = new ArrayList<>();
-        programAst.functions = new ArrayList<>();
-        programAst.definitions.forEach(definition -> {
+        programNode.classes = new ArrayList<>();
+        programNode.functions = new ArrayList<>();
+        programNode.variables = new ArrayList<>();
+        programNode.definitions.forEach(definition -> {
             switch (definition) {
-                case DefinitionAst.Class classNode -> programAst.classes.add(classNode);
-                case DefinitionAst.Function functionNode -> programAst.functions.add(functionNode);
-                case DefinitionAst.Variable ignored -> {
-                }
+                case DefinitionAst.Class classNode -> programNode.classes.add(classNode);
+                case DefinitionAst.Function functionNode -> programNode.functions.add(functionNode);
+                case DefinitionAst.Variable variableNode -> programNode.variables.add(variableNode);
             }
         });
-        return withPosition(programAst, ctx);
+        return withPosition(programNode, ctx);
     }
 
     @Override
@@ -173,7 +173,7 @@ public class AstBuilder implements MxVisitor<IAst> {
     }
 
     @Override
-    public IAst visitVariableDeclarator(MxParser.VariableDeclaratorContext ctx) {
+    public Ast visitVariableDeclarator(MxParser.VariableDeclaratorContext ctx) {
         throw new UnsupportedOperationException();
     }
 
@@ -287,9 +287,9 @@ public class AstBuilder implements MxVisitor<IAst> {
 
     @Override
     public ArrayAst visitArray(MxParser.ArrayContext ctx) {
-        ArrayAst arrayAst = withPosition(new ArrayAst(), ctx);
-        arrayAst.elements = ctx.expressionOrArray().stream().map(this::visitExpressionOrArray).toList();
-        return arrayAst;
+        ArrayAst arrayNode = withPosition(new ArrayAst(), ctx);
+        arrayNode.elements = ctx.expressionOrArray().stream().map(this::visitExpressionOrArray).toList();
+        return arrayNode;
     }
 
     @Override
@@ -308,7 +308,7 @@ public class AstBuilder implements MxVisitor<IAst> {
     }
 
     @Override
-    public IAst visitArgumentList(MxParser.ArgumentListContext ctx) {
+    public Ast visitArgumentList(MxParser.ArgumentListContext ctx) {
         throw new UnsupportedOperationException();
     }
 
@@ -323,19 +323,19 @@ public class AstBuilder implements MxVisitor<IAst> {
 
     @Override
     public TypeAst visitType(MxParser.TypeContext ctx) {
-        TypeAst typeAst = withPosition(new TypeAst(), ctx);
-        typeAst.typeName = ctx.typeName() != null ? ctx.typeName().getText() : ctx.VOID().getText();
-        typeAst.dimension = ctx.emptyBracketPair() != null ? ctx.emptyBracketPair().size() : 0;
-        return typeAst;
+        TypeAst typeNode = withPosition(new TypeAst(), ctx);
+        typeNode.typeName = ctx.typeName() != null ? ctx.typeName().getText() : ctx.VOID().getText();
+        typeNode.dimension = ctx.emptyBracketPair() != null ? ctx.emptyBracketPair().size() : 0;
+        return typeNode;
     }
 
     @Override
-    public IAst visitTypeName(MxParser.TypeNameContext ctx) {
+    public Ast visitTypeName(MxParser.TypeNameContext ctx) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public IAst visitEmptyBracketPair(MxParser.EmptyBracketPairContext ctx) {
+    public Ast visitEmptyBracketPair(MxParser.EmptyBracketPairContext ctx) {
         throw new UnsupportedOperationException();
     }
 
@@ -351,29 +351,29 @@ public class AstBuilder implements MxVisitor<IAst> {
     }
 
     @Override
-    public IAst visitEmptyParenthesisPair(MxParser.EmptyParenthesisPairContext ctx) {
+    public Ast visitEmptyParenthesisPair(MxParser.EmptyParenthesisPairContext ctx) {
         throw new UnsupportedOperationException();
     }
 
     // convenience method for double dispatch. should not call on self
     // use visitXXX methods for covariant return types
     @Override
-    public IAst visit(ParseTree parseTree) {
+    public Ast visit(ParseTree parseTree) {
         return parseTree.accept(this);
     }
 
     @Override
-    public IAst visitChildren(RuleNode ruleNode) {
+    public Ast visitChildren(RuleNode ruleNode) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public IAst visitTerminal(TerminalNode terminalNode) {
+    public Ast visitTerminal(TerminalNode terminalNode) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public IAst visitErrorNode(ErrorNode errorNode) {
+    public Ast visitErrorNode(ErrorNode errorNode) {
         throw new UnsupportedOperationException();
     }
 
@@ -393,10 +393,10 @@ public class AstBuilder implements MxVisitor<IAst> {
     }
 
     public ArrayCreatorAst visitArrayCreator(MxParser.ArrayCreatorContext ctx) {
-        ArrayCreatorAst arrayCreatorAst = withPosition(new ArrayCreatorAst(), ctx);
-        arrayCreatorAst.dimensions = ctx.possibleBracketPair().stream().map(this::visitPossibleBracketPair).toList();
-        arrayCreatorAst.initializer = ctx.array() != null ? this.visitArray(ctx.array()) : null;
-        return arrayCreatorAst;
+        ArrayCreatorAst arrayCreatorNode = withPosition(new ArrayCreatorAst(), ctx);
+        arrayCreatorNode.dimensions = ctx.possibleBracketPair().stream().map(this::visitPossibleBracketPair).toList();
+        arrayCreatorNode.initializer = ctx.array() != null ? this.visitArray(ctx.array()) : null;
+        return arrayCreatorNode;
     }
 
     @Override
@@ -404,16 +404,16 @@ public class AstBuilder implements MxVisitor<IAst> {
         return withPosition((ExpressionOrArrayAst) visit(ctx.getChild(0)), ctx);
     }
 
-    private <T extends IAst> T withPosition(T astNode, Token token) {
+    private <T extends Ast> T withPosition(T astNode, Token token) {
         astNode.setPosition(TokenUtil.getPosition(token));
         return astNode;
     }
 
-    private <T extends IAst> T withPosition(T astNode, ParserRuleContext ctx) {
+    private <T extends Ast> T withPosition(T astNode, ParserRuleContext ctx) {
         return withPosition(astNode, ctx.getStart());
     }
 
-    private <T extends IAst> T withPosition(T astNode, TerminalNode terminal) {
+    private <T extends Ast> T withPosition(T astNode, TerminalNode terminal) {
         return withPosition(astNode, terminal.getSymbol());
     }
 }

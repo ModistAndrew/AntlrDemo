@@ -1,4 +1,5 @@
 package modist.antlrdemo.frontend.ir.node;
 
-public abstract sealed class Ir permits DeclarationIr, InstructionIr, BlockIr {
+// program - definition - block - instruction
+public sealed interface Ir permits BlockIr, DefinitionIr, FunctionDeclarationIr, InstructionIr, ProgramIr {
 }

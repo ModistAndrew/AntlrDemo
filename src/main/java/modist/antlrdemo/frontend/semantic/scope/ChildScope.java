@@ -21,7 +21,7 @@ public class ChildScope extends Scope {
     public ChildScope(Scope parent, DefinitionAst.Class classNode) {
         this(parent);
         classNode.functions.forEach(this::declareFunction);
-        thisType = new Type(classNode.typeName);
+        thisType = classNode.symbol;
     }
 
     public ChildScope(Scope parent, DefinitionAst.Function functionNode) {
