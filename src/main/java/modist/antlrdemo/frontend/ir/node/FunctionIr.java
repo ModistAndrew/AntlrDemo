@@ -1,17 +1,18 @@
 package modist.antlrdemo.frontend.ir.node;
 
+import modist.antlrdemo.frontend.ir.NamingUtil;
+import modist.antlrdemo.frontend.ir.metadata.IrType;
 import modist.antlrdemo.frontend.semantic.SymbolRenamer;
-import modist.antlrdemo.frontend.semantic.Type;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public final class FunctionIr extends DefinitionIr {
-    public final Type returnType;
-    public final List<Type> parameters;
+    public final IrType returnType;
+    public final List<IrType> parameters;
     public final List<BlockIr> body = new ArrayList<>();
 
-    private FunctionIr(String name, Type returnType, List<Type> parameters) {
+    private FunctionIr(String name, IrType returnType, List<IrType> parameters) {
         super(name);
         this.returnType = returnType;
         this.parameters = parameters;
@@ -23,9 +24,9 @@ public final class FunctionIr extends DefinitionIr {
         private final BlockIr.Builder currentBlock = new BlockIr.Builder();
 
         // begin -> add* -> (newBlock -> add* ->)* build
-        public void begin(String name, Type returnType, List<Type> parameters) {
+        public void begin(String name, IrType returnType, List<IrType> parameters) {
             current = new FunctionIr(name, returnType, parameters);
-            currentBlock.begin(SymbolRenamer.FUNCTION_ENTRY);
+            currentBlock.begin(NamingUtil.FUNCTION_ENTRY);
         }
 
         public void add(InstructionIr instruction) {
@@ -38,7 +39,7 @@ public final class FunctionIr extends DefinitionIr {
         }
 
         public FunctionIr build() {
-            // TODO: add(new InstructionIr.Ret());
+            add(new InstructionIr.Ret(current.returnType));
             current.body.add(currentBlock.build());
             return current;
         }

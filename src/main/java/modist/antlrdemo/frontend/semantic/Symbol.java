@@ -46,6 +46,7 @@ public abstract class Symbol {
             this.returnType = new Type(scope, definition.returnType);
             definition.parameters.forEach(parameter -> parameters.declare(new Variable(scope, parameter)));
             definition.symbol = this;
+            SymbolRenamer.setFunction(this, null);
         }
 
         // for built-in
@@ -53,6 +54,7 @@ public abstract class Symbol {
             super(name);
             this.returnType = returnType;
             parameters.forEach(this.parameters::declare);
+            SymbolRenamer.setFunction(this, null);
         }
 
         public boolean shouldReturn() {
@@ -62,8 +64,7 @@ public abstract class Symbol {
 
     public static class Variable extends Symbol {
         public final Type type;
-        public boolean isGlobal;
-        public boolean isMember;
+        public boolean isMember; // irName is null if isMember
 
         public Variable(Scope scope, DefinitionAst.Variable definition) {
             super(definition);
@@ -82,7 +83,6 @@ public abstract class Symbol {
     }
 
     // we need to first declare the type before we can use it in other symbols. every type corresponds to a class
-    // the virtual class array does not have a corresponding typeName
     public static class TypeName extends Symbol {
         public final boolean builtin;
         public Class definition;
@@ -92,16 +92,19 @@ public abstract class Symbol {
             super(definition);
             this.builtin = false;
             definition.symbol = this;
+            SymbolRenamer.setClass(this);
         }
 
         // for built-in
         public TypeName(String name) {
             super(name);
             this.builtin = true;
+            SymbolRenamer.setClass(this);
         }
 
         public void setClass(Class definition) {
             this.definition = definition;
+            definition.functions.forEach(function -> SymbolRenamer.setFunction(function, this));
         }
     }
 

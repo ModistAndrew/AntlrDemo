@@ -15,6 +15,16 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
     // typeName==VOID: void type. type is fixed and can only match void type. dimension must be 0
     public static final Type NULL = new Type(null);
 
+    public Symbol.Class resolveClass() {
+        if (typeName == null) {
+            throw new CompileException("No class for null type");
+        }
+        if (isArray()) {
+            return BuiltinFeatures.ARRAY_CLASS;
+        }
+        return typeName.definition;
+    }
+
     public Type(Scope scope, TypeAst typeNode) {
         this(scope.resolveTypeName(typeNode.typeName), typeNode.dimension);
     }
@@ -29,6 +39,18 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
 
     public boolean isVoid() {
         return typeName == BuiltinFeatures.VOID_TYPE_NAME;
+    }
+
+    public boolean isInt() {
+        return equals(BuiltinFeatures.INT);
+    }
+
+    public boolean isBool() {
+        return equals(BuiltinFeatures.BOOL);
+    }
+
+    public boolean isString() {
+        return equals(BuiltinFeatures.STRING);
     }
 
     public boolean isArray() {
@@ -61,16 +83,12 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
     // just to simplify the code
     @Nullable
     private Type getOperationResultInternal(Operator op) {
-        boolean isVoid = isVoid();
-        boolean isBool = equals(BuiltinFeatures.BOOL);
-        boolean isInt = equals(BuiltinFeatures.INT);
-        boolean isString = equals(BuiltinFeatures.STRING);
         return switch (op) {
-            case EQ, NE -> isVoid ? null : BuiltinFeatures.BOOL;
-            case ADD -> (isInt || isString) ? this : null;
-            case LT, GT, LE, GE -> (isInt || isString) ? BuiltinFeatures.BOOL : null;
-            case INC, DEC, NOT, AND, XOR, OR, SUB, MUL, DIV, MOD, SHL, SHR -> isInt ? this : null;
-            case LOGICAL_AND, LOGICAL_OR, LOGICAL_NOT -> isBool ? this : null;
+            case EQ, NE -> isVoid() ? null : BuiltinFeatures.BOOL;
+            case ADD -> (isInt() || isString()) ? this : null;
+            case LT, GT, LE, GE -> (isInt() || isString()) ? BuiltinFeatures.BOOL : null;
+            case INC, DEC, NOT, AND, XOR, OR, SUB, MUL, DIV, MOD, SHL, SHR -> isInt() ? this : null;
+            case LOGICAL_AND, LOGICAL_OR, LOGICAL_NOT -> isBool() ? this : null;
         };
     }
 
@@ -217,12 +235,12 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
                 case ExpressionAst.Variable variable -> {
                     isLValueTemp = true;
                     yield variable.expression == null ? scope.resolveVariable(variable.name).type :
-                            scope.resolveClass(build(variable.expression)).variables.resolve(variable.name).type;
+                            build(variable.expression).resolveClass().variables.resolve(variable.name).type;
                 }
                 case ExpressionAst.Function function -> {
                     Symbol.Function functionSymbol = function.expression == null ?
                             scope.resolveFunction(function.name) :
-                            scope.resolveClass(build(function.expression)).functions.resolve(function.name);
+                            build(function.expression).resolveClass().functions.resolve(function.name);
                     if (functionSymbol.parameters.size() != function.arguments.size()) {
                         throw new CompileException(String.format("Function '%s' expects %d arguments, but %d given",
                                 function.name, functionSymbol.parameters.size(), function.arguments.size()));

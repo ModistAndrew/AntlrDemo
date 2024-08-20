@@ -13,6 +13,7 @@ public abstract class Scope {
     protected final SymbolTable<Symbol.Function> functions = new SymbolTable<>();
     protected final SymbolTable<Symbol.Variable> variables = new SymbolTable<>();
     public boolean inLoop;
+    public boolean isClass; // should be true only when this is a class scope. doesn't inherit
     @Nullable
     public Type returnType;
     @Nullable
@@ -23,10 +24,9 @@ public abstract class Scope {
     @Nullable
     protected abstract Symbol.TypeName getTypeName(String name);
 
-    public abstract Scope getParent();
+    public abstract boolean isGlobal();
 
-    // should not throw UndefinedIdentifierException, but may throw when type is null type
-    public abstract Symbol.Class resolveClass(Type type);
+    public abstract Scope getParent();
 
     public abstract Symbol.Function resolveFunction(String name);
 

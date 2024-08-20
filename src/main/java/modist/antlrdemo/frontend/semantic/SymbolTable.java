@@ -4,6 +4,7 @@ import modist.antlrdemo.frontend.error.MultipleDefinitionsException;
 import modist.antlrdemo.frontend.error.UndefinedIdentifierException;
 
 import java.util.HashMap;
+import java.util.function.Consumer;
 
 //TODO: keep order of symbols
 public class SymbolTable<T extends Symbol> {
@@ -34,4 +35,7 @@ public class SymbolTable<T extends Symbol> {
         return table.size();
     }
 
+    public void forEach(Consumer<T> consumer) {
+        table.forEach((name, symbol) -> consumer.accept(symbol));
+    }
 }

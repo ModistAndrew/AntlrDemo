@@ -1,13 +1,12 @@
 package modist.antlrdemo.frontend.ir.metadata;
 
 import modist.antlrdemo.frontend.semantic.Symbol;
-import modist.antlrdemo.frontend.semantic.Type;
 
-public record Register(String name, boolean isGlobal, Type type) implements Variable {
-    public Register(Symbol.Variable symbol) {
-        this(symbol.irName, symbol.isGlobal, symbol.type);
+public record Register(String name, IrType type) implements Variable {
+    public Register(Symbol.Variable symbol) { // create a ptr from variable
+        this(symbol.irName, IrType.PTR);
         if (symbol.isMember) {
-            // TODO: member variable should be specially handled
+            // TODO: member variable should be specially handled?
             throw new IllegalArgumentException();
         }
     }

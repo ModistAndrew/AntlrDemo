@@ -1,57 +1,29 @@
 package modist.antlrdemo.frontend.semantic;
 
-import modist.antlrdemo.frontend.semantic.scope.Scope;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
 
+// rename symbol and store some information
 public class SymbolRenamer {
-    public static final String INIT_FUNCTION = ".init";
-    public static final String FUNCTION_ENTRY = "entry";
     private final Map<String, Integer> variableCounter = new HashMap<>(); // for variable renaming
-    private int ifCounter;
-    private int loopCounter;
 
-    public String className(Symbol.TypeName symbol) {
-        symbol.irName = dot("class", symbol.name);
-        return symbol.irName;
+    public static void setClass(Symbol.TypeName symbol) {
+        symbol.irName = percent(dot("class", symbol.name));
     }
 
-    public String functionName(Scope scope, String name) {
-        return scope.thisType == null ? name : dot(scope.thisType.name, name);
+    public static void setFunction(Symbol.Function symbol, @Nullable Symbol.TypeName thisType) {
+        symbol.thisType = thisType;
+        symbol.irName = thisType != null ? at(dot(thisType.name, symbol.name)) : at(symbol.name);
     }
 
-    public String parameterName(String name) {
-        return dot(".param", name);
+    // used in SemanticChecker
+    public void setVariable(Symbol.Variable symbol, boolean isGlobal, boolean isMember) {
+        symbol.irName = isGlobal ? at(symbol.name) : isMember ? null : percent(withVariableCounter(symbol.name));
+        symbol.isMember = isMember;
     }
 
-    public String localVariableName(String name) {
-        return withVariableCounter(name);
-    }
-
-    public String temporaryVariableName() {
-        return withVariableCounter(".");
-    }
-
-    public String ifLabelName(String suffix) {
-        return dot(dot("if", ifCounter++), suffix);
-    }
-
-    public String loopLabelName(String suffix) {
-        return dot(dot("loop", loopCounter++), suffix);
-    }
-
-    public void clear() {
-        variableCounter.clear();
-        ifCounter = 0;
-        loopCounter = 0;
-    }
-
-    private String dot(Object prefix, Object name) {
-        return prefix + "." + name;
-    }
-
-    // return name.previous_count and increment counter[name]
     private String withVariableCounter(String name) {
         if (!variableCounter.containsKey(name)) {
             variableCounter.put(name, 0);
@@ -59,5 +31,25 @@ public class SymbolRenamer {
         int count = variableCounter.get(name);
         variableCounter.put(name, count + 1);
         return dot(name, count);
+    }
+
+    public void clear() {
+        variableCounter.clear();
+    }
+
+    private static String dot(String prefix, String name) {
+        return prefix + "." + name;
+    }
+
+    private static String dot(String name, int count) {
+        return name + "." + count;
+    }
+
+    private static String percent(String name) {
+        return "%" + name;
+    }
+
+    private static String at(String name) {
+        return "@" + name;
     }
 }

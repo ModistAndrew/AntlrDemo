@@ -10,6 +10,7 @@ public class BuiltinFeatures {
     public static final Symbol.TypeName BOOL_TYPE_NAME = new Symbol.TypeName(TokenUtil.getLiteralName(MxLexer.BOOL));
     public static final Symbol.TypeName STRING_TYPE_NAME = new Symbol.TypeName(TokenUtil.getLiteralName(MxLexer.STRING));
     public static final Symbol.TypeName VOID_TYPE_NAME = new Symbol.TypeName(TokenUtil.getLiteralName(MxLexer.VOID));
+    public static final Symbol.TypeName ARRAY_TYPE_NAME = new Symbol.TypeName(".array"); // a virtual type for arrays not stored in the symbol table
 
     // cache the type instances for convenience
     public static final Type INT = new Type(INT_TYPE_NAME);
@@ -35,4 +36,12 @@ public class BuiltinFeatures {
     public static final Symbol.Class STRING_CLASS = new Symbol.Class(null, List.of(STRING_LENGTH, STRING_SUBSTRING, STRING_PARSE_INT, STRING_ORD), List.of());
     public static final Symbol.Class VOID_CLASS = new Symbol.Class(null, List.of(), List.of());
     public static final Symbol.Class ARRAY_CLASS = new Symbol.Class(null, List.of(ARRAY_SIZE), List.of());
+
+    static {
+        INT_TYPE_NAME.setClass(BuiltinFeatures.INT_CLASS);
+        BOOL_TYPE_NAME.setClass(BuiltinFeatures.BOOL_CLASS);
+        STRING_TYPE_NAME.setClass(BuiltinFeatures.STRING_CLASS);
+        VOID_TYPE_NAME.setClass(BuiltinFeatures.VOID_CLASS);
+        ARRAY_TYPE_NAME.setClass(BuiltinFeatures.ARRAY_CLASS);
+    }
 }

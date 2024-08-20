@@ -16,12 +16,14 @@ public class ChildScope extends Scope {
         this.inLoop = parent.inLoop;
         this.returnType = parent.returnType;
         this.thisType = parent.thisType;
+        this.isClass = false;
     }
 
     public ChildScope(Scope parent, DefinitionAst.Class classNode) {
         this(parent);
         classNode.functions.forEach(this::declareFunction);
         thisType = classNode.symbol;
+        isClass = true;
     }
 
     public ChildScope(Scope parent, DefinitionAst.Function functionNode) {
@@ -60,13 +62,13 @@ public class ChildScope extends Scope {
     }
 
     @Override
-    public Scope getParent() {
-        return parent;
+    public boolean isGlobal() {
+        return false;
     }
 
     @Override
-    public Symbol.Class resolveClass(Type type) {
-        return globalScope.resolveClass(type);
+    public Scope getParent() {
+        return parent;
     }
 
     @Override

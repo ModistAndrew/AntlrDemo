@@ -4,13 +4,11 @@ import modist.antlrdemo.frontend.error.CompileException;
 import modist.antlrdemo.frontend.semantic.BuiltinFeatures;
 import modist.antlrdemo.frontend.semantic.Symbol;
 import modist.antlrdemo.frontend.semantic.SymbolTable;
-import modist.antlrdemo.frontend.semantic.Type;
 import modist.antlrdemo.frontend.ast.node.ProgramAst;
 import org.jetbrains.annotations.Nullable;
 
 public class GlobalScope extends Scope {
     private final SymbolTable<Symbol.TypeName> typeNames = new SymbolTable<>();
-    private final Symbol.Class arrayClass = BuiltinFeatures.ARRAY_CLASS; // a virtual class for arrays
 
     // you should add global variables manually
     public GlobalScope(ProgramAst program) {
@@ -26,10 +24,6 @@ public class GlobalScope extends Scope {
         typeNames.declare(BuiltinFeatures.BOOL_TYPE_NAME);
         typeNames.declare(BuiltinFeatures.STRING_TYPE_NAME);
         typeNames.declare(BuiltinFeatures.VOID_TYPE_NAME);
-        BuiltinFeatures.INT_TYPE_NAME.setClass(BuiltinFeatures.INT_CLASS);
-        BuiltinFeatures.BOOL_TYPE_NAME.setClass(BuiltinFeatures.BOOL_CLASS);
-        BuiltinFeatures.STRING_TYPE_NAME.setClass(BuiltinFeatures.STRING_CLASS);
-        BuiltinFeatures.VOID_TYPE_NAME.setClass(BuiltinFeatures.VOID_CLASS);
         functions.declare(BuiltinFeatures.PRINT);
         functions.declare(BuiltinFeatures.PRINTLN);
         functions.declare(BuiltinFeatures.PRINT_INT);
@@ -65,19 +59,13 @@ public class GlobalScope extends Scope {
     }
 
     @Override
-    public Scope getParent() {
-        return null;
+    public boolean isGlobal() {
+        return true;
     }
 
     @Override
-    public Symbol.Class resolveClass(Type type) {
-        if (type.typeName() == null) {
-            throw new CompileException("No class for null type");
-        }
-        if (type.isArray()) {
-            return arrayClass;
-        }
-        return type.typeName().definition;
+    public Scope getParent() {
+        return null;
     }
 
     @Override
