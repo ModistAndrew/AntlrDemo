@@ -2,6 +2,7 @@ package modist.antlrdemo.frontend.semantic.scope;
 
 import modist.antlrdemo.frontend.error.MultipleDefinitionsException;
 import modist.antlrdemo.frontend.semantic.Symbol;
+import modist.antlrdemo.frontend.semantic.SymbolRenamer;
 import modist.antlrdemo.frontend.semantic.SymbolTable;
 import modist.antlrdemo.frontend.semantic.Type;
 import modist.antlrdemo.frontend.ast.node.DefinitionAst;
@@ -18,13 +19,13 @@ public abstract class Scope {
     public Type returnType;
     @Nullable
     public Symbol.TypeName thisType;
+    @Nullable
+    protected SymbolRenamer renamer; // present when in function scope
 
     protected abstract GlobalScope getGlobalScope();
 
     @Nullable
     protected abstract Symbol.TypeName getTypeName(String name);
-
-    public abstract boolean isGlobal();
 
     public abstract Scope getParent();
 
@@ -37,7 +38,8 @@ public abstract class Scope {
     // variables don't support forward references
     // we provide a method to declare them out of constructor
     // check name conflict here
-    // what's more, we check the initializer after symbol is created but before it is declared, for convenience
+    // we check the initializer after symbol is created but before it is declared, for convenience
+    // we rename the symbol here
     public void declareVariable(DefinitionAst.Variable variableDefinition) {
         Symbol.Variable symbol = new Symbol.Variable(this, variableDefinition);
         if (variableDefinition.initializer != null) {
@@ -48,6 +50,13 @@ public abstract class Scope {
             throw new MultipleDefinitionsException(symbol, function);
         }
         variables.declare(symbol);
+        if (renamer != null) {
+            renamer.setLocalVariable(symbol);
+        } else if (isClass) {
+            SymbolRenamer.setMemberVariable(symbol);
+        } else {
+            SymbolRenamer.setGlobalVariable(symbol);
+        }
     }
 
     // check name conflict here

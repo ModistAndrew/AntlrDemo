@@ -1,6 +1,7 @@
 package modist.antlrdemo.frontend.semantic.scope;
 
 import modist.antlrdemo.frontend.semantic.Symbol;
+import modist.antlrdemo.frontend.semantic.SymbolRenamer;
 import modist.antlrdemo.frontend.semantic.Type;
 import modist.antlrdemo.frontend.ast.node.DefinitionAst;
 import modist.antlrdemo.frontend.ast.node.StatementAst;
@@ -16,6 +17,7 @@ public class ChildScope extends Scope {
         this.inLoop = parent.inLoop;
         this.returnType = parent.returnType;
         this.thisType = parent.thisType;
+        this.renamer = parent.renamer;
         this.isClass = false;
     }
 
@@ -24,6 +26,7 @@ public class ChildScope extends Scope {
         classNode.functions.forEach(this::declareFunction);
         thisType = classNode.symbol;
         isClass = true;
+        renamer = new SymbolRenamer();
     }
 
     public ChildScope(Scope parent, DefinitionAst.Function functionNode) {
@@ -59,11 +62,6 @@ public class ChildScope extends Scope {
     @Nullable
     protected Symbol.TypeName getTypeName(String name) {
         return globalScope.getTypeName(name);
-    }
-
-    @Override
-    public boolean isGlobal() {
-        return false;
     }
 
     @Override

@@ -19,9 +19,19 @@ public class SymbolRenamer {
     }
 
     // used in SemanticChecker
-    public void setVariable(Symbol.Variable symbol, boolean isGlobal, boolean isMember) {
-        symbol.irName = isGlobal ? at(symbol.name) : isMember ? null : percent(withVariableCounter(symbol.name));
-        symbol.isMember = isMember;
+    public void setLocalVariable(Symbol.Variable symbol) {
+        symbol.irName = withVariableCounter(symbol.name);
+        symbol.isMember = false;
+    }
+
+    public static void setGlobalVariable(Symbol.Variable symbol) {
+        symbol.irName = at(symbol.name);
+        symbol.isMember = false;
+    }
+
+    public static void setMemberVariable(Symbol.Variable symbol) {
+        symbol.irName = null;
+        symbol.isMember = true;
     }
 
     private String withVariableCounter(String name) {
@@ -31,10 +41,6 @@ public class SymbolRenamer {
         int count = variableCounter.get(name);
         variableCounter.put(name, count + 1);
         return dot(name, count);
-    }
-
-    public void clear() {
-        variableCounter.clear();
     }
 
     private static String dot(String prefix, String name) {

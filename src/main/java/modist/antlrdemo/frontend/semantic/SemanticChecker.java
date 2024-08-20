@@ -11,7 +11,6 @@ import org.jetbrains.annotations.Nullable;
 // also store data for ir building
 public class SemanticChecker {
     private Scope scope;
-    private final SymbolRenamer renamer = new SymbolRenamer();
     // whether the function has returned. not stored in scope as it should be spread upwards, which is hard to deal with in scope
     private boolean returned;
 
@@ -57,10 +56,7 @@ public class SemanticChecker {
                 }
                 popScope();
             }
-            case DefinitionAst.Variable variableDefinition -> {
-                scope.declareVariable(variableDefinition);
-                renamer.setVariable(variableDefinition.symbol, scope.isGlobal(), scope.isClass);
-            }
+            case DefinitionAst.Variable variableDefinition -> scope.declareVariable(variableDefinition);
             case ExpressionAst expression -> new Type.Builder(scope).build(expression);
             case StatementAst.Block blockStatement -> {
                 pushScope(new ChildScope(scope, blockStatement));

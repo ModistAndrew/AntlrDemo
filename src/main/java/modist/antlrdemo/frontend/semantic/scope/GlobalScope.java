@@ -59,11 +59,6 @@ public class GlobalScope extends Scope {
     }
 
     @Override
-    public boolean isGlobal() {
-        return true;
-    }
-
-    @Override
     public Scope getParent() {
         return null;
     }
