@@ -18,20 +18,18 @@ public class ChildScope extends Scope {
         this.returnType = parent.returnType;
         this.thisType = parent.thisType;
         this.renamer = parent.renamer;
-        this.isClass = false;
     }
 
     public ChildScope(Scope parent, DefinitionAst.Class classNode) {
         this(parent);
         classNode.functions.forEach(this::declareFunction);
         thisType = classNode.symbol;
-        isClass = true;
-        renamer = new SymbolRenamer();
     }
 
     public ChildScope(Scope parent, DefinitionAst.Function functionNode) {
         this(parent);
         returnType = new Type(this, functionNode.returnType);
+        renamer = new SymbolRenamer();
     }
 
     // you should add local variables manually

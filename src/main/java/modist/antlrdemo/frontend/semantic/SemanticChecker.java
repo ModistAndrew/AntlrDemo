@@ -36,11 +36,6 @@ public class SemanticChecker {
             case ArrayCreatorAst ignored -> throw new UnsupportedOperationException();
             case DefinitionAst.Class classDefinition -> {
                 pushScope(new ChildScope(scope, classDefinition));
-                classDefinition.variables.forEach(variable -> {
-                    if (variable.initializer != null) {
-                        throw new CompileException("class variable cannot have initializer", variable.position);
-                    }
-                });
                 classDefinition.variables.forEach(this::check);
                 classDefinition.constructors.forEach(this::check);
                 classDefinition.functions.forEach(this::check);

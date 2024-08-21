@@ -20,7 +20,12 @@ public class SymbolRenamer {
 
     // used in SemanticChecker
     public void setLocalVariable(Symbol.Variable symbol) {
-        symbol.irName = withVariableCounter(symbol.name);
+        symbol.irName = percent(withVariableCounter(symbol.name));
+        symbol.isMember = false;
+    }
+
+    public static void setParamVariable(Symbol.Variable symbol) {
+        symbol.irName = percent(dot(".param_addr", symbol.name));
         symbol.isMember = false;
     }
 

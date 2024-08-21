@@ -45,6 +45,7 @@ public abstract class Symbol {
             super(definition);
             this.returnType = new Type(scope, definition.returnType);
             definition.parameters.forEach(parameter -> parameters.declare(new Variable(scope, parameter)));
+            parameters.forEach(SymbolRenamer::setParamVariable);
             definition.symbol = this;
             SymbolRenamer.setFunction(this, null);
         }
@@ -73,12 +74,14 @@ public abstract class Symbol {
                 throw CompileException.withPosition(new InvalidTypeException(this.type, "Variable type cannot be void"), definition.type.position);
             }
             definition.symbol = this;
+            SymbolRenamer.setGlobalVariable(this);
         }
 
         // for built-in
         public Variable(String name, Type type) {
             super(name);
             this.type = type;
+            SymbolRenamer.setGlobalVariable(this);
         }
     }
 
@@ -104,7 +107,11 @@ public abstract class Symbol {
 
         public void setClass(Class definition) {
             this.definition = definition;
+            if (definition.constructor != null) {
+                SymbolRenamer.setFunction(definition.constructor, this);
+            }
             definition.functions.forEach(function -> SymbolRenamer.setFunction(function, this));
+            definition.variables.forEach(SymbolRenamer::setMemberVariable);
         }
     }
 
@@ -116,20 +123,30 @@ public abstract class Symbol {
         public final OrderedSymbolTable<Variable> variables = new OrderedSymbolTable<>();
 
         public Class(Scope scope, DefinitionAst.Class definition) {
-            Function constructorTemp = null;
+            this.constructor = getConstructor(scope, definition);
+            definition.functions.forEach(function -> functions.declare(new Function(scope, function)));
+            definition.variables.forEach(variable -> {
+                if (variable.initializer != null) {
+                    throw new CompileException("class variable cannot have initializer", variable.position);
+                }
+                variables.declare(new Variable(scope, variable));
+            });
+        }
+
+        @Nullable
+        private Function getConstructor(Scope scope, DefinitionAst.Class definition) {
+            Function currentConstructor = null;
             for (DefinitionAst.Function constructorNode : definition.constructors) {
                 if (!constructorNode.name.equals(definition.name)) {
                     throw new CompileException("Constructor name must be the same as the class name", constructorNode.position);
                 }
                 Function constructorSymbol = new Function(scope, constructorNode);
-                if (constructorTemp != null) {
-                    throw new MultipleDefinitionsException(constructorSymbol, constructorTemp);
+                if (currentConstructor != null) {
+                    throw new MultipleDefinitionsException(constructorSymbol, currentConstructor);
                 }
-                constructorTemp = constructorSymbol;
+                currentConstructor = constructorSymbol;
             }
-            this.constructor = constructorTemp;
-            definition.functions.forEach(function -> functions.declare(new Function(scope, function)));
-            definition.variables.forEach(variable -> variables.declare(new Variable(scope, variable)));
+            return currentConstructor;
         }
 
         // for built-in
