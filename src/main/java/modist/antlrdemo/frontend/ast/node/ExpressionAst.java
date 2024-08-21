@@ -2,24 +2,11 @@ package modist.antlrdemo.frontend.ast.node;
 
 import modist.antlrdemo.frontend.ast.metadata.LiteralEnum;
 import modist.antlrdemo.frontend.ast.metadata.Operator;
-import modist.antlrdemo.frontend.semantic.Type;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public abstract sealed class ExpressionAst extends BaseAst implements ForInitializationAst, ExpressionOrArrayAst {
-    public Type type;
-
-    @Override
-    public Type getType() {
-        return type;
-    }
-
-    @Override
-    public void setType(Type type) {
-        this.type = type;
-    }
-
+public abstract sealed class ExpressionAst extends ExpressionOrArrayAst implements ForInitializationAst {
     public static final class This extends ExpressionAst {
     }
 

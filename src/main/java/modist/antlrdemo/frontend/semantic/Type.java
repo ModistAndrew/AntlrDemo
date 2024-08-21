@@ -3,6 +3,7 @@ package modist.antlrdemo.frontend.semantic;
 import modist.antlrdemo.frontend.error.*;
 import modist.antlrdemo.frontend.ast.metadata.LiteralEnum;
 import modist.antlrdemo.frontend.ast.metadata.Operator;
+import modist.antlrdemo.frontend.ir.metadata.IrType;
 import modist.antlrdemo.frontend.semantic.scope.Scope;
 import modist.antlrdemo.frontend.ast.node.*;
 import org.jetbrains.annotations.Nullable;
@@ -61,8 +62,21 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
         return typeName != null && typeName.builtin && dimension == 0;
     }
 
+    public IrType irType() {
+        if (isInt()) {
+            return IrType.I32;
+        }
+        if (isBool()) {
+            return IrType.I1;
+        }
+        if (isVoid()) {
+            return IrType.VOID;
+        }
+        return IrType.PTR;
+    }
+
     public boolean canFormat() {
-        return equals(BuiltinFeatures.INT) || equals(BuiltinFeatures.BOOL) || equals(BuiltinFeatures.STRING);
+        return isInt() || isBool() || isString();
     }
 
     // return the narrower type if matched, throw exception otherwise
@@ -80,21 +94,9 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
         throw new TypeMismatchException(this, other);
     }
 
-    // just to simplify the code
-    @Nullable
-    private Type getOperationResultInternal(Operator op) {
-        return switch (op) {
-            case EQ, NE -> isVoid() ? null : BuiltinFeatures.BOOL;
-            case ADD -> (isInt() || isString()) ? this : null;
-            case LT, GT, LE, GE -> (isInt() || isString()) ? BuiltinFeatures.BOOL : null;
-            case INC, DEC, NOT, AND, XOR, OR, SUB, MUL, DIV, MOD, SHL, SHR -> isInt() ? this : null;
-            case LOGICAL_AND, LOGICAL_OR, LOGICAL_NOT -> isBool() ? this : null;
-        };
-    }
-
-    // return the result type of the operation, throw exception if the operation is invalid
+    // return the result type of the operation on self, throw exception if the operation is invalid
     public Type getOperationResult(Operator op) {
-        Type result = getOperationResultInternal(op);
+        Type result = op.operate(this);
         if (result != null) {
             return result;
         }
@@ -154,7 +156,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
         // we throw TypeMismatchException instead of InvalidTypeException because this function is used to check an ExpressionOrArrayAst against a declared type
         public Type tryMatchExpression(ExpressionOrArrayAst expressionOrArray, Type expectedType) {
             Objects.requireNonNull(expectedType.typeName());
-            expressionOrArray.setType(expectedType);
+            expressionOrArray.type = expectedType;
             return switch (expressionOrArray) {
                 case ExpressionAst expression ->
                         build(expression).tryMatch(expectedType); // we use tryMatch just for throwing TypeMismatchException; expectedType is already checked
@@ -208,16 +210,16 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
                         throw new CompileException("Empty array initializer should be used with at least the first dimension length specified");
                     }
                     boolean startEmpty = false;
-                    for (ExpressionAst e : arrayCreator.dimensions) {
+                    for (ExpressionAst dimensionLength : arrayCreator.dimensions) {
                         if (startEmpty) {
-                            if (e != null) {
+                            if (dimensionLength != null) {
                                 throw new CompileException("No dimension length should be specified after an empty dimension");
                             }
                         } else {
-                            if (e == null) {
+                            if (dimensionLength == null) {
                                 startEmpty = true;
                             } else {
-                                build(e).testType(BuiltinFeatures.INT);
+                                build(dimensionLength).testType(BuiltinFeatures.INT);
                             }
                         }
                     }
