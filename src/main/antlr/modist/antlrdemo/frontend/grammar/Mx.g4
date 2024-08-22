@@ -49,7 +49,7 @@ expression
     | expression DOT Identifier argumentList # functionExpr
     | expression op=(INC|DEC) # postUnaryAssignExpr
     | op=(INC|DEC) expression # preUnaryAssignExpr
-    | op=(ADD|SUB|NOT|LOGICAL_NOT) expression # preUnaryExpr
+    | op=(SUB|NOT|LOGICAL_NOT) expression # preUnaryExpr
     | expression op=(MUL|DIV|MOD) expression # binaryExpr
     | expression op=(ADD|SUB) expression # binaryExpr
     | expression op=(SHL|SHR) expression # binaryExpr

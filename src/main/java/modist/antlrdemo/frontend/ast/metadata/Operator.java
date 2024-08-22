@@ -1,13 +1,18 @@
 package modist.antlrdemo.frontend.ast.metadata;
 
 import modist.antlrdemo.frontend.ir.metadata.IrOperator;
-import modist.antlrdemo.frontend.semantic.BuiltinFeatures;
+import modist.antlrdemo.frontend.BuiltinFeatures;
 import modist.antlrdemo.frontend.semantic.Type;
 import org.jetbrains.annotations.Nullable;
 
 public enum Operator {
     INC(IrOperator.ADD), DEC(IrOperator.SUB), NOT, LOGICAL_NOT,
-    ADD, SUB, MUL, DIV, MOD, SHL, SHR, GT, LT, GE, LE, NE, EQ, AND, XOR, OR, LOGICAL_AND, LOGICAL_OR;
+    ADD(IrOperator.ADD), SUB(IrOperator.SUB), MUL(IrOperator.MUL), DIV(IrOperator.SDIV),
+    MOD(IrOperator.SREM), SHL(IrOperator.SHL), SHR(IrOperator.ASHR),
+    GT(IrOperator.SGT), LT(IrOperator.SLT), GE(IrOperator.SGE), LE(IrOperator.SLE),
+    NE(IrOperator.NE), EQ(IrOperator.EQ),
+    AND(IrOperator.AND), XOR(IrOperator.XOR), OR(IrOperator.OR),
+    LOGICAL_AND, LOGICAL_OR;
 
     public final IrOperator irOperator;
 
@@ -19,6 +24,7 @@ public enum Operator {
         this.irOperator = irOperator;
     }
 
+    // sub can be used in both preUnaryAssign and binaryExpression, but luckily both situations support the same type
     @Nullable
     public Type operate(Type operand) {
         return switch (this) {

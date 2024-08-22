@@ -1,7 +1,7 @@
 package modist.antlrdemo.frontend.semantic.scope;
 
 import modist.antlrdemo.frontend.error.CompileException;
-import modist.antlrdemo.frontend.semantic.BuiltinFeatures;
+import modist.antlrdemo.frontend.BuiltinFeatures;
 import modist.antlrdemo.frontend.semantic.Symbol;
 import modist.antlrdemo.frontend.semantic.SymbolTable;
 import modist.antlrdemo.frontend.ast.node.ProgramAst;

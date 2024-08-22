@@ -13,12 +13,15 @@ public final class FunctionIr implements Ir {
     public final List<Register> parameters;
     public final List<IrType> parameterTypes;
     public final List<BlockIr> body = new ArrayList<>();
+    // automatically add %this as the first parameter if isMember is true
+    public final boolean isMember;
 
-    private FunctionIr(String name, IrType returnType, List<Register> parameters, List<IrType> parameterTypes) {
+    private FunctionIr(String name, IrType returnType, List<Register> parameters, List<IrType> parameterTypes, boolean isMember) {
         this.name = name;
         this.returnType = returnType;
         this.parameters = parameters;
         this.parameterTypes = parameterTypes;
+        this.isMember = isMember;
     }
 
     // a builder which can build multiple instances of FunctionIr
@@ -28,8 +31,8 @@ public final class FunctionIr implements Ir {
         public NamingUtil namingUtil;
 
         // (begin -> add* -> (newBlock -> add* ->)* build)*
-        public void begin(String name, IrType returnType, List<Register> parameters, List<IrType> parameterTypes) {
-            current = new FunctionIr(name, returnType, parameters, parameterTypes);
+        public void begin(String name, IrType returnType, List<Register> parameters, List<IrType> parameterTypes, boolean isMember) {
+            current = new FunctionIr(name, returnType, parameters, parameterTypes, isMember);
             currentBlock.begin(NamingUtil.FUNCTION_ENTRY);
             namingUtil = new NamingUtil();
         }

@@ -46,6 +46,9 @@ public abstract sealed class ExpressionAst extends ExpressionOrArrayAst implemen
         public ExpressionAst expression;
         public String name;
         public List<ExpressionOrArrayAst> arguments;
+        @Nullable
+        public Type classType;
+        public Symbol.Function symbol;
     }
 
     public static final class PostUnaryAssign extends ExpressionAst {

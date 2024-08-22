@@ -1,5 +1,6 @@
 package modist.antlrdemo.frontend.semantic;
 
+import modist.antlrdemo.frontend.BuiltinFeatures;
 import modist.antlrdemo.frontend.error.*;
 import modist.antlrdemo.frontend.ast.metadata.LiteralEnum;
 import modist.antlrdemo.frontend.ast.metadata.Operator;
@@ -15,10 +16,10 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
     // typeName==null: null type. type is not fixed and can match any non-builtin type. dimension must be 0
     // typeName==VOID: void type. type is fixed and can only match void type. dimension must be 0
     // (VOID, 1) for void pointer in builtin functions
-    // (VOID, 0) used for special parameters in builtin functions
+    // (VOID, 0) used for special parameters like varargs in builtin functions
     public static final Type NULL = new Type(null);
 
-    public Symbol.TypeName getTypeName() {
+    public Symbol.TypeName resolveTypeName() {
         if (typeName == null) {
             throw new CompileException("No class for null type");
         }
@@ -77,15 +78,8 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
         return IrType.PTR;
     }
 
-    public String irTypeString() {
-        return irType().toString();
-    }
-
     public String irTypePointingTo() {
-        if (isArray()) {
-            return decreaseDimension().irTypeString();
-        }
-        if (typeName == null || typeName.builtin) {
+        if (isArray() || typeName == null || typeName.builtin) {
             throw new IllegalArgumentException();
         }
         return typeName.irName;
@@ -243,33 +237,36 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
                     yield type;
                 }
                 case ExpressionAst.Subscript subscript -> {
+                    isLvalueTemp = true;
                     Type arrayType = build(subscript.expression);
                     if (!arrayType.isArray()) {
                         throw new DimensionOutOfBoundException();
                     }
                     build(subscript.index).testType(BuiltinFeatures.INT);
-                    isLvalueTemp = true;
                     yield arrayType.decreaseDimension();
                 }
                 case ExpressionAst.Variable variable -> {
                     isLvalueTemp = true;
-                    variable.symbol = variable.expression == null ?
-                            scope.resolveVariable(variable.name) : build(variable.expression).getTypeName().variables.resolve(variable.name);
-                    variable.classType = variable.symbol.memberIndex >= 0 ? variable.expression != null ? variable.expression.type : new Type(scope.thisType) : null;
-                    yield variable.symbol.type;
+                    Symbol.Variable symbol = variable.expression == null ?
+                            scope.resolveVariable(variable.name) : build(variable.expression).resolveTypeName().variables.resolve(variable.name);
+                    variable.symbol = symbol;
+                    variable.classType = symbol.memberIndex < 0 ? null : variable.expression != null ? variable.expression.type : new Type(scope.thisType);
+                    yield symbol.type;
                 }
                 case ExpressionAst.Function function -> {
-                    Symbol.Function functionSymbol = function.expression == null ?
+                    Symbol.Function symbol = function.expression == null ?
                             scope.resolveFunction(function.name) :
-                            build(function.expression).getTypeName().functions.resolve(function.name);
-                    if (functionSymbol.parameters.size() != function.arguments.size()) {
+                            build(function.expression).resolveTypeName().functions.resolve(function.name);
+                    if (symbol.parameters.size() != function.arguments.size()) {
                         throw new CompileException(String.format("Function '%s' expects %d arguments, but %d given",
-                                function.name, functionSymbol.parameters.size(), function.arguments.size()));
+                                function.name, symbol.parameters.size(), function.arguments.size()));
                     }
                     for (int i = 0; i < function.arguments.size(); i++) {
-                        tryMatchExpression(function.arguments.get(i), functionSymbol.parameters.list.get(i).type);
+                        tryMatchExpression(function.arguments.get(i), symbol.parameters.list.get(i).type);
                     }
-                    yield functionSymbol.returnType;
+                    function.symbol = symbol;
+                    function.classType = symbol.thisType == null ? null : function.expression != null ? function.expression.type : new Type(scope.thisType);
+                    yield symbol.returnType;
                 }
                 case ExpressionAst.PostUnaryAssign postUnaryAssign ->
                         buildLvalue(postUnaryAssign.expression).getOperationResult(postUnaryAssign.operator);

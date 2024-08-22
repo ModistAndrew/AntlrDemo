@@ -512,7 +512,7 @@ public class MxParser extends Parser {
 			setState(99);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & 91312379166456766L) != 0)) {
+			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & 91312379149679550L) != 0)) {
 				{
 				{
 				setState(96);
@@ -762,7 +762,7 @@ public class MxParser extends Parser {
 				setState(116);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 1240386618982846L) != 0)) {
+				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 1240386602205630L) != 0)) {
 					{
 					setState(115);
 					((ForStmtContext)_localctx).forInit = forInitialization();
@@ -774,7 +774,7 @@ public class MxParser extends Parser {
 				setState(120);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 1240386618982816L) != 0)) {
+				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 1240386602205600L) != 0)) {
 					{
 					setState(119);
 					((ForStmtContext)_localctx).forCondition = expression(0);
@@ -786,7 +786,7 @@ public class MxParser extends Parser {
 				setState(124);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 1240386618982816L) != 0)) {
+				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 1240386602205600L) != 0)) {
 					{
 					setState(123);
 					((ForStmtContext)_localctx).forUpdate = expression(0);
@@ -840,7 +840,7 @@ public class MxParser extends Parser {
 				setState(138);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 73297980656910752L) != 0)) {
+				if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 73297980640133536L) != 0)) {
 					{
 					setState(137);
 					expressionOrArray();
@@ -1245,7 +1245,6 @@ public class MxParser extends Parser {
 		public ExpressionContext expression() {
 			return getRuleContext(ExpressionContext.class,0);
 		}
-		public TerminalNode ADD() { return getToken(MxParser.ADD, 0); }
 		public TerminalNode SUB() { return getToken(MxParser.SUB, 0); }
 		public TerminalNode NOT() { return getToken(MxParser.NOT, 0); }
 		public TerminalNode LOGICAL_NOT() { return getToken(MxParser.LOGICAL_NOT, 0); }
@@ -1476,7 +1475,7 @@ public class MxParser extends Parser {
 				setState(190);
 				((PreUnaryExprContext)_localctx).op = _input.LT(1);
 				_la = _input.LA(1);
-				if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 8933582307328L) != 0)) ) {
+				if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & 8933565530112L) != 0)) ) {
 					((PreUnaryExprContext)_localctx).op = (Token)_errHandler.recoverInline(this);
 				}
 				else {
@@ -1876,7 +1875,6 @@ public class MxParser extends Parser {
 			case FormatStringBegin:
 			case FormatStringAtom:
 			case Identifier:
-			case ADD:
 			case SUB:
 			case LOGICAL_NOT:
 			case NOT:
@@ -1948,7 +1946,7 @@ public class MxParser extends Parser {
 			setState(270);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 73297980656910752L) != 0)) {
+			if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 73297980640133536L) != 0)) {
 				{
 				setState(262);
 				expressionOrArray();
@@ -2162,7 +2160,7 @@ public class MxParser extends Parser {
 			setState(299);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 73297980656910752L) != 0)) {
+			if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 73297980640133536L) != 0)) {
 				{
 				setState(291);
 				expressionOrArray();
@@ -2478,7 +2476,7 @@ public class MxParser extends Parser {
 			setState(328);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 1240386618982816L) != 0)) {
+			if ((((_la) & ~0x3f) == 0 && ((1L << _la) & 1240386602205600L) != 0)) {
 				{
 				setState(327);
 				expression(0);
@@ -2639,7 +2637,7 @@ public class MxParser extends Parser {
 		"\u0001\u0017\u0003\u0017\u0149\b\u0017\u0001\u0017\u0001\u0017\u0001\u0018"+
 		"\u0001\u0018\u0001\u0018\u0001\u0018\u0000\u0001\u0016\u0019\u0000\u0002"+
 		"\u0004\u0006\b\n\f\u000e\u0010\u0012\u0014\u0016\u0018\u001a\u001c\u001e"+
-		" \"$&(*,.0\u0000\t\u0001\u0000-.\u0003\u0000\u0018\u0019%%++\u0001\u0000"+
+		" \"$&(*,.0\u0000\t\u0001\u0000-.\u0003\u0000\u0019\u0019%%++\u0001\u0000"+
 		"\u001a\u001c\u0001\u0000\u0018\u0019\u0001\u0000&\'\u0001\u0000\u001d"+
 		" \u0001\u0000!\"\u0002\u0000\u0007\u0007\u0010\u0012\u0002\u0000\u0002"+
 		"\u0004\u0017\u0017\u0176\u00007\u0001\u0000\u0000\u0000\u0002:\u0001\u0000"+

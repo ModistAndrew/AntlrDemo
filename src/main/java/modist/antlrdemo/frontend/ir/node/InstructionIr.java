@@ -18,7 +18,7 @@ public sealed interface InstructionIr extends Ir {
     }
 
     record Icmp(Register result, IrOperator operator, IrType type, Variable left,
-               Variable right) implements Result {
+                Variable right) implements Result {
     }
 
     record Br(Variable condition, String trueLabel, String falseLabel) implements InstructionIr {
@@ -42,11 +42,11 @@ public sealed interface InstructionIr extends Ir {
     record MemberVariable(Register result, String type, Register pointer, int memberIndex) implements Result {
     }
 
-    record Subscript(Register result, String type, Register pointer, Variable index) implements Result {
+    record Subscript(Register result, IrType type, Register pointer, Variable index) implements Result {
     }
 
-    // type according to result
-    record Call(Register result, IrType type, String function, List<IrType> argumentTypes,
-                List<Variable> arguments) implements Result {
+    // when isMember is true, you should provide thisPointer
+    record Call(@Nullable Register result, IrType type, String function, List<IrType> argumentTypes,
+                List<Variable> arguments, boolean isMember, @Nullable Register thisPointer) implements Result {
     }
 }

@@ -1,5 +1,6 @@
 package modist.antlrdemo.frontend.semantic;
 
+import modist.antlrdemo.frontend.BuiltinFeatures;
 import modist.antlrdemo.frontend.error.*;
 import modist.antlrdemo.frontend.semantic.scope.ChildScope;
 import modist.antlrdemo.frontend.semantic.scope.GlobalScope;

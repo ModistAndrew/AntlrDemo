@@ -1,7 +1,6 @@
 package modist.antlrdemo.frontend.ir;
 
 public class NamingUtil {
-    public static final String INIT_FUNCTION = "@.init";
     public static final String FUNCTION_ENTRY = "entry";
     public static final String THIS_VAR = "%this";
     private int ifCounter;
