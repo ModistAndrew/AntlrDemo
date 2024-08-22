@@ -41,6 +41,13 @@ public class IrBuilder {
         addFunctionDeclaration(BuiltinFeatures.GET_STRING);
         addFunctionDeclaration(BuiltinFeatures.GET_INT);
         addFunctionDeclaration(BuiltinFeatures.TO_STRING);
+        addFunctionDeclaration(BuiltinFeatures._TO_STRING_BOOL);
+        addFunctionDeclaration(BuiltinFeatures._CONCAT_STRING_MULTI);
+        addFunctionDeclaration(BuiltinFeatures._MALLOC_CLASS);
+        addFunctionDeclaration(BuiltinFeatures._MALLOC_ARRAY);
+        addFunctionDeclaration(BuiltinFeatures._MALLOC_ARRAY_MULTI);
+        addFunctionDeclaration(BuiltinFeatures._COMPARE_STRING);
+        addFunctionDeclaration(BuiltinFeatures._CONCAT_STRING);
     }
 
     // visit a definition and store definitions in the program
@@ -75,7 +82,7 @@ public class IrBuilder {
     private Register visitExpressionLvalue(ExpressionAst expression) {
         return switch (expression) {
             case ExpressionAst.Subscript subscript -> {
-                Register array = (Register) visitExpression(subscript.expression); // array must be a register
+                Register array = (Register) visitExpression(subscript.expression);
                 Variable index = visitExpression(subscript.index);
                 yield currentFunction.add(new InstructionIr.Subscript(currentFunction.createTemporary(),
                         subscript.type.irType(), array, index));
@@ -150,9 +157,9 @@ public class IrBuilder {
                 }
             }
             case ExpressionAst.Subscript subscript ->
-                    loadPointer(subscript.type.irType(), (Register) visitExpression(subscript));
+                    loadPointer(subscript.type.irType(), visitExpressionLvalue(subscript));
             case ExpressionAst.Variable variable ->
-                    loadPointer(variable.type.irType(), (Register) visitExpression(variable));
+                    loadPointer(variable.type.irType(), visitExpressionLvalue(variable));
             case ExpressionAst.Function function -> callFunction(function.symbol,
                     function.arguments.stream().map(this::visitExpression).toList(),
                     function.classType == null ? null : function.expression == null ? Register.THIS : (Register) visitExpression(function.expression));
@@ -180,14 +187,14 @@ public class IrBuilder {
                         currentFunction.add(new InstructionIr.Bin(currentFunction.createTemporary(),
                                 binary.operator.irOperator, binary.type.irType(), visitExpression(binary.left), visitExpression(binary.right)));
                 case ADD -> binary.type.isString() ?
-                        callGlobalFunction(BuiltinFeatures._CONCAT_STRING, List.of(toStringExpression(binary.left), toStringExpression(binary.right))) :
+                        callGlobalFunction(BuiltinFeatures._CONCAT_STRING, List.of(visitExpression(binary.left), visitExpression(binary.right))) :
                         currentFunction.add(new InstructionIr.Bin(currentFunction.createTemporary(),
                                 IrOperator.ADD, binary.type.irType(), visitExpression(binary.left), visitExpression(binary.right)));
                 case GT, LT, GE, LE, EQ, NE -> binary.type.isString() ?
                         currentFunction.add(new InstructionIr.Icmp(currentFunction.createTemporary(),
                                 binary.operator.irOperator, IrType.I32,
                                 callGlobalFunction(BuiltinFeatures._COMPARE_STRING,
-                                        List.of(toStringExpression(binary.left), toStringExpression(binary.right))), new Constant.Int(0))) :
+                                        List.of(visitExpression(binary.left), visitExpression(binary.right))), new Constant.Int(0))) :
                         currentFunction.add(new InstructionIr.Icmp(currentFunction.createTemporary(),
                                 binary.operator.irOperator, binary.type.irType(), visitExpression(binary.left), visitExpression(binary.right)));
                 case LOGICAL_AND, LOGICAL_OR -> null; // TODO
@@ -214,6 +221,7 @@ public class IrBuilder {
         return register;
     }
 
+    // used in format string
     private Register toStringExpression(ExpressionOrArrayAst expression) {
         Variable expressionResult = visitExpression(expression);
         if (expression.type.isInt()) {
@@ -222,7 +230,7 @@ public class IrBuilder {
         if (expression.type.isBool()) {
             return callGlobalFunction(BuiltinFeatures._TO_STRING_BOOL, List.of(expressionResult));
         }
-        return (Register) expressionResult; // string must be a register
+        return (Register) expressionResult;
     }
 
     // remember to add this ptr into arguments if necessary
