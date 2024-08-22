@@ -14,11 +14,12 @@ import java.util.List;
 // This class is responsible for building the intermediate representation (IR) of the program.
 // It visits the AST, read data stored in the AST nodes, and generate IR nodes.
 public class IrBuilder {
-    private final ProgramIr program = new ProgramIr();
+    private ProgramIr program;
     private final FunctionIr.Builder currentFunction = new FunctionIr.Builder();
 
     // visit a program and store definitions in the program
     public ProgramIr visitProgram(ProgramAst programNode) {
+        program = new ProgramIr();
         addBuiltinFeatures();
         programNode.classes.forEach(this::visitDefinition);
         programNode.functions.forEach(this::visitDefinition);
@@ -87,9 +88,9 @@ public class IrBuilder {
                 yield currentFunction.add(new InstructionIr.Subscript(currentFunction.createTemporary(),
                         subscript.type.irType(), array, index));
             }
-            case ExpressionAst.Variable variable -> variable.classType == null ? new Register(variable.symbol.irName) :
+            case ExpressionAst.Variable variable -> variable.symbol.classType == null ? new Register(variable.symbol.irName) :
                     currentFunction.add(new InstructionIr.MemberVariable(currentFunction.createTemporary(),
-                            variable.classType.irTypePointingTo(),
+                            variable.symbol.classType.irName,
                             variable.expression == null ? Register.THIS : (Register) visitExpression(variable.expression),
                             variable.symbol.memberIndex));
             case ExpressionAst.PreUnaryAssign preUnaryAssign -> {
@@ -162,7 +163,7 @@ public class IrBuilder {
                     loadPointer(variable.type.irType(), visitExpressionLvalue(variable));
             case ExpressionAst.Function function -> callFunction(function.symbol,
                     function.arguments.stream().map(this::visitExpression).toList(),
-                    function.classType == null ? null : function.expression == null ? Register.THIS : (Register) visitExpression(function.expression));
+                    function.symbol.classType == null ? null : function.expression == null ? Register.THIS : (Register) visitExpression(function.expression));
             case ExpressionAst.PostUnaryAssign postUnaryAssign -> {
                 Register pointer = visitExpressionLvalue(postUnaryAssign.expression);
                 Register data = loadPointer(IrType.I32, pointer);
@@ -242,7 +243,7 @@ public class IrBuilder {
                 function.irName,
                 function.parameters.list.stream().map(variable -> variable.type.irType()).toList(),
                 arguments,
-                function.thisType != null,
+                function.classType != null,
                 thisPointer));
     }
 
@@ -254,16 +255,16 @@ public class IrBuilder {
     private void beginFunction(Symbol.Function symbol) {
         currentFunction.begin(symbol.irName,
                 symbol.returnType.irType(),
-                symbol.parameters.list.stream().map(variable -> new Register(NamingUtil.parameter(variable.name))).toList(),
+                symbol.parameters.list.stream().map(variable -> new Register(IrNamer.parameter(variable.name))).toList(),
                 symbol.parameters.list.stream().map(variable -> variable.type.irType()).toList(),
-                symbol.thisType != null);
+                symbol.classType != null);
     }
 
     private void addFunctionDeclaration(Symbol.Function symbol) {
         program.functionDeclarations.add(new FunctionDeclarationIr(symbol.irName,
                 symbol.returnType.irType(),
                 symbol.parameters.list.stream().map(variable -> variable.type.irType()).toList(),
-                symbol.thisType != null));
+                symbol.classType != null));
     }
 
     private Register loadPointer(IrType type, Register pointer) {

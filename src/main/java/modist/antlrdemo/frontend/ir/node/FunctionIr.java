@@ -1,6 +1,6 @@
 package modist.antlrdemo.frontend.ir.node;
 
-import modist.antlrdemo.frontend.ir.NamingUtil;
+import modist.antlrdemo.frontend.ir.IrNamer;
 import modist.antlrdemo.frontend.ir.metadata.IrType;
 import modist.antlrdemo.frontend.ir.metadata.Register;
 
@@ -28,13 +28,13 @@ public final class FunctionIr implements Ir {
     public static class Builder {
         private FunctionIr current;
         private final BlockIr.Builder currentBlock = new BlockIr.Builder();
-        public NamingUtil namingUtil;
+        public IrNamer irNamer;
 
         // (begin -> add* -> (newBlock -> add* ->)* build)*
         public void begin(String name, IrType returnType, List<Register> parameters, List<IrType> parameterTypes, boolean isMember) {
             current = new FunctionIr(name, returnType, parameters, parameterTypes, isMember);
-            currentBlock.begin(NamingUtil.FUNCTION_ENTRY);
-            namingUtil = new NamingUtil();
+            currentBlock.begin(IrNamer.FUNCTION_ENTRY);
+            irNamer = new IrNamer();
         }
 
         public void add(InstructionIr instruction) {
@@ -58,7 +58,7 @@ public final class FunctionIr implements Ir {
         }
 
         public Register createTemporary() {
-            return new Register(namingUtil.temporaryVariable());
+            return new Register(irNamer.temporaryVariable());
         }
     }
 }

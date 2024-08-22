@@ -35,9 +35,9 @@ public abstract class Symbol {
     public static class Function extends Symbol {
         public final Type returnType;
         public final OrderedSymbolTable<Variable> parameters = new OrderedSymbolTable<>();
-        // if present, thisType is the class that the function belongs to
+        // if present, classType is the class that the function belongs to
         @Nullable
-        public TypeName thisType;
+        public TypeName classType;
         // set in GlobalScope
         public boolean isMain;
 
@@ -45,9 +45,9 @@ public abstract class Symbol {
             super(definition);
             this.returnType = new Type(scope, definition.returnType);
             definition.parameters.forEach(parameter -> parameters.declare(new Variable(scope, parameter)));
-            parameters.forEach(SymbolRenamer::setParamVariable);
+            parameters.forEach(SymbolNamer::setParamVariable);
             definition.symbol = this;
-            SymbolRenamer.setFunction(this, null);
+            SymbolNamer.setFunction(this, null);
         }
 
         // for built-in
@@ -55,8 +55,8 @@ public abstract class Symbol {
             super(name);
             this.returnType = returnType;
             parameters.forEach(this.parameters::declare);
-            parameters.forEach(SymbolRenamer::setParamVariable);
-            SymbolRenamer.setFunction(this, null);
+            parameters.forEach(SymbolNamer::setParamVariable);
+            SymbolNamer.setFunction(this, null);
         }
 
         public boolean shouldReturn() {
@@ -66,6 +66,9 @@ public abstract class Symbol {
 
     public static class Variable extends Symbol {
         public final Type type;
+        // if present, classType is the class that the variable belongs to
+        @Nullable
+        public TypeName classType;
         public int memberIndex; // irName is null if memberIndex >= 0
 
         public Variable(Scope scope, DefinitionAst.Variable definition) {
@@ -75,14 +78,14 @@ public abstract class Symbol {
                 throw CompileException.withPosition(new InvalidTypeException(this.type, "Variable type cannot be void"), definition.type.position);
             }
             definition.symbol = this;
-            SymbolRenamer.setGlobalVariable(this);
+            SymbolNamer.setGlobalVariable(this);
         }
 
         // for built-in
         public Variable(String name, Type type) {
             super(name);
             this.type = type;
-            SymbolRenamer.setGlobalVariable(this);
+            SymbolNamer.setGlobalVariable(this);
         }
     }
 
@@ -101,14 +104,14 @@ public abstract class Symbol {
             super(definition);
             this.builtin = false;
             definition.symbol = this;
-            SymbolRenamer.setClass(this);
+            SymbolNamer.setClass(this);
         }
 
         // for built-in
         public TypeName(String name) {
             super(name);
             this.builtin = true;
-            SymbolRenamer.setClass(this);
+            SymbolNamer.setClass(this);
         }
 
         public void setClass(Scope scope, DefinitionAst.Class definition) {
@@ -120,20 +123,20 @@ public abstract class Symbol {
                     throw new CompileException("class variable cannot have initializer", variable.position);
                 }
                 Variable symbol = new Variable(scope, variable);
-                SymbolRenamer.setMemberVariable(symbol, i);
+                SymbolNamer.setMemberVariable(symbol, this, i);
                 variables.declare(symbol);
             }
             if (constructor != null) {
-                SymbolRenamer.setFunction(constructor, this);
+                SymbolNamer.setFunction(constructor, this);
             }
-            functions.forEach(function -> SymbolRenamer.setFunction(function, this));
+            functions.forEach(function -> SymbolNamer.setFunction(function, this));
         }
 
         // for built-in types which have no member variables or constructors
         public void setClass(List<Function> functions) {
             constructor = null;
             functions.forEach(this.functions::declare);
-            functions.forEach(function -> SymbolRenamer.setFunction(function, this));
+            functions.forEach(function -> SymbolNamer.setFunction(function, this));
         }
 
         @Nullable

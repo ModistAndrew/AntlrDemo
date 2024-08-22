@@ -1,7 +1,7 @@
 package modist.antlrdemo.frontend.semantic.scope;
 
 import modist.antlrdemo.frontend.semantic.Symbol;
-import modist.antlrdemo.frontend.semantic.SymbolRenamer;
+import modist.antlrdemo.frontend.semantic.SymbolNamer;
 import modist.antlrdemo.frontend.semantic.Type;
 import modist.antlrdemo.frontend.ast.node.DefinitionAst;
 import modist.antlrdemo.frontend.ast.node.StatementAst;
@@ -16,20 +16,20 @@ public class ChildScope extends Scope {
         this.globalScope = parent.getGlobalScope();
         this.inLoop = parent.inLoop;
         this.returnType = parent.returnType;
-        this.thisType = parent.thisType;
-        this.renamer = parent.renamer;
+        this.classType = parent.classType;
+        this.namer = parent.namer;
     }
 
     public ChildScope(Scope parent, DefinitionAst.Class classNode) {
         this(parent);
         classNode.functions.forEach(this::declareFunction);
-        thisType = classNode.symbol;
+        classType = classNode.symbol;
     }
 
     public ChildScope(Scope parent, DefinitionAst.Function functionNode) {
         this(parent);
         returnType = new Type(this, functionNode.returnType);
-        renamer = new SymbolRenamer();
+        namer = new SymbolNamer();
     }
 
     // you should add local variables manually

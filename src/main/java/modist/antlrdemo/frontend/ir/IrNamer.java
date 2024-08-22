@@ -1,8 +1,9 @@
 package modist.antlrdemo.frontend.ir;
 
-public class NamingUtil {
+// something is done here rather than in symbol namer
+public class IrNamer {
     public static final String FUNCTION_ENTRY = "entry";
-    public static final String THIS_VAR = "%this";
+    public static final String THIS_VAR = percent("this");
     private int ifCounter;
     private int loopCounter;
     private int temporaryVariableCounter;

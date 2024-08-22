@@ -78,13 +78,6 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
         return IrType.PTR;
     }
 
-    public String irTypePointingTo() {
-        if (isArray() || typeName == null || typeName.builtin) {
-            throw new IllegalArgumentException();
-        }
-        return typeName.irName;
-    }
-
     public boolean canFormat() {
         return isInt() || isBool() || isString();
     }
@@ -186,10 +179,10 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
             boolean isLvalueTemp = false;
             Type returnType = switch (expression) {
                 case ExpressionAst.This ignored -> {
-                    if (scope.thisType == null) {
+                    if (scope.classType == null) {
                         throw new CompileException("Use of 'this' outside of class");
                     }
-                    yield new Type(scope.thisType);
+                    yield new Type(scope.classType);
                 }
                 case ExpressionAst.Literal literal -> switch (literal.value) {
                     case LiteralEnum.Int ignored -> BuiltinFeatures.INT;
@@ -250,7 +243,6 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
                     Symbol.Variable symbol = variable.expression == null ?
                             scope.resolveVariable(variable.name) : build(variable.expression).resolveTypeName().variables.resolve(variable.name);
                     variable.symbol = symbol;
-                    variable.classType = symbol.memberIndex < 0 ? null : variable.expression != null ? variable.expression.type : new Type(scope.thisType);
                     yield symbol.type;
                 }
                 case ExpressionAst.Function function -> {
@@ -265,7 +257,6 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
                         tryMatchExpression(function.arguments.get(i), symbol.parameters.list.get(i).type);
                     }
                     function.symbol = symbol;
-                    function.classType = symbol.thisType == null ? null : function.expression != null ? function.expression.type : new Type(scope.thisType);
                     yield symbol.returnType;
                 }
                 case ExpressionAst.PostUnaryAssign postUnaryAssign ->

@@ -2,7 +2,7 @@ package modist.antlrdemo.frontend.semantic.scope;
 
 import modist.antlrdemo.frontend.error.MultipleDefinitionsException;
 import modist.antlrdemo.frontend.semantic.Symbol;
-import modist.antlrdemo.frontend.semantic.SymbolRenamer;
+import modist.antlrdemo.frontend.semantic.SymbolNamer;
 import modist.antlrdemo.frontend.semantic.SymbolTable;
 import modist.antlrdemo.frontend.semantic.Type;
 import modist.antlrdemo.frontend.ast.node.DefinitionAst;
@@ -17,9 +17,9 @@ public abstract class Scope {
     @Nullable
     public Type returnType;
     @Nullable
-    public Symbol.TypeName thisType;
+    public Symbol.TypeName classType;
     @Nullable
-    protected SymbolRenamer renamer; // present when in function scope
+    protected SymbolNamer namer; // present when in function scope
 
     protected abstract GlobalScope getGlobalScope();
 
@@ -44,8 +44,8 @@ public abstract class Scope {
         Symbol.Variable symbol;
         if (variableDefinition.symbol == null) {
             symbol = new Symbol.Variable(this, variableDefinition);
-            if (renamer != null) {
-                renamer.setLocalVariable(symbol);
+            if (namer != null) {
+                namer.setLocalVariable(symbol);
             }
             if (variableDefinition.initializer != null) {
                 new Type.Builder(this).tryMatchExpression(variableDefinition.initializer, symbol.type);
