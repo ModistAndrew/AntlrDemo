@@ -1,6 +1,8 @@
 package modist.antlrdemo;
 
 import modist.antlrdemo.frontend.error.CompileException;
+import modist.antlrdemo.frontend.ir.IrBuilder;
+import modist.antlrdemo.frontend.ir.node.ProgramIr;
 import modist.antlrdemo.frontend.semantic.SemanticChecker;
 import modist.antlrdemo.frontend.ast.AstBuilder;
 import modist.antlrdemo.frontend.ast.node.ProgramAst;
@@ -38,9 +40,11 @@ public class Compiler {
         MxParser parser = new MxParser(new CommonTokenStream(lexer));
         setFastFailErrorListener(parser);
         AstBuilder astBuilder = new AstBuilder();
-        ProgramAst node = astBuilder.visitProgram(parser.program());
+        ProgramAst ast = astBuilder.visitProgram(parser.program());
         SemanticChecker semanticChecker = new SemanticChecker();
-        semanticChecker.check(node);
+        semanticChecker.check(ast);
+        IrBuilder irBuilder = new IrBuilder();
+        ProgramIr ir = irBuilder.visitProgram(ast);
     }
 
     private static void setFastFailErrorListener(Recognizer<?, ?> recognizer) {

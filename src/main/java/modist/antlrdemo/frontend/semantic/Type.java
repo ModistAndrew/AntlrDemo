@@ -14,16 +14,18 @@ import java.util.function.Predicate;
 public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
     // typeName==null: null type. type is not fixed and can match any non-builtin type. dimension must be 0
     // typeName==VOID: void type. type is fixed and can only match void type. dimension must be 0
+    // (VOID, 1) for void pointer in builtin functions
+    // (VOID, 0) used for special parameters in builtin functions
     public static final Type NULL = new Type(null);
 
-    public Symbol.Class resolveClass() {
+    public Symbol.TypeName getTypeName() {
         if (typeName == null) {
             throw new CompileException("No class for null type");
         }
         if (isArray()) {
-            return BuiltinFeatures.ARRAY_CLASS;
+            return BuiltinFeatures.ARRAY_TYPE_NAME;
         }
-        return typeName.definition;
+        return typeName;
     }
 
     public Type(Scope scope, TypeAst typeNode) {
@@ -73,6 +75,20 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
             return IrType.VOID;
         }
         return IrType.PTR;
+    }
+
+    public String irTypeString() {
+        return irType().toString();
+    }
+
+    public String irTypePointingTo() {
+        if (isArray()) {
+            return decreaseDimension().irTypeString();
+        }
+        if (typeName == null || typeName.builtin) {
+            throw new IllegalArgumentException();
+        }
+        return typeName.irName;
     }
 
     public boolean canFormat() {
@@ -138,7 +154,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
     // store the type in the expression node
     public static class Builder {
         private final Scope scope;
-        private boolean isLValue;
+        private boolean isLvalue;
 
         public Builder(Scope scope) {
             this.scope = scope;
@@ -146,7 +162,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
 
         public Type buildLvalue(ExpressionAst expression) {
             Type type = build(expression);
-            if (!isLValue) {
+            if (!isLvalue) {
                 throw new InvalidTypeException(type, "lvalue");
             }
             return type;
@@ -173,7 +189,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
 
         public Type build(ExpressionAst expression) {
             PositionRecord.set(expression.getPosition());
-            boolean isLValueTemp = false;
+            boolean isLvalueTemp = false;
             Type returnType = switch (expression) {
                 case ExpressionAst.This ignored -> {
                     if (scope.thisType == null) {
@@ -220,6 +236,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
                                 startEmpty = true;
                             } else {
                                 build(dimensionLength).testType(BuiltinFeatures.INT);
+                                arrayCreator.presentDimensions.add(dimensionLength);
                             }
                         }
                     }
@@ -231,31 +248,33 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
                         throw new DimensionOutOfBoundException();
                     }
                     build(subscript.index).testType(BuiltinFeatures.INT);
-                    isLValueTemp = true;
+                    isLvalueTemp = true;
                     yield arrayType.decreaseDimension();
                 }
                 case ExpressionAst.Variable variable -> {
-                    isLValueTemp = true;
-                    yield variable.expression == null ? scope.resolveVariable(variable.name).type :
-                            build(variable.expression).resolveClass().variables.resolve(variable.name).type;
+                    isLvalueTemp = true;
+                    variable.symbol = variable.expression == null ?
+                            scope.resolveVariable(variable.name) : build(variable.expression).getTypeName().variables.resolve(variable.name);
+                    variable.classType = variable.symbol.memberIndex >= 0 ? variable.expression != null ? variable.expression.type : new Type(scope.thisType) : null;
+                    yield variable.symbol.type;
                 }
                 case ExpressionAst.Function function -> {
                     Symbol.Function functionSymbol = function.expression == null ?
                             scope.resolveFunction(function.name) :
-                            build(function.expression).resolveClass().functions.resolve(function.name);
+                            build(function.expression).getTypeName().functions.resolve(function.name);
                     if (functionSymbol.parameters.size() != function.arguments.size()) {
                         throw new CompileException(String.format("Function '%s' expects %d arguments, but %d given",
                                 function.name, functionSymbol.parameters.size(), function.arguments.size()));
                     }
                     for (int i = 0; i < function.arguments.size(); i++) {
-                        tryMatchExpression(function.arguments.get(i), functionSymbol.parameters.get(i).type);
+                        tryMatchExpression(function.arguments.get(i), functionSymbol.parameters.list.get(i).type);
                     }
                     yield functionSymbol.returnType;
                 }
                 case ExpressionAst.PostUnaryAssign postUnaryAssign ->
                         buildLvalue(postUnaryAssign.expression).getOperationResult(postUnaryAssign.operator);
                 case ExpressionAst.PreUnaryAssign preUnaryAssign -> {
-                    isLValueTemp = true;
+                    isLvalueTemp = true;
                     yield buildLvalue(preUnaryAssign.expression).getOperationResult(preUnaryAssign.operator);
                 }
                 case ExpressionAst.PreUnary preUnary ->
@@ -271,7 +290,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
                     yield BuiltinFeatures.VOID;
                 }
             };
-            isLValue = isLValueTemp;
+            isLvalue = isLvalueTemp;
             expression.type = returnType;
             return returnType;
         }

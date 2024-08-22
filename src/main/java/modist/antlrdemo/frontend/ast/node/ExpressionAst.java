@@ -2,6 +2,8 @@ package modist.antlrdemo.frontend.ast.node;
 
 import modist.antlrdemo.frontend.ast.metadata.LiteralEnum;
 import modist.antlrdemo.frontend.ast.metadata.Operator;
+import modist.antlrdemo.frontend.semantic.Symbol;
+import modist.antlrdemo.frontend.semantic.Type;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -34,6 +36,9 @@ public abstract sealed class ExpressionAst extends ExpressionOrArrayAst implemen
         @Nullable
         public ExpressionAst expression;
         public String name;
+        @Nullable
+        public Type classType;
+        public Symbol.Variable symbol;
     }
 
     public static final class Function extends ExpressionAst {

@@ -9,34 +9,44 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public sealed interface InstructionIr extends Ir {
-    record Bin(IrOperator operator, Variable left, Variable right, Register result) implements InstructionIr {
+    sealed interface Result extends InstructionIr {
+        Register result();
     }
 
-    record Br(@Nullable Variable condition, String trueLabel, @Nullable String falseLabel) implements InstructionIr {
+    record Bin(Register result, IrOperator operator, IrType type, Variable left,
+               Variable right) implements Result {
+    }
+
+    record Icmp(Register result, IrOperator operator, IrType type, Variable left,
+               Variable right) implements Result {
+    }
+
+    record Br(Variable condition, String trueLabel, String falseLabel) implements InstructionIr {
+    }
+
+    record Jump(String label) implements InstructionIr {
     }
 
     record Ret(IrType type, @Nullable Variable value) implements InstructionIr {
-        public Ret(IrType type) {
-            this(type, type.defaultValue);
-        }
     }
 
-    record Alloc(Register result) implements InstructionIr {
+    record Alloc(Register result, IrType type) implements Result {
     }
 
-    record Load(Register pointer, Register result) implements InstructionIr {
+    record Load(Register result, IrType type, Register pointer) implements Result {
     }
 
-    record Store(Variable value, Register pointer) implements InstructionIr {
+    record Store(IrType type, Variable value, Register pointer) implements InstructionIr {
     }
 
-    record Member(Register pointer, String type, int index, Register result) implements InstructionIr {
+    record MemberVariable(Register result, String type, Register pointer, int memberIndex) implements Result {
     }
 
-    record Subscript(Register pointer, int index, Register result) implements InstructionIr {
+    record Subscript(Register result, String type, Register pointer, Variable index) implements Result {
     }
 
-    record Call(String function, List<IrType> argumentTypes, List<Variable> arguments,
-                Register result) implements InstructionIr {
+    // type according to result
+    record Call(Register result, IrType type, String function, List<IrType> argumentTypes,
+                List<Variable> arguments) implements Result {
     }
 }

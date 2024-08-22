@@ -14,7 +14,7 @@ public class GlobalScope extends Scope {
     public GlobalScope(ProgramAst program) {
         addBuiltInFeatures();
         program.classes.forEach(typeNode -> typeNames.declare(new Symbol.TypeName(typeNode)));
-        program.classes.forEach(typeNode -> typeNode.symbol.setClass(new Symbol.Class(this, typeNode)));
+        program.classes.forEach(typeNode -> typeNode.symbol.setClass(this, typeNode));
         program.functions.forEach(this::declareFunction);
         checkMainFunction(program);
     }
@@ -41,7 +41,7 @@ public class GlobalScope extends Scope {
         if (!mainFunction.returnType.equals(BuiltinFeatures.INT)) {
             throw new CompileException("Main function must return int", mainFunction.position);
         }
-        if (mainFunction.parameters.size() != 0) {
+        if (!mainFunction.parameters.isEmpty()) {
             throw new CompileException("Main function must have no parameters", mainFunction.position);
         }
         mainFunction.isMain = true;

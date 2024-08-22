@@ -35,6 +35,10 @@ public class SymbolTable<T extends Symbol> {
         return table.size();
     }
 
+    public boolean isEmpty() {
+        return table.isEmpty();
+    }
+
     public void forEach(Consumer<T> consumer) {
         table.forEach((name, symbol) -> consumer.accept(symbol));
     }

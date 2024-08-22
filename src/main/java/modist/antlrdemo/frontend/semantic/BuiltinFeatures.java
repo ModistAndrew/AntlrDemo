@@ -31,17 +31,21 @@ public class BuiltinFeatures {
     public static final Symbol.Function GET_INT = new Symbol.Function("getInt", INT, List.of());
     public static final Symbol.Function TO_STRING = new Symbol.Function("toString", STRING, List.of(new Symbol.Variable("i", INT)));
 
-    public static final Symbol.Class INT_CLASS = new Symbol.Class(null, List.of(), List.of());
-    public static final Symbol.Class BOOL_CLASS = new Symbol.Class(null, List.of(), List.of());
-    public static final Symbol.Class STRING_CLASS = new Symbol.Class(null, List.of(STRING_LENGTH, STRING_SUBSTRING, STRING_PARSE_INT, STRING_ORD), List.of());
-    public static final Symbol.Class VOID_CLASS = new Symbol.Class(null, List.of(), List.of());
-    public static final Symbol.Class ARRAY_CLASS = new Symbol.Class(null, List.of(ARRAY_SIZE), List.of());
+    private static final Type PTR = new Type(VOID_TYPE_NAME, 1);
+    private static final Symbol.Variable VARARGS = new Symbol.Variable("varargs", VOID);
+    public static final Symbol.Function _TO_STRING_BOOL = new Symbol.Function(".toStringBool", STRING, List.of(new Symbol.Variable("b", BOOL)));
+    public static final Symbol.Function _CONCAT_STRINGS = new Symbol.Function(".concatStrings", STRING, List.of(new Symbol.Variable("num", INT), VARARGS));
+    public static final Symbol.Function _MALLOC_CLASS = new Symbol.Function(".mallocClass", PTR, List.of(new Symbol.Variable("size", INT)));
+    public static final Symbol.Function _MALLOC_ARRAY = new Symbol.Function(".mallocArray", PTR,
+            List.of(new Symbol.Variable("size", INT), new Symbol.Variable("dimensionLength", INT)));
+    public static final Symbol.Function _MALLOC_ARRAY_MULTI = new Symbol.Function(".mallocArrayMulti", PTR,
+            List.of(new Symbol.Variable("size", INT), new Symbol.Variable("num", INT), VARARGS));
 
     static {
-        INT_TYPE_NAME.setClass(BuiltinFeatures.INT_CLASS);
-        BOOL_TYPE_NAME.setClass(BuiltinFeatures.BOOL_CLASS);
-        STRING_TYPE_NAME.setClass(BuiltinFeatures.STRING_CLASS);
-        VOID_TYPE_NAME.setClass(BuiltinFeatures.VOID_CLASS);
-        ARRAY_TYPE_NAME.setClass(BuiltinFeatures.ARRAY_CLASS);
+        INT_TYPE_NAME.setClass(List.of());
+        BOOL_TYPE_NAME.setClass(List.of());
+        STRING_TYPE_NAME.setClass(List.of(STRING_LENGTH, STRING_SUBSTRING, STRING_PARSE_INT, STRING_ORD));
+        VOID_TYPE_NAME.setClass(List.of());
+        ARRAY_TYPE_NAME.setClass(List.of(ARRAY_SIZE));
     }
 }

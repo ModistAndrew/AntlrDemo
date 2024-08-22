@@ -5,7 +5,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
-// rename symbol and store some information
+// rename symbol and store some other information
 public class SymbolRenamer {
     private final Map<String, Integer> variableCounter = new HashMap<>(); // for variable renaming
 
@@ -21,22 +21,22 @@ public class SymbolRenamer {
     // used in SemanticChecker
     public void setLocalVariable(Symbol.Variable symbol) {
         symbol.irName = percent(withVariableCounter(symbol.name));
-        symbol.isMember = false;
+        symbol.memberIndex = -1;
     }
 
     public static void setParamVariable(Symbol.Variable symbol) {
-        symbol.irName = percent(dot(".param_addr", symbol.name));
-        symbol.isMember = false;
+        symbol.irName = percent(dot("paramAddr", symbol.name));
+        symbol.memberIndex = -1;
     }
 
     public static void setGlobalVariable(Symbol.Variable symbol) {
         symbol.irName = at(symbol.name);
-        symbol.isMember = false;
+        symbol.memberIndex = -1;
     }
 
-    public static void setMemberVariable(Symbol.Variable symbol) {
+    public static void setMemberVariable(Symbol.Variable symbol, int memberId) {
         symbol.irName = null;
-        symbol.isMember = true;
+        symbol.memberIndex = memberId;
     }
 
     private String withVariableCounter(String name) {
