@@ -242,8 +242,9 @@ public class IrBuilder {
                 currentFunction.newBlock(new InstructionIr.Jump(endLabel), falseLabel);
                 Variable falseValue = visitExpression(conditional.falseExpression);
                 currentFunction.newBlock(new InstructionIr.Jump(endLabel), endLabel);
-                yield currentFunction.add(new InstructionIr.Phi(currentFunction.createTemporary("conditional"),
-                        conditional.type.irType(), trueValue, trueLabel, falseValue, falseLabel));
+                yield conditional.type.isVoid() ? null :
+                        currentFunction.add(new InstructionIr.Phi(currentFunction.createTemporary("conditional"),
+                                conditional.type.irType(), trueValue, trueLabel, falseValue, falseLabel));
             }
             case ExpressionAst.Assign assign -> {
                 Register pointer = visitExpressionLvalue(assign.left);
