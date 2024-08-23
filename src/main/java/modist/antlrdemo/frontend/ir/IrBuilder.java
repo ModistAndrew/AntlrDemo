@@ -71,10 +71,10 @@ public class IrBuilder {
                 program.functions.add(currentFunction.build());
             }
             case DefinitionAst.Variable variableDefinition -> { // treat as global variable. use visit() for local variable
-                Register result = new Register(variableDefinition.symbol.irName);
-                program.globalVariables.add(new GlobalVariableIr(result, variableDefinition.symbol.type.irType()));
+                Register pointer = new Register(variableDefinition.symbol.irName);
+                program.globalVariables.add(new GlobalVariableIr(pointer, variableDefinition.symbol.type.irType()));
                 if (variableDefinition.initializer != null) {
-                    storePointer(variableDefinition.symbol.type.irType(), visitExpression(variableDefinition.initializer), result);
+                    storePointer(variableDefinition.symbol.type.irType(), visitExpression(variableDefinition.initializer), pointer);
                 }
             }
         }
@@ -237,15 +237,84 @@ public class IrBuilder {
     }
 
     // visit other nodes in a default way
-    private void visit(@Nullable Ast node) {
-        // TODO
+    private void visit(Ast node) {
+        switch (node) {
+            case ProgramAst ignored -> throw new UnsupportedOperationException();
+            case ArrayCreatorAst ignored -> throw new UnsupportedOperationException();
+            case DefinitionAst.Variable variableDefinition -> {
+                Register pointer = currentFunction.add(new InstructionIr.Alloc(currentFunction.createTemporary(), variableDefinition.symbol.type.irType()));
+                if (variableDefinition.initializer != null) {
+                    storePointer(variableDefinition.symbol.type.irType(), visitExpression(variableDefinition.initializer), pointer);
+                }
+            }
+            case DefinitionAst ignored -> throw new UnsupportedOperationException();
+            case ExpressionAst expression -> visitExpression(expression);
+            case StatementAst.Block blockStatement -> blockStatement.statements.forEach(this::visit);
+            case StatementAst.VariableDefinitions variableDefinitionsStatement ->
+                    variableDefinitionsStatement.variables.forEach(this::visit);
+            case StatementAst.If ifStatement -> {
+                String labelName = ifStatement.labelName;
+                String thenLabel = IrNamer.appendThen(labelName);
+                String endLabel = IrNamer.appendEnd(labelName);
+                String elseLabel = ifStatement.elseStatements == null ? endLabel : IrNamer.appendElse(labelName);
+                currentFunction.newBlock(new InstructionIr.Br(visitExpression(ifStatement.condition), thenLabel, elseLabel), thenLabel);
+                ifStatement.thenStatements.forEach(this::visit);
+                currentFunction.newBlock(new InstructionIr.Jump(endLabel), elseLabel);
+                if (ifStatement.elseStatements != null) {
+                    ifStatement.elseStatements.forEach(this::visit);
+                    currentFunction.newBlock(new InstructionIr.Jump(endLabel), endLabel);
+                }
+            }
+            case StatementAst.For forStatement -> {
+                if (forStatement.initialization != null) {
+                    visit(forStatement.initialization);
+                }
+                String labelName = forStatement.labelName;
+                String conditionLabel = IrNamer.appendCondition(labelName);
+                String bodyLabel = IrNamer.appendBody(labelName);
+                String updateLabel = IrNamer.appendUpdate(labelName);
+                String endLabel = IrNamer.appendEnd(labelName);
+                currentFunction.newBlock(new InstructionIr.Jump(conditionLabel), conditionLabel);
+                if (forStatement.condition != null) {
+                    currentFunction.newBlock(new InstructionIr.Br(visitExpression(forStatement.condition), bodyLabel, endLabel), bodyLabel);
+                }
+                forStatement.statements.forEach(this::visit);
+                if (forStatement.update != null) {
+                    currentFunction.newBlock(new InstructionIr.Jump(updateLabel), updateLabel);
+                    visitExpression(forStatement.update);
+                }
+                currentFunction.newBlock(new InstructionIr.Jump(conditionLabel), endLabel);
+            }
+            case StatementAst.While whileStatement -> {
+                String labelName = whileStatement.labelName;
+                String conditionLabel = IrNamer.appendCondition(labelName);
+                String bodyLabel = IrNamer.appendBody(labelName);
+                String endLabel = IrNamer.appendEnd(labelName);
+                currentFunction.newBlock(new InstructionIr.Jump(conditionLabel), conditionLabel);
+                currentFunction.newBlock(new InstructionIr.Br(visitExpression(whileStatement.condition), bodyLabel, endLabel), bodyLabel);
+                whileStatement.statements.forEach(this::visit);
+                currentFunction.newBlock(new InstructionIr.Jump(conditionLabel), endLabel);
+            }
+            case StatementAst.Break breakStatement ->
+                    currentFunction.add(new InstructionIr.Jump(IrNamer.appendEnd(breakStatement.loopLabelName)));
+            case StatementAst.Continue continueStatement ->
+                    currentFunction.add(new InstructionIr.Jump(IrNamer.appendCondition(continueStatement.loopLabelName)));
+            case StatementAst.Return returnStatement ->
+                    currentFunction.add(returnStatement.expression == null ? new InstructionIr.Ret(IrType.VOID, null) :
+                            new InstructionIr.Ret(returnStatement.expression.type.irType(), visitExpression(returnStatement.expression)));
+            case StatementAst.Expression expressionStatement -> visitExpression(expressionStatement.expression);
+            case StatementAst.Empty ignored -> {
+            }
+            case TypeAst ignored -> throw new UnsupportedOperationException();
+            case ArrayAst ignored -> throw new UnsupportedOperationException();
+        }
     }
 
     // add a string constant to the program and return the global variable register
     private Register addStringConstant(String value) {
-        Register register = Register.createConstantString();
-        program.constantStrings.add(new ConstantStringIr(register, value));
-        return register;
+        Register pointer = Register.createConstantString();
+        program.constantStrings.add(new ConstantStringIr(pointer, value));
+        return pointer;
     }
 
     // used in format string

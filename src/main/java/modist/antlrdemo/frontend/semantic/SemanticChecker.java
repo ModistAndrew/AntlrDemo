@@ -6,7 +6,6 @@ import modist.antlrdemo.frontend.semantic.scope.ChildScope;
 import modist.antlrdemo.frontend.semantic.scope.GlobalScope;
 import modist.antlrdemo.frontend.semantic.scope.Scope;
 import modist.antlrdemo.frontend.ast.node.*;
-import org.jetbrains.annotations.Nullable;
 
 // check the semantic correctness of the AST
 // also store data for ir building
@@ -29,10 +28,7 @@ public class SemanticChecker {
         scope = scope.getParent();
     }
 
-    public void check(@Nullable Ast node) {
-        if (node == null) {
-            return;
-        }
+    public void check(Ast node) {
         PositionRecord.set(node.getPosition());
         switch (node) {
             case ProgramAst program -> {
@@ -81,12 +77,16 @@ public class SemanticChecker {
             }
             case StatementAst.For forStatement -> {
                 pushScope(new ChildScope(scope, forStatement));
-                check(forStatement.initialization);
+                if (forStatement.initialization != null) {
+                    check(forStatement.initialization);
+                }
                 if (forStatement.condition != null) {
                     check(forStatement.condition);
                     forStatement.condition.type.testType(BuiltinFeatures.BOOL);
                 }
-                check(forStatement.update);
+                if (forStatement.update != null) {
+                    check(forStatement.update);
+                }
                 forStatement.statements.forEach(this::check);
                 popScope();
             }

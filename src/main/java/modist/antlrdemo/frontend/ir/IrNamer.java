@@ -41,8 +41,28 @@ public class IrNamer {
         return dot(name, "right");
     }
 
-    public static String appendEnd(String name) {
+    public static String appendThen(String name) {
+        return dot(name, "then");
+    }
+
+    public static String appendElse(String name) {
         return dot(name, "else");
+    }
+
+    public static String appendCondition(String name) {
+        return dot(name, "condition");
+    }
+
+    public static String appendBody(String name) {
+        return dot(name, "body");
+    }
+
+    public static String appendUpdate(String name) {
+        return dot(name, "update");
+    }
+
+    public static String appendEnd(String name) {
+        return dot(name, "end");
     }
 
     private static String dot(String prefix, String name) {
