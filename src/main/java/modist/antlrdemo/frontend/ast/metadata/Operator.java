@@ -35,4 +35,8 @@ public enum Operator {
             case LOGICAL_AND, LOGICAL_OR, LOGICAL_NOT -> operand.isBool() ? operand : null;
         };
     }
+
+    public String getIrPrefix() {
+        return name().toLowerCase();
+    }
 }

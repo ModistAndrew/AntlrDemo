@@ -28,12 +28,6 @@ public class SemanticNamer {
         symbol.memberIndex = -1;
     }
 
-    public static void setParamVariable(Symbol.Variable symbol) {
-        symbol.irName = percent(dot("paramAddr", symbol.name));
-        symbol.classType = null;
-        symbol.memberIndex = -1;
-    }
-
     public static void setGlobalVariable(Symbol.Variable symbol) {
         symbol.irName = at(symbol.name);
         symbol.classType = null;

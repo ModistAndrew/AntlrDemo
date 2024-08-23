@@ -71,8 +71,8 @@ public final class FunctionIr implements Ir {
             return current;
         }
 
-        public Register createTemporary() {
-            return new Register(irNamer.temporaryVariable());
+        public Register createTemporary(String prefix) {
+            return new Register(irNamer.temporaryVariable(prefix));
         }
     }
 }

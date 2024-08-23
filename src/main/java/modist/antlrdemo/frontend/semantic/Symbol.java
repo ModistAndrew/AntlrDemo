@@ -45,7 +45,6 @@ public abstract class Symbol {
             super(definition);
             this.returnType = new Type(scope, definition.returnType);
             definition.parameters.forEach(parameter -> parameters.declare(new Variable(scope, parameter)));
-            parameters.forEach(SemanticNamer::setParamVariable);
             definition.symbol = this;
             SemanticNamer.setFunction(this, null);
         }
@@ -55,7 +54,6 @@ public abstract class Symbol {
             super(name);
             this.returnType = returnType;
             parameters.forEach(this.parameters::declare);
-            parameters.forEach(SemanticNamer::setParamVariable);
             SemanticNamer.setFunction(this, null);
         }
 

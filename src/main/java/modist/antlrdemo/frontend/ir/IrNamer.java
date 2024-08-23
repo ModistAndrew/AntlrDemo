@@ -1,68 +1,56 @@
 package modist.antlrdemo.frontend.ir;
 
+import java.util.HashMap;
+import java.util.Map;
+
 // something is done here rather than in symbol namer
 public class IrNamer {
     public static final String FUNCTION_ENTRY = "entry";
     public static final String THIS_VAR = percent("this");
-    private int temporaryVariableCounter;
     private int conditionalCounter;
     private int shortCircuitCounter;
     private static int constantStringCounter; // global counter for constant strings
+    private final Map<String, Integer> temporaryVariableCounter = new HashMap<>(); // for variable renaming
 
-    public String temporaryVariable() {
-        return percent(dot("", temporaryVariableCounter++));
-    }
-
-    public String conditional() {
-        return percent(dot("conditional", conditionalCounter++));
-    }
-
-    public String shortCircuit() {
-        return percent(dot("shortCircuit", shortCircuitCounter++));
+    public String temporaryVariable(String prefix) {
+        return percent(withTemporaryVariableCounter(dot(prefix)));
     }
 
     public static String parameter(String name) {
-        return percent(dot("parameter", name));
+        return percent(dot(name, "parameter"));
     }
 
     public static String constantString() {
         return at(dot("string", constantStringCounter++));
     }
 
-    public static String appendTrue(String name) {
-        return dot(name, "true");
+    public String conditional() {
+        return dot("conditional", conditionalCounter++);
     }
 
-    public static String appendFalse(String name) {
-        return dot(name, "false");
+    public String shortCircuit() {
+        return dot("shortCircuit", shortCircuitCounter++);
     }
 
-    public static String appendRight(String name) {
-        return dot(name, "right");
-    }
-
-    public static String appendThen(String name) {
-        return dot(name, "then");
-    }
-
-    public static String appendElse(String name) {
-        return dot(name, "else");
+    public static String append(String name, String suffix) {
+        return dot(name, suffix);
     }
 
     public static String appendCondition(String name) {
-        return dot(name, "condition");
-    }
-
-    public static String appendBody(String name) {
-        return dot(name, "body");
-    }
-
-    public static String appendUpdate(String name) {
-        return dot(name, "update");
+        return append(name, "condition");
     }
 
     public static String appendEnd(String name) {
-        return dot(name, "end");
+        return append(name, "end");
+    }
+
+    private String withTemporaryVariableCounter(String name) {
+        if (!temporaryVariableCounter.containsKey(name)) {
+            temporaryVariableCounter.put(name, 0);
+        }
+        int count = temporaryVariableCounter.get(name);
+        temporaryVariableCounter.put(name, count + 1);
+        return dot(name, count);
     }
 
     private static String dot(String prefix, String name) {
@@ -79,5 +67,9 @@ public class IrNamer {
 
     private static String at(String name) {
         return "@" + name;
+    }
+
+    private static String dot(String name) {
+        return "." + name;
     }
 }

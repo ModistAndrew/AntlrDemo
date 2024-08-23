@@ -40,19 +40,22 @@ public abstract class Scope {
     // check name conflict here
     // we check the initializer after symbol is created but before it is declared, for convenience
     // we rename the symbol here
-    // if symbol != null, we don't create a new symbol as it has been created in class symbol or function symbol and has been checked and renamed
+    // if symbol != null, we don't create a new symbol as it has been created in class symbol or function symbol
+    // we need to rename the symbol if it is a parameter or local variable
+    // skip when it is a class member or global variable
     public void declareVariable(DefinitionAst.Variable variableDefinition) {
-        Symbol.Variable symbol;
-        if (variableDefinition.symbol == null) {
-            symbol = new Symbol.Variable(this, variableDefinition);
+        Symbol.Variable symbol = variableDefinition.symbol == null ? new Symbol.Variable(this, variableDefinition) : variableDefinition.symbol;
+        if (symbol.classType == null) {
+            // class member is skipped
+            // global variable is renamed when created
+            // local variable is renamed here
+            // parameter should be renamed as a local variable; the real parameter will be stored into that local variable
             if (namer != null) {
                 namer.setLocalVariable(symbol);
             }
-            if (variableDefinition.initializer != null) {
-                new Type.Builder(this).tryMatchExpression(variableDefinition.initializer, symbol.type);
-            }
-        } else {
-            symbol = variableDefinition.symbol;
+        }
+        if (variableDefinition.initializer != null) { // for global or local variable. member or parameter have no initializer
+            new Type.Builder(this).tryMatchExpression(variableDefinition.initializer, symbol.type);
         }
         Symbol.Function function = functions.get(variableDefinition.name);
         if (function != null) {
@@ -62,7 +65,8 @@ public abstract class Scope {
     }
 
     // check name conflict here
-    // if symbol != null, we don't create a new symbol as it has been created in class symbol and has been renamed
+    // if symbol != null, we don't create a new symbol as it has been created in class symbol
+    // we needn't rename the symbol here as it is already renamed in class symbol or when created
     protected void declareFunction(DefinitionAst.Function functionDefinition) {
         Symbol.Function symbol = functionDefinition.symbol == null ? new Symbol.Function(this, functionDefinition) : functionDefinition.symbol;
         Symbol.TypeName typeName = getTypeName(functionDefinition.name);
