@@ -26,7 +26,7 @@ public class IrNamer {
     }
 
     public static String constantString() {
-        return at(dot("str", constantStringCounter++));
+        return at(dot("string", constantStringCounter++));
     }
 
     public static String appendTrue(String name) {

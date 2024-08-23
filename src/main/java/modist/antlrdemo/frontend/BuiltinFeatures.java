@@ -34,15 +34,14 @@ public class BuiltinFeatures {
     public static final Symbol.Function TO_STRING = new Symbol.Function("toString", STRING, List.of(new Symbol.Variable("i", INT)));
 
     private static final Type PTR = new Type(VOID_TYPE_NAME, 1);
-    private static final Symbol.Variable VARARGS = new Symbol.Variable("...", VOID);
 
     public static final Symbol.Function _TO_STRING_BOOL = new Symbol.Function(".toStringBool", STRING, List.of(new Symbol.Variable("b", BOOL)));
-    public static final Symbol.Function _CONCAT_STRING_MULTI = new Symbol.Function(".concatStringMulti", STRING, List.of(new Symbol.Variable("num", INT), VARARGS));
+    public static final Symbol.Function _CONCAT_STRING_MULTI = new Symbol.Function(".concatStringMulti", STRING, List.of(new Symbol.Variable("num", INT)));
     public static final Symbol.Function _MALLOC_CLASS = new Symbol.Function(".mallocClass", PTR, List.of(new Symbol.Variable("size", INT)));
     public static final Symbol.Function _MALLOC_ARRAY = new Symbol.Function(".mallocArray", PTR,
             List.of(new Symbol.Variable("size", INT), new Symbol.Variable("dimensionLength", INT)));
     public static final Symbol.Function _MALLOC_ARRAY_MULTI = new Symbol.Function(".mallocArrayMulti", PTR,
-            List.of(new Symbol.Variable("size", INT), new Symbol.Variable("num", INT), VARARGS));
+            List.of(new Symbol.Variable("size", INT), new Symbol.Variable("num", INT)));
     public static final Symbol.Function _COMPARE_STRING = new Symbol.Function(".compareString", INT,
             List.of(new Symbol.Variable("str1", STRING), new Symbol.Variable("str2", STRING)));
     public static final Symbol.Function _CONCAT_STRING = new Symbol.Function(".concatString", STRING,

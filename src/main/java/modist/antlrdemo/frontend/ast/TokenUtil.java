@@ -41,10 +41,10 @@ public class TokenUtil {
             default -> throw new IllegalArgumentException();
         };
         return switch (token.getType()) {
-            case MxLexer.StringLiteral -> text.replace("\\n", "\n").replace("\\\\", "\\").replace("\\\"", "\"");
+            case MxLexer.StringLiteral -> text.replace("\\n", "\n").replace("\\\"", "\"").replace("\\\\", "\\");
             case MxLexer.FormatStringBegin, MxLexer.FormatStringMiddle, MxLexer.FormatStringEnd,
                  MxLexer.FormatStringAtom ->
-                    text.replace("$$", "$").replace("\\n", "\n").replace("\\\\", "\\").replace("\\\"", "\"");
+                    text.replace("$$", "$").replace("\\n", "\n").replace("\\\"", "\"").replace("\\\\", "\\");
             default -> throw new IllegalArgumentException();
         };
     }

@@ -8,4 +8,9 @@ public record Register(String name) implements Variable {
     public static Register createConstantString() {
         return new Register(IrNamer.constantString());
     }
+
+    @Override
+    public String toString() {
+        return name;
+    }
 }

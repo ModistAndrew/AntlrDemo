@@ -16,7 +16,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
     // typeName==null: null type. type is not fixed and can match any non-builtin type. dimension must be 0
     // typeName==VOID: void type. type is fixed and can only match void type. dimension must be 0
     // (VOID, 1) for void pointer in builtin functions
-    // (VOID, 0) used for special parameters like varargs in builtin functions
+    // (VOID, 0) used for varargs in builtin functions
     public static final Type NULL = new Type(null);
 
     public Symbol.TypeName resolveTypeName() {
@@ -42,7 +42,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
     }
 
     public boolean isVoid() {
-        return typeName == BuiltinFeatures.VOID_TYPE_NAME;
+        return equals(BuiltinFeatures.VOID);
     }
 
     public boolean isInt() {

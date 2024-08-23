@@ -44,10 +44,10 @@ public class IrBuilder {
         addFunctionDeclaration(BuiltinFeatures.GET_INT);
         addFunctionDeclaration(BuiltinFeatures.TO_STRING);
         addFunctionDeclaration(BuiltinFeatures._TO_STRING_BOOL);
-        addFunctionDeclaration(BuiltinFeatures._CONCAT_STRING_MULTI);
+        addFunctionVarargsDeclaration(BuiltinFeatures._CONCAT_STRING_MULTI);
         addFunctionDeclaration(BuiltinFeatures._MALLOC_CLASS);
         addFunctionDeclaration(BuiltinFeatures._MALLOC_ARRAY);
-        addFunctionDeclaration(BuiltinFeatures._MALLOC_ARRAY_MULTI);
+        addFunctionVarargsDeclaration(BuiltinFeatures._MALLOC_ARRAY_MULTI);
         addFunctionDeclaration(BuiltinFeatures._COMPARE_STRING);
         addFunctionDeclaration(BuiltinFeatures._CONCAT_STRING);
     }
@@ -129,14 +129,19 @@ public class IrBuilder {
                 case LiteralEnum.Null ignored -> Constant.Null.INSTANCE;
             };
             case ExpressionAst.FormatString formatString -> {
+                List<IrType> argumentTypes = new ArrayList<>();
                 List<Variable> arguments = new ArrayList<>();
+                argumentTypes.add(IrType.I32);
                 arguments.add(new Constant.Int(formatString.texts.size() + formatString.expressions.size()));
+                argumentTypes.add(IrType.PTR);
                 arguments.add(addStringConstant(formatString.texts.getFirst()));
                 for (int i = 0; i < formatString.expressions.size(); i++) {
+                    argumentTypes.add(IrType.PTR);
                     arguments.add(toStringExpression(formatString.expressions.get(i)));
+                    argumentTypes.add(IrType.PTR);
                     arguments.add(addStringConstant(formatString.texts.get(i + 1)));
                 }
-                yield callGlobalFunction(BuiltinFeatures._CONCAT_STRING_MULTI, arguments);
+                yield callFunctionVarargs(BuiltinFeatures._CONCAT_STRING_MULTI, argumentTypes, arguments);
             }
             case ExpressionAst.Creator creator -> {
                 if (creator.arrayCreator == null) {
@@ -152,11 +157,17 @@ public class IrBuilder {
                 if (arrayCreator.initializer != null) {
                     yield visitExpression(arrayCreator.initializer); // treat array itself as new
                 } else {
+                    List<IrType> argumentTypes = new ArrayList<>();
                     List<Variable> arguments = new ArrayList<>();
+                    argumentTypes.add(IrType.I32);
                     arguments.add(new Constant.Int(IrType.MAX_BYTE_SIZE));
+                    argumentTypes.add(IrType.I32);
                     arguments.add(new Constant.Int(arrayCreator.presentDimensions.size()));
-                    arrayCreator.presentDimensions.forEach(dimension -> arguments.add(visitExpression(dimension)));
-                    yield callGlobalFunction(BuiltinFeatures._MALLOC_ARRAY_MULTI, arguments);
+                    arrayCreator.presentDimensions.forEach(dimension -> {
+                        argumentTypes.add(IrType.I32);
+                        arguments.add(visitExpression(dimension));
+                    });
+                    yield callFunctionVarargs(BuiltinFeatures._MALLOC_ARRAY_MULTI, argumentTypes, arguments);
                 }
             }
             case ExpressionAst.Subscript subscript ->
@@ -242,12 +253,14 @@ public class IrBuilder {
             case ProgramAst ignored -> throw new UnsupportedOperationException();
             case ArrayCreatorAst ignored -> throw new UnsupportedOperationException();
             case DefinitionAst.Variable variableDefinition -> {
-                Register pointer = currentFunction.add(new InstructionIr.Alloc(currentFunction.createTemporary(), variableDefinition.symbol.type.irType()));
+                Register pointer = currentFunction.add(new InstructionIr.Alloca(new Register(variableDefinition.symbol.irName),
+                        variableDefinition.symbol.type.irType()));
                 if (variableDefinition.initializer != null) {
                     storePointer(variableDefinition.symbol.type.irType(), visitExpression(variableDefinition.initializer), pointer);
                 }
             }
-            case DefinitionAst ignored -> throw new UnsupportedOperationException();
+            case DefinitionAst.Class ignored -> throw new UnsupportedOperationException();
+            case DefinitionAst.Function ignored -> throw new UnsupportedOperationException();
             case ExpressionAst expression -> visitExpression(expression);
             case StatementAst.Block blockStatement -> blockStatement.statements.forEach(this::visit);
             case StatementAst.VariableDefinitions variableDefinitionsStatement ->
@@ -350,12 +363,22 @@ public class IrBuilder {
         return callFunction(symbol, arguments, null);
     }
 
+    private Register callFunctionVarargs(Symbol.Function symbol, List<IrType> argumentTypes, List<Variable> arguments) {
+        Register result = symbol.returnType.isVoid() ? null : currentFunction.createTemporary();
+        return currentFunction.add(new InstructionIr.CallVarargs(result,
+                symbol.returnType.irType(), symbol.irName, getParameterTypes(symbol), argumentTypes, arguments));
+    }
+
     private void beginFunction(Symbol.Function symbol) {
         currentFunction.begin(symbol.irName, symbol.returnType.irType(), getParameters(symbol), getParameterTypes(symbol));
     }
 
     private void addFunctionDeclaration(Symbol.Function symbol) {
         program.functionDeclarations.add(new FunctionDeclarationIr(symbol.irName, symbol.returnType.irType(), getParameterTypes(symbol)));
+    }
+
+    private void addFunctionVarargsDeclaration(Symbol.Function symbol) {
+        program.functionVarargsDeclarations.add(new FunctionVarargsDeclarationIr(symbol.irName, symbol.returnType.irType(), getParameterTypes(symbol)));
     }
 
     private List<Variable> getArguments(List<Variable> arguments, @Nullable Register thisPointer) {

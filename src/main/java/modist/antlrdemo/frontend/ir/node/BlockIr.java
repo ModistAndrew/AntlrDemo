@@ -1,5 +1,7 @@
 package modist.antlrdemo.frontend.ir.node;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,6 +11,16 @@ public final class BlockIr implements Ir {
 
     private BlockIr(String label) {
         this.label = label;
+    }
+
+    @Override
+    public String toString() {
+        StringWriter stringWriter = new StringWriter();
+        PrintWriter writer = new PrintWriter(stringWriter);
+        writer.print(label);
+        writer.println(":");
+        instructions.forEach(writer::println);
+        return stringWriter.toString();
     }
 
     public static class Builder {

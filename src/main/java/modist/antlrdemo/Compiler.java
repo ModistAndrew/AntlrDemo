@@ -45,6 +45,7 @@ public class Compiler {
         semanticChecker.check(ast);
         IrBuilder irBuilder = new IrBuilder();
         ProgramIr ir = irBuilder.visitProgram(ast);
+        System.out.println(ir);
     }
 
     private static void setFastFailErrorListener(Recognizer<?, ?> recognizer) {

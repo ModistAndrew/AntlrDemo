@@ -1,9 +1,12 @@
 package modist.antlrdemo.frontend.ir.node;
 
 import modist.antlrdemo.frontend.ir.IrNamer;
+import modist.antlrdemo.frontend.ir.IrStringUtil;
 import modist.antlrdemo.frontend.ir.metadata.IrType;
 import modist.antlrdemo.frontend.ir.metadata.Register;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,6 +22,17 @@ public final class FunctionIr implements Ir {
         this.returnType = returnType;
         this.parameters = parameters;
         this.parameterTypes = parameterTypes;
+    }
+
+    @Override
+    public String toString() {
+        StringWriter stringWriter = new StringWriter();
+        PrintWriter writer = new PrintWriter(stringWriter);
+        writer.print(String.format("define %s %s(%s) ", returnType, name, IrStringUtil.toStringArguments(parameterTypes, parameters)));
+        writer.println("{");
+        body.forEach(writer::print);
+        writer.println("}");
+        return stringWriter.toString();
     }
 
     // a builder which can build multiple instances of FunctionIr
@@ -53,7 +67,7 @@ public final class FunctionIr implements Ir {
         }
 
         public FunctionIr build() {
-            current.body.add(currentBlock.build(new InstructionIr.Ret(current.returnType, current.returnType.defaultValue)));
+            current.body.add(currentBlock.build(new InstructionIr.Ret(current.returnType)));
             return current;
         }
 
