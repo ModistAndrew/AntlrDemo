@@ -13,15 +13,12 @@ public final class FunctionIr implements Ir {
     public final List<Register> parameters;
     public final List<IrType> parameterTypes;
     public final List<BlockIr> body = new ArrayList<>();
-    // automatically add %this as the first parameter if isMember is true
-    public final boolean isMember;
 
-    private FunctionIr(String name, IrType returnType, List<Register> parameters, List<IrType> parameterTypes, boolean isMember) {
+    private FunctionIr(String name, IrType returnType, List<Register> parameters, List<IrType> parameterTypes) {
         this.name = name;
         this.returnType = returnType;
         this.parameters = parameters;
         this.parameterTypes = parameterTypes;
-        this.isMember = isMember;
     }
 
     // a builder which can build multiple instances of FunctionIr
@@ -31,8 +28,8 @@ public final class FunctionIr implements Ir {
         public IrNamer irNamer;
 
         // (begin -> add* -> (newBlock -> add* ->)* build)*
-        public void begin(String name, IrType returnType, List<Register> parameters, List<IrType> parameterTypes, boolean isMember) {
-            current = new FunctionIr(name, returnType, parameters, parameterTypes, isMember);
+        public void begin(String name, IrType returnType, List<Register> parameters, List<IrType> parameterTypes) {
+            current = new FunctionIr(name, returnType, parameters, parameterTypes);
             currentBlock.begin(IrNamer.FUNCTION_ENTRY);
             irNamer = new IrNamer();
         }
@@ -46,14 +43,17 @@ public final class FunctionIr implements Ir {
             return instruction.result();
         }
 
-        public void newBlock(String name) {
-            current.body.add(currentBlock.build());
+        public void newBlock(InstructionIr.End end, String name) {
+            current.body.add(currentBlock.build(end));
             currentBlock.begin(name);
         }
 
+        public String currentLabel() {
+            return currentBlock.currentLabel();
+        }
+
         public FunctionIr build() {
-            add(new InstructionIr.Ret(current.returnType, current.returnType.defaultValue));
-            current.body.add(currentBlock.build());
+            current.body.add(currentBlock.build(new InstructionIr.Ret(current.returnType, current.returnType.defaultValue)));
             return current;
         }
 

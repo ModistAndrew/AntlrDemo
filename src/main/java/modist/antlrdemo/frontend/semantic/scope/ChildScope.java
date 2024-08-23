@@ -1,7 +1,7 @@
 package modist.antlrdemo.frontend.semantic.scope;
 
 import modist.antlrdemo.frontend.semantic.Symbol;
-import modist.antlrdemo.frontend.semantic.SymbolNamer;
+import modist.antlrdemo.frontend.semantic.SemanticNamer;
 import modist.antlrdemo.frontend.semantic.Type;
 import modist.antlrdemo.frontend.ast.node.DefinitionAst;
 import modist.antlrdemo.frontend.ast.node.StatementAst;
@@ -14,7 +14,7 @@ public class ChildScope extends Scope {
     private ChildScope(Scope parent) { // create an empty child scope
         this.parent = parent;
         this.globalScope = parent.getGlobalScope();
-        this.inLoop = parent.inLoop;
+        this.loopLabelName = parent.loopLabelName;
         this.returnType = parent.returnType;
         this.classType = parent.classType;
         this.namer = parent.namer;
@@ -29,18 +29,20 @@ public class ChildScope extends Scope {
     public ChildScope(Scope parent, DefinitionAst.Function functionNode) {
         this(parent);
         returnType = new Type(this, functionNode.returnType);
-        namer = new SymbolNamer();
+        namer = new SemanticNamer();
     }
 
     // you should add local variables manually
     public ChildScope(Scope parent, StatementAst.For forNode) {
         this(parent);
-        inLoop = true;
+        namer.setFor(forNode);
+        loopLabelName = forNode.labelName;
     }
 
     public ChildScope(Scope parent, StatementAst.While whileNode) {
         this(parent);
-        inLoop = true;
+        namer.setWhile(whileNode);
+        loopLabelName = whileNode.labelName;
     }
 
     public ChildScope(Scope parent, StatementAst.Block blockNode) {
@@ -49,6 +51,7 @@ public class ChildScope extends Scope {
 
     public ChildScope(Scope parent, StatementAst.If ifNode) {
         this(parent);
+        namer.setIf(ifNode);
     }
 
     @Override

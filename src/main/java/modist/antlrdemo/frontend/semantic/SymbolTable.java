@@ -6,7 +6,6 @@ import modist.antlrdemo.frontend.error.UndefinedIdentifierException;
 import java.util.HashMap;
 import java.util.function.Consumer;
 
-//TODO: keep order of symbols
 public class SymbolTable<T extends Symbol> {
     private final HashMap<String, T> table = new HashMap<>();
 

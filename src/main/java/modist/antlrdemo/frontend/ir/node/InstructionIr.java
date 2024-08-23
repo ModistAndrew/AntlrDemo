@@ -13,6 +13,10 @@ public sealed interface InstructionIr extends Ir {
         Register result();
     }
 
+    sealed interface End extends InstructionIr {
+
+    }
+
     record Bin(Register result, IrOperator operator, IrType type, Variable left,
                Variable right) implements Result {
     }
@@ -21,13 +25,13 @@ public sealed interface InstructionIr extends Ir {
                 Variable right) implements Result {
     }
 
-    record Br(Variable condition, String trueLabel, String falseLabel) implements InstructionIr {
+    record Br(Variable condition, String trueLabel, String falseLabel) implements End {
     }
 
-    record Jump(String label) implements InstructionIr {
+    record Jump(String label) implements End {
     }
 
-    record Ret(IrType type, @Nullable Variable value) implements InstructionIr {
+    record Ret(IrType type, @Nullable Variable value) implements End {
     }
 
     record Alloc(Register result, IrType type) implements Result {
@@ -45,8 +49,11 @@ public sealed interface InstructionIr extends Ir {
     record Subscript(Register result, IrType type, Register pointer, Variable index) implements Result {
     }
 
-    // when isMember is true, you should provide thisPointer
     record Call(@Nullable Register result, IrType type, String function, List<IrType> argumentTypes,
-                List<Variable> arguments, boolean isMember, @Nullable Register thisPointer) implements Result {
+                List<Variable> arguments) implements Result {
+    }
+
+    record Phi(Register result, IrType type, Variable variable1, String label1, Variable variable2,
+               String label2) implements Result {
     }
 }

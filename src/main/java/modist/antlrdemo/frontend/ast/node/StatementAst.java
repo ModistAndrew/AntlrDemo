@@ -18,6 +18,7 @@ public abstract sealed class StatementAst extends BaseAst {
         public List<StatementAst> thenStatements;
         @Nullable
         public List<StatementAst> elseStatements;
+        public String labelName;
     }
 
     public static final class For extends StatementAst {
@@ -28,17 +29,21 @@ public abstract sealed class StatementAst extends BaseAst {
         @Nullable
         public ExpressionAst update;
         public List<StatementAst> statements;
+        public String labelName;
     }
 
     public static final class While extends StatementAst {
         public ExpressionAst condition;
         public List<StatementAst> statements;
+        public String labelName;
     }
 
     public static final class Break extends StatementAst {
+        public String loopLabelName;
     }
 
     public static final class Continue extends StatementAst {
+        public String loopLabelName;
     }
 
     public static final class Return extends StatementAst {

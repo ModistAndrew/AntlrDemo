@@ -34,7 +34,7 @@ public class BuiltinFeatures {
     public static final Symbol.Function TO_STRING = new Symbol.Function("toString", STRING, List.of(new Symbol.Variable("i", INT)));
 
     private static final Type PTR = new Type(VOID_TYPE_NAME, 1);
-    private static final Symbol.Variable VARARGS = new Symbol.Variable("varargs", VOID);
+    private static final Symbol.Variable VARARGS = new Symbol.Variable("...", VOID);
 
     public static final Symbol.Function _TO_STRING_BOOL = new Symbol.Function(".toStringBool", STRING, List.of(new Symbol.Variable("b", BOOL)));
     public static final Symbol.Function _CONCAT_STRING_MULTI = new Symbol.Function(".concatStringMulti", STRING, List.of(new Symbol.Variable("num", INT), VARARGS));

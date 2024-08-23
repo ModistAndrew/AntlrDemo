@@ -4,29 +4,45 @@ package modist.antlrdemo.frontend.ir;
 public class IrNamer {
     public static final String FUNCTION_ENTRY = "entry";
     public static final String THIS_VAR = percent("this");
-    private int ifCounter;
-    private int loopCounter;
     private int temporaryVariableCounter;
-    private static int CONSTANT_STRING_COUNTER; // global counter for constant strings
+    private int conditionalCounter;
+    private int shortCircuitCounter;
+    private static int constantStringCounter; // global counter for constant strings
 
     public String temporaryVariable() {
         return percent(dot("", temporaryVariableCounter++));
     }
 
-    public String ifLabel(String suffix) {
-        return dot(dot("if", ifCounter++), suffix);
+    public String conditional() {
+        return percent(dot("conditional", conditionalCounter++));
     }
 
-    public String loopLabel(String suffix) {
-        return dot(dot("loop", loopCounter++), suffix);
+    public String shortCircuit() {
+        return percent(dot("shortCircuit", shortCircuitCounter++));
     }
 
     public static String parameter(String name) {
-        return percent(dot("param", name));
+        return percent(dot("parameter", name));
     }
 
     public static String constantString() {
-        return at(dot("str", CONSTANT_STRING_COUNTER++));
+        return at(dot("str", constantStringCounter++));
+    }
+
+    public static String appendTrue(String name) {
+        return dot(name, "true");
+    }
+
+    public static String appendFalse(String name) {
+        return dot(name, "false");
+    }
+
+    public static String appendRight(String name) {
+        return dot(name, "right");
+    }
+
+    public static String appendEnd(String name) {
+        return dot(name, "else");
     }
 
     private static String dot(String prefix, String name) {

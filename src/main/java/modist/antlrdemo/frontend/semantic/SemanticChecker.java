@@ -10,6 +10,12 @@ import org.jetbrains.annotations.Nullable;
 
 // check the semantic correctness of the AST
 // also store data for ir building
+// data storage is dealt with:
+// Symbol(Symbol, irName, classType, memberIndex, ...) in Scope;
+// Scope(labelName, local variable irName, ...) in SemanticChecker;
+// Type(Type, presentDimensions, ...) in SemanticChecker;
+// SemanticChecker(loopLabelName, ...)
+// with the help of SemanticNamer in Scope and global
 public class SemanticChecker {
     private Scope scope;
     // whether the function has returned. not stored in scope as it should be spread upwards, which is hard to deal with in scope
@@ -91,15 +97,17 @@ public class SemanticChecker {
                 whileStatement.statements.forEach(this::check);
                 popScope();
             }
-            case StatementAst.Break ignored -> {
-                if (!scope.inLoop) {
+            case StatementAst.Break breakStatement -> {
+                if (scope.loopLabelName == null) {
                     throw new InvalidControlFlowException("break statement not in loop");
                 }
+                breakStatement.loopLabelName = scope.loopLabelName;
             }
-            case StatementAst.Continue ignored -> {
-                if (!scope.inLoop) {
+            case StatementAst.Continue continueStatement -> {
+                if (scope.loopLabelName == null) {
                     throw new InvalidControlFlowException("continue statement not in loop");
                 }
+                continueStatement.loopLabelName = scope.loopLabelName;
             }
             case StatementAst.Return returnStatement -> {
                 if (scope.returnType == null) {

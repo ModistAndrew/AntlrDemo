@@ -19,21 +19,23 @@ public final class BlockIr implements Ir {
             if (!finished) {
                 current.instructions.add(instruction);
             }
-            switch (instruction) {
-                case InstructionIr.Br ignored -> finished = true;
-                case InstructionIr.Ret ignored -> finished = true;
-                default -> {
-                }
+            if (instruction instanceof InstructionIr.End) {
+                finished = true;
             }
         }
 
-        public BlockIr build() {
+        public BlockIr build(InstructionIr.End end) {
+            add(end); // must add the end instruction to the block
             return current;
         }
 
         public void begin(String label) {
             current = new BlockIr(label);
             finished = false;
+        }
+
+        public String currentLabel() {
+            return current.label;
         }
     }
 }

@@ -45,9 +45,9 @@ public abstract class Symbol {
             super(definition);
             this.returnType = new Type(scope, definition.returnType);
             definition.parameters.forEach(parameter -> parameters.declare(new Variable(scope, parameter)));
-            parameters.forEach(SymbolNamer::setParamVariable);
+            parameters.forEach(SemanticNamer::setParamVariable);
             definition.symbol = this;
-            SymbolNamer.setFunction(this, null);
+            SemanticNamer.setFunction(this, null);
         }
 
         // for built-in
@@ -55,8 +55,8 @@ public abstract class Symbol {
             super(name);
             this.returnType = returnType;
             parameters.forEach(this.parameters::declare);
-            parameters.forEach(SymbolNamer::setParamVariable);
-            SymbolNamer.setFunction(this, null);
+            parameters.forEach(SemanticNamer::setParamVariable);
+            SemanticNamer.setFunction(this, null);
         }
 
         public boolean shouldReturn() {
@@ -78,14 +78,14 @@ public abstract class Symbol {
                 throw CompileException.withPosition(new InvalidTypeException(this.type, "Variable type cannot be void"), definition.type.position);
             }
             definition.symbol = this;
-            SymbolNamer.setGlobalVariable(this);
+            SemanticNamer.setGlobalVariable(this);
         }
 
         // for built-in
         public Variable(String name, Type type) {
             super(name);
             this.type = type;
-            SymbolNamer.setGlobalVariable(this);
+            SemanticNamer.setGlobalVariable(this);
         }
     }
 
@@ -104,14 +104,14 @@ public abstract class Symbol {
             super(definition);
             this.builtin = false;
             definition.symbol = this;
-            SymbolNamer.setClass(this);
+            SemanticNamer.setClass(this);
         }
 
         // for built-in
         public TypeName(String name) {
             super(name);
             this.builtin = true;
-            SymbolNamer.setClass(this);
+            SemanticNamer.setClass(this);
         }
 
         public void setClass(Scope scope, DefinitionAst.Class definition) {
@@ -123,20 +123,20 @@ public abstract class Symbol {
                     throw new CompileException("class variable cannot have initializer", variable.position);
                 }
                 Variable symbol = new Variable(scope, variable);
-                SymbolNamer.setMemberVariable(symbol, this, i);
+                SemanticNamer.setMemberVariable(symbol, this, i);
                 variables.declare(symbol);
             }
             if (constructor != null) {
-                SymbolNamer.setFunction(constructor, this);
+                SemanticNamer.setFunction(constructor, this);
             }
-            functions.forEach(function -> SymbolNamer.setFunction(function, this));
+            functions.forEach(function -> SemanticNamer.setFunction(function, this));
         }
 
         // for built-in types which have no member variables or constructors
         public void setClass(List<Function> functions) {
             constructor = null;
             functions.forEach(this.functions::declare);
-            functions.forEach(function -> SymbolNamer.setFunction(function, this));
+            functions.forEach(function -> SemanticNamer.setFunction(function, this));
         }
 
         @Nullable

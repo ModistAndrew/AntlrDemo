@@ -1,13 +1,16 @@
 package modist.antlrdemo.frontend.semantic;
 
+import modist.antlrdemo.frontend.ast.node.StatementAst;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
 
 // rename symbol and store some other information
-public class SymbolNamer {
+public class SemanticNamer {
     private final Map<String, Integer> variableCounter = new HashMap<>(); // for variable renaming
+    private int ifCounter;
+    private int loopCounter;
 
     public static void setClass(Symbol.TypeName symbol) {
         symbol.irName = percent(dot("class", symbol.name));
@@ -50,6 +53,26 @@ public class SymbolNamer {
         int count = variableCounter.get(name);
         variableCounter.put(name, count + 1);
         return dot(name, count);
+    }
+
+    public void setIf(StatementAst.If ifNode) {
+        ifNode.labelName = ifLabel();
+    }
+
+    public void setFor(StatementAst.For forNode) {
+        forNode.labelName = loopLabel();
+    }
+
+    public void setWhile(StatementAst.While whileNode) {
+        whileNode.labelName = loopLabel();
+    }
+
+    private String ifLabel() {
+        return dot("if", ifCounter++);
+    }
+
+    private String loopLabel() {
+        return dot("loop", loopCounter++);
     }
 
     private static String dot(String prefix, String name) {

@@ -2,7 +2,7 @@ package modist.antlrdemo.frontend.semantic.scope;
 
 import modist.antlrdemo.frontend.error.MultipleDefinitionsException;
 import modist.antlrdemo.frontend.semantic.Symbol;
-import modist.antlrdemo.frontend.semantic.SymbolNamer;
+import modist.antlrdemo.frontend.semantic.SemanticNamer;
 import modist.antlrdemo.frontend.semantic.SymbolTable;
 import modist.antlrdemo.frontend.semantic.Type;
 import modist.antlrdemo.frontend.ast.node.DefinitionAst;
@@ -13,13 +13,14 @@ public abstract class Scope {
     // build scope and store symbols in ast nodes
     protected final SymbolTable<Symbol.Function> functions = new SymbolTable<>();
     protected final SymbolTable<Symbol.Variable> variables = new SymbolTable<>();
-    public boolean inLoop;
+    @Nullable
+    public String loopLabelName; // present when in loop scope
     @Nullable
     public Type returnType;
     @Nullable
     public Symbol.TypeName classType;
     @Nullable
-    protected SymbolNamer namer; // present when in function scope
+    protected SemanticNamer namer; // present when in function scope
 
     protected abstract GlobalScope getGlobalScope();
 

@@ -3,13 +3,13 @@ package modist.antlrdemo.frontend.error;
 import modist.antlrdemo.frontend.ast.metadata.Position;
 
 public class PositionRecord {
-    private static Position CURRENT_POSITION = Position.UNKNOWN;
+    private static Position currentPosition = Position.UNKNOWN;
 
     public static void set(Position position) {
-        CURRENT_POSITION = position;
+        currentPosition = position;
     }
 
     public static Position get() {
-        return CURRENT_POSITION;
+        return currentPosition;
     }
 }
