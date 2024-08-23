@@ -10,5 +10,6 @@ public final class ArrayCreatorAst extends BaseAst {
     public List<ExpressionAst> dimensions;
     @Nullable
     public ArrayAst initializer;
+    // in Type
     public final List<ExpressionAst> presentDimensions = new ArrayList<>();
 }

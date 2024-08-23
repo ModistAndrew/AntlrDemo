@@ -1,8 +1,8 @@
 package modist.antlrdemo.frontend.semantic;
 
-import modist.antlrdemo.frontend.error.CompileException;
-import modist.antlrdemo.frontend.error.InvalidTypeException;
-import modist.antlrdemo.frontend.error.MultipleDefinitionsException;
+import modist.antlrdemo.frontend.semantic.error.CompileException;
+import modist.antlrdemo.frontend.semantic.error.InvalidTypeException;
+import modist.antlrdemo.frontend.semantic.error.MultipleDefinitionsException;
 import modist.antlrdemo.frontend.ast.metadata.Position;
 import modist.antlrdemo.frontend.semantic.scope.Scope;
 import modist.antlrdemo.frontend.ast.node.DefinitionAst;
@@ -15,6 +15,7 @@ import java.util.List;
 public abstract class Symbol {
     public final String name;
     public final Position position;
+    // in SemanticNamer by Scope or Symbol statically when created
     public String irName;
 
     public Symbol(String name, Position position) {
@@ -35,10 +36,11 @@ public abstract class Symbol {
     public static class Function extends Symbol {
         public final Type returnType;
         public final OrderedSymbolTable<Variable> parameters = new OrderedSymbolTable<>();
+        // in Symbol.Class
         // if present, classType is the class that the function belongs to
         @Nullable
         public TypeName classType;
-        // set in GlobalScope
+        // in GlobalScope
         public boolean isMain;
 
         public Function(Scope scope, DefinitionAst.Function definition) {
@@ -64,10 +66,11 @@ public abstract class Symbol {
 
     public static class Variable extends Symbol {
         public final Type type;
-        // if present, classType is the class that the variable belongs to
+        // if present, classType is the class that the variable belongs to, and memberIndex >= 0
+        // in Symbol.Class
         @Nullable
         public TypeName classType;
-        public int memberIndex; // irName is null if memberIndex >= 0
+        public int memberIndex = -1;
 
         public Variable(Scope scope, DefinitionAst.Variable definition) {
             super(definition);
@@ -90,10 +93,8 @@ public abstract class Symbol {
     // we need to first declare the type before we can use it in other symbols. constructor, functions, and variables are declared later
     public static class TypeName extends Symbol {
         public final boolean builtin;
-
         @Nullable
         public Function constructor;
-        // for reference
         public final SymbolTable<Function> functions = new SymbolTable<>();
         public final OrderedSymbolTable<Variable> variables = new OrderedSymbolTable<>();
 
@@ -115,26 +116,36 @@ public abstract class Symbol {
         public void setClass(Scope scope, DefinitionAst.Class definition) {
             constructor = getConstructor(scope, definition);
             definition.functions.forEach(function -> functions.declare(new Function(scope, function)));
-            for (int i = 0; i < definition.variables.size(); i++) {
-                DefinitionAst.Variable variable = definition.variables.get(i);
+            definition.variables.forEach(variable -> {
                 if (variable.initializer != null) {
                     throw new CompileException("class variable cannot have initializer", variable.position);
                 }
-                Variable symbol = new Variable(scope, variable);
-                SemanticNamer.setMemberVariable(symbol, this, i);
-                variables.declare(symbol);
-            }
-            if (constructor != null) {
-                SemanticNamer.setFunction(constructor, this);
-            }
-            functions.forEach(function -> SemanticNamer.setFunction(function, this));
+                variables.declare(new Variable(scope, variable));
+            });
+            fillChildSymbols();
         }
 
         // for built-in types which have no member variables or constructors
         public void setClass(List<Function> functions) {
             constructor = null;
             functions.forEach(this.functions::declare);
-            functions.forEach(function -> SemanticNamer.setFunction(function, this));
+            fillChildSymbols();
+        }
+
+        private void fillChildSymbols() {
+            for (int i = 0; i < variables.size(); i++) {
+                Variable symbol = variables.list.get(i);
+                symbol.classType = this;
+                symbol.memberIndex = i;
+            }
+            if (constructor != null) {
+                SemanticNamer.setFunction(constructor, this);
+                constructor.classType = this;
+            }
+            functions.forEach(function -> {
+                SemanticNamer.setFunction(function, this);
+                function.classType = this;
+            });
         }
 
         @Nullable

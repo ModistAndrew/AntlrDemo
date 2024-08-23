@@ -1,10 +1,9 @@
 package modist.antlrdemo.frontend.semantic;
 
-import modist.antlrdemo.frontend.BuiltinFeatures;
-import modist.antlrdemo.frontend.error.*;
 import modist.antlrdemo.frontend.ast.metadata.LiteralEnum;
 import modist.antlrdemo.frontend.ast.metadata.Operator;
 import modist.antlrdemo.frontend.ir.metadata.IrType;
+import modist.antlrdemo.frontend.semantic.error.*;
 import modist.antlrdemo.frontend.semantic.scope.Scope;
 import modist.antlrdemo.frontend.ast.node.*;
 import org.jetbrains.annotations.Nullable;

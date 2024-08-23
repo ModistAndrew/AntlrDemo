@@ -1,11 +1,12 @@
 package modist.antlrdemo.frontend.ast.metadata;
 
 import modist.antlrdemo.frontend.ir.metadata.IrOperator;
-import modist.antlrdemo.frontend.BuiltinFeatures;
+import modist.antlrdemo.frontend.semantic.BuiltinFeatures;
 import modist.antlrdemo.frontend.semantic.Type;
 import org.jetbrains.annotations.Nullable;
 
 public enum Operator {
+    // names correspond to the grammar
     INC(IrOperator.ADD), DEC(IrOperator.SUB), NOT, LOGICAL_NOT,
     ADD(IrOperator.ADD), SUB(IrOperator.SUB), MUL(IrOperator.MUL), DIV(IrOperator.SDIV),
     MOD(IrOperator.SREM), SHL(IrOperator.SHL), SHR(IrOperator.ASHR),

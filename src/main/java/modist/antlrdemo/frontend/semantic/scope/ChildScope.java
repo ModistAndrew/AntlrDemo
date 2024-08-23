@@ -7,6 +7,8 @@ import modist.antlrdemo.frontend.ast.node.DefinitionAst;
 import modist.antlrdemo.frontend.ast.node.StatementAst;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 public class ChildScope extends Scope {
     private final Scope parent; // the direct parent scope
     private final GlobalScope globalScope; // the global scope
@@ -35,12 +37,14 @@ public class ChildScope extends Scope {
     // you should add local variables manually
     public ChildScope(Scope parent, StatementAst.For forNode) {
         this(parent);
+        Objects.requireNonNull(namer); // namer should be set in function scope
         namer.setFor(forNode);
         loopLabelName = forNode.labelName;
     }
 
     public ChildScope(Scope parent, StatementAst.While whileNode) {
         this(parent);
+        Objects.requireNonNull(namer); // namer should be set in function scope
         namer.setWhile(whileNode);
         loopLabelName = whileNode.labelName;
     }
@@ -51,6 +55,7 @@ public class ChildScope extends Scope {
 
     public ChildScope(Scope parent, StatementAst.If ifNode) {
         this(parent);
+        Objects.requireNonNull(namer); // namer should be set in function scope
         namer.setIf(ifNode);
     }
 

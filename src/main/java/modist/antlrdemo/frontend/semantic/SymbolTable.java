@@ -1,7 +1,7 @@
 package modist.antlrdemo.frontend.semantic;
 
-import modist.antlrdemo.frontend.error.MultipleDefinitionsException;
-import modist.antlrdemo.frontend.error.UndefinedIdentifierException;
+import modist.antlrdemo.frontend.semantic.error.MultipleDefinitionsException;
+import modist.antlrdemo.frontend.semantic.error.UndefinedIdentifierException;
 
 import java.util.HashMap;
 import java.util.function.Consumer;

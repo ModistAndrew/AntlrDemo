@@ -1,12 +1,12 @@
 package modist.antlrdemo;
 
-import modist.antlrdemo.frontend.error.CompileException;
+import modist.antlrdemo.frontend.semantic.error.CompileException;
 import modist.antlrdemo.frontend.ir.IrBuilder;
 import modist.antlrdemo.frontend.ir.node.ProgramIr;
 import modist.antlrdemo.frontend.semantic.SemanticChecker;
 import modist.antlrdemo.frontend.ast.AstBuilder;
 import modist.antlrdemo.frontend.ast.node.ProgramAst;
-import modist.antlrdemo.frontend.error.FastFailErrorListener;
+import modist.antlrdemo.frontend.semantic.error.FastFailErrorListener;
 import modist.antlrdemo.frontend.grammar.MxLexer;
 import modist.antlrdemo.frontend.grammar.MxParser;
 import org.antlr.v4.runtime.CharStreams;

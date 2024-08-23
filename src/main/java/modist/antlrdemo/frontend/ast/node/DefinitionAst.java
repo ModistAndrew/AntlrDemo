@@ -13,6 +13,7 @@ public abstract sealed class DefinitionAst extends BaseAst {
         public List<Variable> variables;
         public List<Function> constructors;
         public List<Function> functions;
+        // in Symbol
         public Symbol.TypeName symbol;
     }
 
@@ -20,6 +21,7 @@ public abstract sealed class DefinitionAst extends BaseAst {
         public TypeAst returnType;
         public List<Variable> parameters;
         public List<StatementAst> body;
+        // in Symbol
         public Symbol.Function symbol;
     }
 
@@ -27,6 +29,7 @@ public abstract sealed class DefinitionAst extends BaseAst {
         public TypeAst type;
         @Nullable
         public ExpressionOrArrayAst initializer;
+        // in Symbol
         public Symbol.Variable symbol;
     }
 }

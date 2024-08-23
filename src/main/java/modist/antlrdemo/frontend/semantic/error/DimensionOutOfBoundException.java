@@ -1,4 +1,4 @@
-package modist.antlrdemo.frontend.error;
+package modist.antlrdemo.frontend.semantic.error;
 
 public class DimensionOutOfBoundException extends CompileException {
     public DimensionOutOfBoundException() {

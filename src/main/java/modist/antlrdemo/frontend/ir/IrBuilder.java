@@ -5,7 +5,7 @@ import modist.antlrdemo.frontend.ast.metadata.Operator;
 import modist.antlrdemo.frontend.ast.node.*;
 import modist.antlrdemo.frontend.ir.metadata.*;
 import modist.antlrdemo.frontend.ir.node.*;
-import modist.antlrdemo.frontend.BuiltinFeatures;
+import modist.antlrdemo.frontend.semantic.BuiltinFeatures;
 import modist.antlrdemo.frontend.semantic.Symbol;
 import org.jetbrains.annotations.Nullable;
 
@@ -64,7 +64,7 @@ public class IrBuilder {
             case DefinitionAst.Function functionDefinition -> {
                 beginFunction(functionDefinition.symbol);
                 if (functionDefinition.symbol.isMain) {
-                    callGlobalFunction(BuiltinFeatures._INIT, List.of());
+                    callGlobalFunction(BuiltinFeatures._INIT);
                 }
                 functionDefinition.parameters.forEach(parameter -> {
                     this.visit(parameter);
@@ -115,7 +115,7 @@ public class IrBuilder {
     private Variable visitExpression(ExpressionOrArrayAst expression) {
         return switch (expression) {
             case ArrayAst array -> {
-                Register result = callGlobalFunction(BuiltinFeatures._MALLOC_ARRAY, List.of(new Constant.Int(IrType.MAX_BYTE_SIZE), new Constant.Int(array.elements.size())));
+                Register result = callGlobalFunction(BuiltinFeatures._MALLOC_ARRAY, new Constant.Int(IrType.MAX_BYTE_SIZE), new Constant.Int(array.elements.size()));
                 for (int i = 0; i < array.elements.size(); i++) {
                     ExpressionOrArrayAst element = array.elements.get(i);
                     Register pointer = currentFunction.add(new InstructionIr.Subscript(currentFunction.createTemporary("element"),
@@ -150,7 +150,7 @@ public class IrBuilder {
                 if (creator.arrayCreator == null) {
                     Symbol.TypeName typeName = creator.type.resolveTypeName();
                     Register result = callGlobalFunction(BuiltinFeatures._MALLOC_CLASS,
-                            List.of(new Constant.Int(typeName.variables.size() * IrType.MAX_BYTE_SIZE)));
+                            new Constant.Int(typeName.variables.size() * IrType.MAX_BYTE_SIZE));
                     if (typeName.constructor != null) {
                         callFunction(typeName.constructor, List.of(), result);
                     }
@@ -207,14 +207,14 @@ public class IrBuilder {
                         currentFunction.add(new InstructionIr.Bin(currentFunction.createTemporary(binary.operator.getIrPrefix()),
                                 binary.operator.irOperator, binary.type.irType(), visitExpression(binary.left), visitExpression(binary.right)));
                 case ADD -> binary.type.isString() ?
-                        callGlobalFunction(BuiltinFeatures._CONCAT_STRING, List.of(visitExpression(binary.left), visitExpression(binary.right))) :
+                        callGlobalFunction(BuiltinFeatures._CONCAT_STRING, visitExpression(binary.left), visitExpression(binary.right)) :
                         currentFunction.add(new InstructionIr.Bin(currentFunction.createTemporary(binary.operator.getIrPrefix()),
                                 IrOperator.ADD, binary.type.irType(), visitExpression(binary.left), visitExpression(binary.right)));
                 case GT, LT, GE, LE, EQ, NE -> binary.type.isString() ?
                         currentFunction.add(new InstructionIr.Icmp(currentFunction.createTemporary(binary.operator.getIrPrefix()),
                                 binary.operator.irOperator, IrType.I32,
                                 callGlobalFunction(BuiltinFeatures._COMPARE_STRING,
-                                        List.of(visitExpression(binary.left), visitExpression(binary.right))), new Constant.Int(0))) :
+                                        visitExpression(binary.left), visitExpression(binary.right)), new Constant.Int(0))) :
                         currentFunction.add(new InstructionIr.Icmp(currentFunction.createTemporary(binary.operator.getIrPrefix()),
                                 binary.operator.irOperator, binary.type.irType(), visitExpression(binary.left), visitExpression(binary.right)));
                 case LOGICAL_AND, LOGICAL_OR -> {
@@ -341,10 +341,10 @@ public class IrBuilder {
     private Register toStringExpression(ExpressionOrArrayAst expression) {
         Variable expressionResult = visitExpression(expression);
         if (expression.type.isInt()) {
-            return callGlobalFunction(BuiltinFeatures.TO_STRING, List.of(expressionResult));
+            return callGlobalFunction(BuiltinFeatures.TO_STRING, expressionResult);
         }
         if (expression.type.isBool()) {
-            return callGlobalFunction(BuiltinFeatures._TO_STRING_BOOL, List.of(expressionResult));
+            return callGlobalFunction(BuiltinFeatures._TO_STRING_BOOL, expressionResult);
         }
         return (Register) expressionResult;
     }
@@ -366,8 +366,8 @@ public class IrBuilder {
     }
 
     @Nullable
-    private Register callGlobalFunction(Symbol.Function symbol, List<Variable> arguments) {
-        return callFunction(symbol, arguments, null);
+    private Register callGlobalFunction(Symbol.Function symbol, Variable... arguments) {
+        return callFunction(symbol, List.of(arguments), null);
     }
 
     private Register callFunctionVarargs(Symbol.Function symbol, List<IrType> argumentTypes, List<Variable> arguments) {

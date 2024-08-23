@@ -1,4 +1,4 @@
-package modist.antlrdemo.frontend.error;
+package modist.antlrdemo.frontend.semantic.error;
 
 import modist.antlrdemo.frontend.ast.metadata.Position;
 

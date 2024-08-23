@@ -35,6 +35,7 @@ public abstract sealed class ExpressionAst extends ExpressionOrArrayAst implemen
         @Nullable
         public ExpressionAst expression;
         public String name;
+        // in Type
         public Symbol.Variable symbol;
     }
 
@@ -43,6 +44,7 @@ public abstract sealed class ExpressionAst extends ExpressionOrArrayAst implemen
         public ExpressionAst expression;
         public String name;
         public List<ExpressionOrArrayAst> arguments;
+        // in Type
         public Symbol.Function symbol;
     }
 

@@ -1,23 +1,17 @@
 package modist.antlrdemo.frontend.semantic;
 
-import modist.antlrdemo.frontend.BuiltinFeatures;
-import modist.antlrdemo.frontend.error.*;
+import modist.antlrdemo.frontend.semantic.error.*;
 import modist.antlrdemo.frontend.semantic.scope.ChildScope;
 import modist.antlrdemo.frontend.semantic.scope.GlobalScope;
 import modist.antlrdemo.frontend.semantic.scope.Scope;
 import modist.antlrdemo.frontend.ast.node.*;
 
-// check the semantic correctness of the AST
-// also store data for ir building
-// data storage is dealt with:
-// Symbol(Symbol, irName, classType, memberIndex, ...) in Scope;
-// Scope(labelName, local variable irName, ...) in SemanticChecker;
-// Type(Type, presentDimensions, ...) in SemanticChecker;
-// SemanticChecker(loopLabelName, ...)
-// with the help of SemanticNamer in Scope and global
+// check the semantic correctness of the AST together with Symbol and Type
+// also store data for IR building
 public class SemanticChecker {
     private Scope scope;
     // whether the function has returned. not stored in scope as it should be spread upwards, which is hard to deal with in scope
+    @SuppressWarnings("FieldCanBeLocal")
     private boolean returned;
 
     private void pushScope(Scope newScope) {
@@ -129,7 +123,7 @@ public class SemanticChecker {
             }
             case TypeAst ignored -> throw new UnsupportedOperationException();
             case ArrayAst ignored ->
-                    throw new UnsupportedOperationException(); // cannot visit this directly. have to use tryMatchExpression for type info
+                    throw new UnsupportedOperationException(); // should not visit directly. must use tryMatchExpression for type info
         }
     }
 }

@@ -1,9 +1,7 @@
-package modist.antlrdemo.frontend;
+package modist.antlrdemo.frontend.semantic;
 
 import modist.antlrdemo.frontend.grammar.MxLexer;
 import modist.antlrdemo.frontend.ast.TokenUtil;
-import modist.antlrdemo.frontend.semantic.Symbol;
-import modist.antlrdemo.frontend.semantic.Type;
 
 import java.util.List;
 
