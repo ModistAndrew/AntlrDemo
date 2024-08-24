@@ -165,6 +165,8 @@ public class IrBuilder {
                     argumentTypes.add(IrType.I32);
                     arguments.add(new Constant.Int(IrType.MAX_BYTE_SIZE));
                     argumentTypes.add(IrType.I32);
+                    arguments.add(new Constant.Int(arrayCreator.dimensions.size()));
+                    argumentTypes.add(IrType.I32);
                     arguments.add(new Constant.Int(arrayCreator.presentDimensions.size()));
                     arrayCreator.presentDimensions.forEach(dimension -> {
                         argumentTypes.add(IrType.I32);

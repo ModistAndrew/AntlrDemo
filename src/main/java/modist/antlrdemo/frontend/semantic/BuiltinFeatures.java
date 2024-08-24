@@ -8,7 +8,8 @@ public class BuiltinFeatures {
     public static final Symbol.TypeName BOOL_TYPE_NAME = new Symbol.TypeName(TokenUtil.getLiteralName(MxLexer.BOOL));
     public static final Symbol.TypeName STRING_TYPE_NAME = new Symbol.TypeName(TokenUtil.getLiteralName(MxLexer.STRING));
     public static final Symbol.TypeName VOID_TYPE_NAME = new Symbol.TypeName(TokenUtil.getLiteralName(MxLexer.VOID));
-    public static final Symbol.TypeName ARRAY_TYPE_NAME = new Symbol.TypeName(".array"); // a virtual type for arrays not stored in the symbol table
+    // a virtual type for arrays not stored in the symbol table. use .array to avoid conflicts
+    public static final Symbol.TypeName ARRAY_TYPE_NAME = new Symbol.TypeName(".array");
 
     // cache the type instances for convenience
     public static final Type INT = new Type(INT_TYPE_NAME);
@@ -35,7 +36,7 @@ public class BuiltinFeatures {
     public static final Symbol.Function _CONCAT_STRING_MULTI = new Symbol.Function(".concatStringMulti", STRING, INT);
     public static final Symbol.Function _MALLOC_CLASS = new Symbol.Function(".mallocClass", PTR, INT);
     public static final Symbol.Function _MALLOC_ARRAY = new Symbol.Function(".mallocArray", PTR, INT, INT);
-    public static final Symbol.Function _MALLOC_ARRAY_MULTI = new Symbol.Function(".mallocArrayMulti", PTR, INT, INT);
+    public static final Symbol.Function _MALLOC_ARRAY_MULTI = new Symbol.Function(".mallocArrayMulti", PTR, INT, INT, INT);
     public static final Symbol.Function _COMPARE_STRING = new Symbol.Function(".compareString", INT, STRING, STRING);
     public static final Symbol.Function _CONCAT_STRING = new Symbol.Function(".concatString", STRING, STRING, STRING);
 
