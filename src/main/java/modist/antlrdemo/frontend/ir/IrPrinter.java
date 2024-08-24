@@ -6,8 +6,7 @@ import modist.antlrdemo.frontend.ir.metadata.Variable;
 import java.util.List;
 import java.util.stream.IntStream;
 
-// TODO: write AST printer, IR printer and error printer in visitor pattern rather than using toString
-public class IrStringUtil {
+public class IrPrinter {
     public static String toStringTypes(List<IrType> types) {
         return String.join(", ", types.stream().map(Object::toString).toList());
     }

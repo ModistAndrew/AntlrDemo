@@ -1,8 +1,5 @@
 package modist.antlrdemo.frontend.semantic;
 
-import modist.antlrdemo.frontend.ast.node.StatementAst;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,21 +9,29 @@ public class SemanticNamer {
     private int ifCounter;
     private int loopCounter;
 
-    public static void setClass(Symbol.TypeName symbol) {
-        symbol.irName = percent(dot("class", symbol.name));
+    public static String typeName(String name) {
+        return percent(dot("class", name));
     }
 
-    public static void setFunction(Symbol.Function symbol, @Nullable Symbol.TypeName classType) {
-        symbol.irName = classType != null ? at(dot(classType.name, symbol.name)) : at(symbol.name);
+    public static String globalFunction(String name) {
+        return at(name);
     }
 
-    public static void setGlobalVariable(Symbol.Variable symbol) {
-        symbol.irName = at(symbol.name);
+    public static String memberFunction(String name, String prefix) {
+        return at(dot(prefix, name));
+    }
+
+    public static String globalVariable(String name) {
+        return at(name);
+    }
+
+    public static String parameterVariable(String name) {
+        return percent(dot(name, "addr"));
     }
 
     // used in SemanticChecker
-    public void setLocalVariable(Symbol.Variable symbol) {
-        symbol.irName = percent(withVariableCounter(symbol.name));
+    public String localVariable(String name) {
+        return percent(withVariableCounter(name));
     }
 
     private String withVariableCounter(String name) {
@@ -38,23 +43,11 @@ public class SemanticNamer {
         return dot(name, count);
     }
 
-    public void setIf(StatementAst.If ifNode) {
-        ifNode.labelName = ifLabel();
-    }
-
-    public void setFor(StatementAst.For forNode) {
-        forNode.labelName = loopLabel();
-    }
-
-    public void setWhile(StatementAst.While whileNode) {
-        whileNode.labelName = loopLabel();
-    }
-
-    private String ifLabel() {
+    public String ifLabel() {
         return dot("if", ifCounter++);
     }
 
-    private String loopLabel() {
+    public String loopLabel() {
         return dot("loop", loopCounter++);
     }
 

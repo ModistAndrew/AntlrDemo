@@ -10,11 +10,11 @@ import org.jetbrains.annotations.Nullable;
 public class GlobalScope extends Scope {
     private final SymbolTable<Symbol.TypeName> typeNames = new SymbolTable<>();
 
-    // you should add global variables manually
     public GlobalScope(ProgramAst program) {
+        super(null, null, null, null);
         addBuiltInFeatures();
         program.classes.forEach(typeNode -> typeNames.declare(new Symbol.TypeName(typeNode)));
-        program.classes.forEach(typeNode -> typeNode.symbol.setClass(this, typeNode));
+        program.classes.forEach(typeNode -> typeNode.symbol.createClass(this, typeNode));
         program.functions.forEach(this::declareFunction);
         checkMainFunction(program);
     }

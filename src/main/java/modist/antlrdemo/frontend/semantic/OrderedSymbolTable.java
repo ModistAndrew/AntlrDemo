@@ -9,7 +9,19 @@ public class OrderedSymbolTable<T extends Symbol> extends SymbolTable<T> {
 
     @Override
     public void declare(T value) {
-        super.declare(value);
+        if (value.name != null) { // for anonymous parameters only the list should be used
+            super.declare(value);
+        }
         list.add(value);
+    }
+
+    @Override
+    public int size() {
+        return list.size();
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return list.isEmpty();
     }
 }

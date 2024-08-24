@@ -3,7 +3,22 @@ package modist.antlrdemo.frontend.ir;
 import java.util.HashMap;
 import java.util.Map;
 
-// something is done here rather than in symbol namer
+// class naming: %class.(name)
+// function naming:
+// global functions: @(name)
+// member functions: @(class).(name)
+// builtin functions: @.(name)
+// register naming:
+// global variables: @(name)
+// constant strings: @string.[count]
+// member variables: null
+// parameters: %(name).parameter
+// this parameter: %this
+// parameter variables: %(name).addr
+// local variables: %(name).[count]
+// temporary variables: %.(prefix).[count]
+// label naming: entry or (prefix).[count].(suffix)
+// something is done here rather than in symbol namer because it is related to the IR generation
 public class IrNamer {
     public static final String FUNCTION_ENTRY = "entry";
     public static final String THIS_VAR = percent("this");

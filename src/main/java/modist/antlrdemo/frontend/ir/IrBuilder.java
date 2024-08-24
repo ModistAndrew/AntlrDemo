@@ -370,6 +370,7 @@ public class IrBuilder {
         return callFunction(symbol, List.of(arguments), null);
     }
 
+    @Nullable
     private Register callFunctionVarargs(Symbol.Function symbol, List<IrType> argumentTypes, List<Variable> arguments) {
         Register result = symbol.returnType.isVoid() ? null : currentFunction.createTemporary("call");
         return currentFunction.add(new InstructionIr.CallVarargs(result,
@@ -402,7 +403,7 @@ public class IrBuilder {
         if (symbol.classType != null) {
             result.add(Register.THIS);
         }
-        symbol.parameters.forEach(variable -> result.add(new Register(IrNamer.parameter(variable.name))));
+        symbol.parameters.list.forEach(variable -> result.add(new Register(IrNamer.parameter(variable.name))));
         return result;
     }
 
@@ -411,7 +412,7 @@ public class IrBuilder {
         if (symbol.classType != null) {
             result.add(IrType.PTR);
         }
-        symbol.parameters.forEach(variable -> result.add(variable.type.irType()));
+        symbol.parameters.list.forEach(variable -> result.add(variable.type.irType()));
         return result;
     }
 }

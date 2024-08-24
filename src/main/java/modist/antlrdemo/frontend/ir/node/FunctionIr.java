@@ -1,7 +1,7 @@
 package modist.antlrdemo.frontend.ir.node;
 
 import modist.antlrdemo.frontend.ir.IrNamer;
-import modist.antlrdemo.frontend.ir.IrStringUtil;
+import modist.antlrdemo.frontend.ir.IrPrinter;
 import modist.antlrdemo.frontend.ir.metadata.IrType;
 import modist.antlrdemo.frontend.ir.metadata.Register;
 
@@ -28,7 +28,7 @@ public final class FunctionIr implements Ir {
     public String toString() {
         StringWriter stringWriter = new StringWriter();
         PrintWriter writer = new PrintWriter(stringWriter);
-        writer.print(String.format("define %s %s(%s) ", returnType, name, IrStringUtil.toStringArguments(parameterTypes, parameters)));
+        writer.print(String.format("define %s %s(%s) ", returnType, name, IrPrinter.toStringArguments(parameterTypes, parameters)));
         writer.println("{");
         body.forEach(writer::print);
         writer.println("}");

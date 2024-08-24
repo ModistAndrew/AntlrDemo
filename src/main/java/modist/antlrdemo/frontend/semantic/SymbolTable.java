@@ -4,7 +4,6 @@ import modist.antlrdemo.frontend.semantic.error.MultipleDefinitionsException;
 import modist.antlrdemo.frontend.semantic.error.UndefinedIdentifierException;
 
 import java.util.HashMap;
-import java.util.function.Consumer;
 
 public class SymbolTable<T extends Symbol> {
     private final HashMap<String, T> table = new HashMap<>();
@@ -36,9 +35,5 @@ public class SymbolTable<T extends Symbol> {
 
     public boolean isEmpty() {
         return table.isEmpty();
-    }
-
-    public void forEach(Consumer<T> consumer) {
-        table.forEach((name, symbol) -> consumer.accept(symbol));
     }
 }

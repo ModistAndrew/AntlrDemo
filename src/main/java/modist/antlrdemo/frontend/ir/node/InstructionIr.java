@@ -1,6 +1,6 @@
 package modist.antlrdemo.frontend.ir.node;
 
-import modist.antlrdemo.frontend.ir.IrStringUtil;
+import modist.antlrdemo.frontend.ir.IrPrinter;
 import modist.antlrdemo.frontend.ir.metadata.IrOperator;
 import modist.antlrdemo.frontend.ir.metadata.IrType;
 import modist.antlrdemo.frontend.ir.metadata.Register;
@@ -98,8 +98,8 @@ public sealed interface InstructionIr extends Ir {
                 List<Variable> arguments) implements Result {
         @Override
         public String toString() {
-            return result == null ? String.format("call %s %s(%s)", type, function, IrStringUtil.toStringArguments(argumentTypes, arguments)) :
-                    String.format("%s = call %s %s(%s)", result, type, function, IrStringUtil.toStringArguments(argumentTypes, arguments));
+            return result == null ? String.format("call %s %s(%s)", type, function, IrPrinter.toStringArguments(argumentTypes, arguments)) :
+                    String.format("%s = call %s %s(%s)", result, type, function, IrPrinter.toStringArguments(argumentTypes, arguments));
         }
     }
 
@@ -108,8 +108,8 @@ public sealed interface InstructionIr extends Ir {
                        List<IrType> argumentTypes, List<Variable> arguments) implements Result {
         @Override
         public String toString() {
-            return result == null ? String.format("call %s (%s) %s(%s)", type, function, IrStringUtil.toStringTypesVarargs(functionArgumentTypes), IrStringUtil.toStringArguments(argumentTypes, arguments)) :
-                    String.format("%s = call %s (%s) %s(%s)", result, type, function, IrStringUtil.toStringTypesVarargs(functionArgumentTypes), IrStringUtil.toStringArguments(argumentTypes, arguments));
+            return result == null ? String.format("call %s (%s) %s(%s)", type, function, IrPrinter.toStringTypesVarargs(functionArgumentTypes), IrPrinter.toStringArguments(argumentTypes, arguments)) :
+                    String.format("%s = call %s (%s) %s(%s)", result, type, function, IrPrinter.toStringTypesVarargs(functionArgumentTypes), IrPrinter.toStringArguments(argumentTypes, arguments));
         }
     }
 
@@ -120,7 +120,7 @@ public sealed interface InstructionIr extends Ir {
 
         @Override
         public String toString() {
-            return String.format("%s = phi %s %s", result, type, IrStringUtil.toStringPhiPairs(values, labels));
+            return String.format("%s = phi %s %s", result, type, IrPrinter.toStringPhiPairs(values, labels));
         }
     }
 }

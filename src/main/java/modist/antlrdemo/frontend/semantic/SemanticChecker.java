@@ -10,15 +10,15 @@ import modist.antlrdemo.frontend.ast.node.*;
 // also store data for IR building
 public class SemanticChecker {
     private Scope scope;
-    // whether the function has returned. not stored in scope as it should be spread upwards, which is hard to deal with in scope
-    @SuppressWarnings("FieldCanBeLocal")
-    private boolean returned;
 
     private void pushScope(Scope newScope) {
         scope = newScope;
     }
 
     private void popScope() {
+        if (scope.getParent() != null) {
+            scope.getParent().returned |= scope.returned;
+        }
         scope = scope.getParent();
     }
 
@@ -41,9 +41,8 @@ public class SemanticChecker {
             case DefinitionAst.Function functionDefinition -> {
                 pushScope(new ChildScope(scope, functionDefinition));
                 functionDefinition.parameters.forEach(this::check);
-                returned = false;
                 functionDefinition.body.forEach(this::check);
-                if (!returned && functionDefinition.symbol.shouldReturn()) {
+                if (!scope.returned && functionDefinition.symbol.shouldReturn()) {
                     throw new MissingReturnStatementException();
                 }
                 popScope();
@@ -116,7 +115,7 @@ public class SemanticChecker {
                 } else {
                     new Type.Builder(scope).tryMatchExpression(returnStatement.expression, scope.returnType);
                 }
-                returned = true;
+                scope.returned = true;
             }
             case StatementAst.Expression expressionStatement -> check(expressionStatement.expression);
             case StatementAst.Empty ignored -> {

@@ -13,50 +13,39 @@ public class ChildScope extends Scope {
     private final Scope parent; // the direct parent scope
     private final GlobalScope globalScope; // the global scope
 
-    private ChildScope(Scope parent) { // create an empty child scope
+    private ChildScope(Scope parent, Symbol.TypeName classType, SemanticNamer namer, Type returnType, String loopLabelName) {
+        super(classType, namer, returnType, loopLabelName);
         this.parent = parent;
         this.globalScope = parent.getGlobalScope();
-        this.loopLabelName = parent.loopLabelName;
-        this.returnType = parent.returnType;
-        this.classType = parent.classType;
-        this.namer = parent.namer;
     }
 
     public ChildScope(Scope parent, DefinitionAst.Class classNode) {
-        this(parent);
+        this(parent, classNode.symbol, parent.namer, parent.returnType, parent.loopLabelName);
         classNode.functions.forEach(this::declareFunction);
-        classType = classNode.symbol;
     }
 
     public ChildScope(Scope parent, DefinitionAst.Function functionNode) {
-        this(parent);
-        returnType = new Type(this, functionNode.returnType);
-        namer = new SemanticNamer();
+        this(parent, parent.classType, new SemanticNamer(), new Type(parent, functionNode.returnType), parent.loopLabelName);
     }
 
     // you should add local variables manually
     public ChildScope(Scope parent, StatementAst.For forNode) {
-        this(parent);
-        Objects.requireNonNull(namer); // namer should be set in function scope
-        namer.setFor(forNode);
-        loopLabelName = forNode.labelName;
+        this(parent, parent.classType, parent.namer, parent.returnType, Objects.requireNonNull(parent.namer).loopLabel());
+        forNode.labelName = loopLabelName;
     }
 
     public ChildScope(Scope parent, StatementAst.While whileNode) {
-        this(parent);
-        Objects.requireNonNull(namer); // namer should be set in function scope
-        namer.setWhile(whileNode);
-        loopLabelName = whileNode.labelName;
+        this(parent, parent.classType, parent.namer, parent.returnType, Objects.requireNonNull(parent.namer).loopLabel());
+        whileNode.labelName = loopLabelName;
     }
 
     public ChildScope(Scope parent, StatementAst.Block blockNode) {
-        this(parent);
+        this(parent, parent.classType, parent.namer, parent.returnType, parent.loopLabelName);
     }
 
     public ChildScope(Scope parent, StatementAst.If ifNode) {
-        this(parent);
-        Objects.requireNonNull(namer); // namer should be set in function scope
-        namer.setIf(ifNode);
+        this(parent, parent.classType, parent.namer, parent.returnType, parent.loopLabelName);
+        ifNode.labelName = Objects.requireNonNull(parent.namer).ifLabel();
     }
 
     @Override

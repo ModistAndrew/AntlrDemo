@@ -6,8 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class ArrayCreatorAst extends BaseAst {
-    // not empty, may contain null
-    public List<ExpressionAst> dimensions;
+    public List<ExpressionAst> dimensions; // not empty, may contain null
     @Nullable
     public ArrayAst initializer;
     // in Type
