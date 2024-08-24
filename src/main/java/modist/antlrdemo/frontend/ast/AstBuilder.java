@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
+// TODO: an AST printer to format the code
 public class AstBuilder implements MxVisitor<Ast> {
     @Override
     public ProgramAst visitProgram(MxParser.ProgramContext ctx) {

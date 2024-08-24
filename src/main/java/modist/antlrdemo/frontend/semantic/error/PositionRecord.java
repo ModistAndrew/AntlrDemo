@@ -2,7 +2,7 @@ package modist.antlrdemo.frontend.semantic.error;
 
 import modist.antlrdemo.frontend.ast.metadata.Position;
 
-// TODO: store more information about compiling status
+// TODO: store more information about compiling status for error messages
 public class PositionRecord {
     private static Position currentPosition = Position.UNKNOWN;
 

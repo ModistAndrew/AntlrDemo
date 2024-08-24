@@ -8,9 +8,4 @@ public record GlobalVariableIr(Register result, IrType type, Constant value) imp
     public GlobalVariableIr(Register result, IrType type) {
         this(result, type, type.defaultValue);
     }
-
-    @Override
-    public String toString() {
-        return String.format("%s = global %s %s", result, type, value);
-    }
 }

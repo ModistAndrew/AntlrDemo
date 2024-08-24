@@ -56,7 +56,7 @@ public class IrBuilder {
     private void visitDefinition(DefinitionAst definition) {
         switch (definition) {
             case DefinitionAst.Class classDefinition -> {
-                program.classes.add(new ClassIr(classDefinition.symbol.irName,
+                program.classDefinitions.add(new ClassDefinitionIr(classDefinition.symbol.irName,
                         classDefinition.symbol.variables.list.stream().map(variable -> variable.type.irType()).toList()));
                 classDefinition.constructors.forEach(this::visitDefinition);
                 classDefinition.functions.forEach(this::visitDefinition);
@@ -391,7 +391,7 @@ public class IrBuilder {
 
     private List<Variable> getArguments(List<Variable> arguments, @Nullable Register thisPointer) {
         List<Variable> result = new ArrayList<>();
-        if (thisPointer != null) {
+        if (thisPointer != null) { // add this ptr into arguments if necessary
             result.add(thisPointer);
         }
         result.addAll(arguments);
@@ -400,7 +400,7 @@ public class IrBuilder {
 
     private List<Register> getParameters(Symbol.Function symbol) {
         List<Register> result = new ArrayList<>();
-        if (symbol.classType != null) {
+        if (symbol.classType != null) { // add this ptr into arguments if necessary
             result.add(Register.THIS);
         }
         symbol.parameters.list.forEach(variable -> result.add(new Register(IrNamer.parameter(variable.name))));
@@ -409,7 +409,7 @@ public class IrBuilder {
 
     private List<IrType> getParameterTypes(Symbol.Function symbol) {
         List<IrType> result = new ArrayList<>();
-        if (symbol.classType != null) {
+        if (symbol.classType != null) { // add this ptr into arguments if necessary
             result.add(IrType.PTR);
         }
         symbol.parameters.list.forEach(variable -> result.add(variable.type.irType()));

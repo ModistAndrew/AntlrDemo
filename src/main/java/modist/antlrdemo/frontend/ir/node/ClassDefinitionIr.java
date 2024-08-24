@@ -4,5 +4,5 @@ import modist.antlrdemo.frontend.ir.metadata.IrType;
 
 import java.util.List;
 
-public record FunctionDeclarationIr(String name, IrType returnType, List<IrType> parameterTypes) implements Ir {
+public record ClassDefinitionIr(String name, List<IrType> members) implements Ir {
 }

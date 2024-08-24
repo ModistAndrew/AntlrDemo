@@ -17,7 +17,7 @@ public abstract class Symbol {
     public final Position position;
     public final String irName;
 
-    public Symbol(String name, Position position, String irName) {
+    private Symbol(String name, Position position, String irName) {
         this.name = name;
         this.position = position;
         this.irName = irName;
@@ -48,7 +48,7 @@ public abstract class Symbol {
         }
 
         // builtin anonymous parameter variable
-        public Variable(Type type, Function function) {
+        private Variable(Type type, Function function) {
             this(null, Position.BUILTIN, null, type, null, -1);
             function.parameters.declare(this);
         }
@@ -59,7 +59,7 @@ public abstract class Symbol {
         }
 
         // member variable
-        public Variable(Scope scope, DefinitionAst.Variable definition, TypeName classType) {
+        private Variable(Scope scope, DefinitionAst.Variable definition, TypeName classType) {
             this(scope, definition, null, classType, classType.variables.size());
             if (definition.initializer != null) {
                 throw new CompileException("class variable cannot have initializer", position);
@@ -73,7 +73,7 @@ public abstract class Symbol {
         }
 
         // parameter variable
-        public Variable(Scope scope, DefinitionAst.Variable definition, Function function) {
+        private Variable(Scope scope, DefinitionAst.Variable definition, Function function) {
             this(scope, definition, SemanticNamer.parameterVariable(definition.name), null, -1);
             function.parameters.declare(this);
         }
@@ -119,7 +119,7 @@ public abstract class Symbol {
         }
 
         // member function
-        public Function(Scope scope, DefinitionAst.Function definition, TypeName classType, boolean constructor) {
+        private Function(Scope scope, DefinitionAst.Function definition, TypeName classType, boolean constructor) {
             this(scope, definition, SemanticNamer.memberFunction(definition.name, classType.name), classType);
             if (constructor) {
                 if (!name.equals(classType.name)) {
