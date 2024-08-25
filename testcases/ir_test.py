@@ -1,9 +1,16 @@
 import os
 import re
 import subprocess
+import shutil
 
 test_file = []
 testcases_folder = 'testcases/codegen/'
+ravel_path = '/mnt/c/Users/zjx/Desktop/Coding/cpp/ravel/cmake-build-debug/src/ravel'
+builtin_asm_path = 'build/generated/clang/builtin.s'
+temp_folder = 'tmp/'
+if not os.path.exists(temp_folder):
+    os.mkdir(temp_folder)
+shutil.copy(builtin_asm_path, f'{temp_folder}builtin.s')
 
 def traverse_directory(dir_path):
     for root, dirs, files in os.walk(dir_path):
@@ -49,24 +56,25 @@ pass_cnt = 0;
 for testcase in test_file:
     try:
         content, input_data, output_data, exitcode = extract_input_output_exitcode(testcase)
+        os.chdir(temp_folder)
         temp = open('test.in', 'w', encoding='utf-8')
         temp.write(input_data)
         temp.flush()
         temp = open('test.ans', 'w', encoding='utf-8')
         temp.write(output_data)
         temp.flush()
-        commands = f'gradlew run --no-rebuild < {testcase} > test.ll'
+        os.chdir('..')
+        commands = f'gradlew run --no-rebuild < {testcase} > {temp_folder}test.ll'
         process = subprocess.run(commands, shell=True)
         if process.returncode != 0:
             raise Exception("LLVM Compile Error")
+        os.chdir(temp_folder)
         commands = 'clang -S --target=riscv32-unknown-elf test.ll'
         process = subprocess.run(commands, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-#         process = subprocess.run(commands, shell=True)
         if process.returncode != 0:
             raise Exception("Binary Compile Error")
-        commands = 'wsl /mnt/c/Users/zjx/Desktop/Coding/cpp/ravel/cmake-build-debug/src/ravel --oj-mode'
+        commands = f'wsl {ravel_path} --oj-mode'
         process = subprocess.run(commands, shell=True, capture_output=True)
-#         process = subprocess.run(commands, shell=True)
         ans_output = output_data
         program_output = open('test.out', 'r', encoding='utf-8').read().strip()
         ans_exitcode = int(exitcode.strip())
@@ -79,5 +87,7 @@ for testcase in test_file:
             pass_cnt += 1
     except Exception as e:
         print(testcase, red_msg.format(msg=e))
+    finally:
+        os.chdir('..')
 
 print("\033[32mPassed Cases:", pass_cnt, f"\033[0m, \033[34mTotal Cases: {len(test_file)}\033[0m")

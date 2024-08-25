@@ -20,7 +20,7 @@ generateGrammarSource {
 }
 
 application {
-    mainClass = "modist.antlrdemo.Compiler"
+    mainClass = 'modist.antlrdemo.Compiler'
 }
 
 run {
@@ -32,3 +32,41 @@ run {
 test {
     useJUnitPlatform()
 }
+
+tasks.register('compileBuiltin') {
+    def cFileName = 'builtin.c'
+    def llFileName = 'builtin.ll'
+    def llFileReplacedName = 'builtin_replaced.ll'
+    def asmFileName = 'builtin.s'
+    def outputDir = layout.buildDirectory.dir('generated/clang').get()
+    def sourceDir = layout.projectDirectory.dir('src/main/c')
+    doLast {
+        mkdir outputDir
+        exec {
+            executable 'clang'
+            args '-S', '-emit-llvm', '--target=riscv32-unknown-elf', '-O2',
+                    "${sourceDir}/${cFileName}",
+                    '-o', "${outputDir}/${llFileName}"
+        }
+        copy {
+            from file("${outputDir}/${llFileName}")
+            into outputDir
+            rename {
+                llFileReplacedName
+            }
+            filter {
+                String line ->
+                    line.replaceAll("_array_", "_array.")
+                            .replaceAll("string_", "string.")
+            }
+        }
+        exec {
+            executable 'clang'
+            args '-S', '--target=riscv32-unknown-elf', '-O2',
+                    "${outputDir}/${llFileReplacedName}",
+                    '-o', "${outputDir}/${asmFileName}"
+        }
+    }
+}
+
+tasks.build.dependsOn('compileBuiltin')
