@@ -1,7 +1,7 @@
 /*
 Test Package: Codegen
-Author: 09' Xiao Jia
-Time: 2020-02-02
+Author: Yu Jiang
+Time: 2024-08-13
 Input:
 === input ===
 === end ===
@@ -12,8 +12,10 @@ Output:
 === end ===
 ExitCode: 0
 InstLimit: -1
-Origin Package: Codegen Pretest-552
 */
+
+
+int[] f = new int[2801];
 
 int main() {
 	int a = 10000;
@@ -21,11 +23,10 @@ int main() {
 	int c = 2800;
 	int d = 0;
 	int e = 0;
-	int[] f = new int[2801];
 	int g = 0;
 
-	for (;b-c!=0;b++) 
-		f[b] = a/5;
+	for (;b-c!=0;) 
+		f[b++] = a/5;
 	for (;; e = d%a){
 		d = 0;
 		g = c*2;
@@ -34,13 +35,12 @@ int main() {
 		for (b=c;;d=d*b){
 			d=d+f[b]*a;
 			f[b] = d%--g;
-			d=d/g;
-			g--;
+			d=d/g--;
 			if (--b==0) break;
 		}
 		
 		c = c-14;
-		print(toString(e+d/a));
+		print(f"$e+d/a$");
 	}
 	
   print("\n");

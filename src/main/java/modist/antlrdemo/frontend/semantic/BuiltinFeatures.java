@@ -30,8 +30,10 @@ public class BuiltinFeatures {
     public static final Symbol.Function GET_INT = new Symbol.Function("getInt", INT);
     public static final Symbol.Function TO_STRING = new Symbol.Function("toString", STRING, INT);
 
+    // the PTR type is used to represent void* in c
+    // it will be converted to IrType.PTR instantly; don't use it elsewhere as it is not well-defined
     private static final Type PTR = new Type(VOID_TYPE_NAME, 1);
-
+    // following symbols are used only in IR generation
     public static final Symbol.Function TO_STRING_BOOL = new Symbol.Function("_toStringBool", STRING, BOOL);
     public static final Symbol.Function CONCAT_STRING_MULTI = new Symbol.Function("_concatStringMulti", STRING, INT);
     public static final Symbol.Function MALLOC_CLASS = new Symbol.Function("_mallocClass", PTR, INT);
