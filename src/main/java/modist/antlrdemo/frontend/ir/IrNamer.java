@@ -7,7 +7,6 @@ import java.util.Map;
 // function naming:
 // global functions: @(name)
 // member functions: @(class).(name)
-// builtin functions: @.(name)
 // register naming:
 // global variables: @(name)
 // constant strings: @string.[count]
@@ -51,12 +50,16 @@ public class IrNamer {
         return dot(name, suffix);
     }
 
-    public static String appendCondition(String name) {
-        return append(name, "condition");
+    public static String appendContinue(String name) {
+        return append(name, "continue");
     }
 
-    public static String appendEnd(String name) {
+    public static String appendBreak(String name) {
         return append(name, "end");
+    }
+
+    public static String labelValue(String label) {
+        return percent(label);
     }
 
     private String withTemporaryVariableCounter(String name) {

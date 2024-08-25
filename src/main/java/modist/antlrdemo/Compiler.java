@@ -26,6 +26,7 @@ public class Compiler {
         } catch (CompileException e) {
             if (argList.contains("--debug")) {
                 System.err.printf("%s at [%s]: %s", e.getErrorType(), e.getPosition(), e.getMessage());
+                System.err.println();
                 throw e;
             } else {
                 System.out.println(e.getErrorType());

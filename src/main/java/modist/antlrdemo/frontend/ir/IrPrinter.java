@@ -81,8 +81,8 @@ public class IrPrinter {
             case InstructionIr.Icmp icmp -> printStream.printf("%s = icmp %s %s %s, %s",
                     icmp.result(), icmp.operator(), icmp.type(), icmp.left(), icmp.right());
             case InstructionIr.Br br -> printStream.printf("br %s %s, label %s, label %s",
-                    IrType.I1, br.condition(), br.trueLabel(), br.falseLabel());
-            case InstructionIr.Jump jump -> printStream.printf("br label %s", jump.label());
+                    IrType.I1, br.condition(), IrNamer.labelValue(br.trueLabel()), IrNamer.labelValue(br.falseLabel()));
+            case InstructionIr.Jump jump -> printStream.printf("br label %s", IrNamer.labelValue(jump.label()));
             case InstructionIr.Ret ret -> {
                 printStream.printf("ret %s", ret.type());
                 if (ret.value() != null) {
@@ -137,7 +137,7 @@ public class IrPrinter {
 
     private String toStringPhiPairs(List<Variable> values, List<String> labels) {
         return String.join(", ",
-                IntStream.range(0, values.size()).mapToObj(i -> String.format("[ %s, %s ]", values.get(i), labels.get(i)))
+                IntStream.range(0, values.size()).mapToObj(i -> String.format("[ %s, %s ]", values.get(i), IrNamer.labelValue(labels.get(i))))
                         .toList());
     }
 

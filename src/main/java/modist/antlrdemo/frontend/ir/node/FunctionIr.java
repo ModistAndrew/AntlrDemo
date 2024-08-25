@@ -43,13 +43,12 @@ public final class FunctionIr implements Ir {
             return instruction.result();
         }
 
-        public void newBlock(InstructionIr.End end, String name) {
+        // returns the label of the previous block
+        public String newBlock(InstructionIr.End end, String name) {
+            String currentLabel = currentBlock.currentLabel();
             current.body.add(currentBlock.build(end));
             currentBlock.begin(name);
-        }
-
-        public String currentLabel() {
-            return currentBlock.currentLabel();
+            return currentLabel;
         }
 
         public FunctionIr build() {

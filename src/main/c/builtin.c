@@ -1,28 +1,34 @@
-#define bool _Bool
 #define MAX_INPUT_LENGTH 1024
 #define MAX_INT_STR_LENGTH 12
+
+typedef _Bool bool;
 typedef __SIZE_TYPE__ size_t;
+typedef __builtin_va_list va_list;
 
-int printf(const char *format, ...);
+#define va_start(ap, param) __builtin_va_start(ap, param)
 
-int sprintf(char *dest, const char *format, ...);
+#define va_end(ap)          __builtin_va_end(ap)
+
+#define va_arg(ap, type)    __builtin_va_arg(ap, type)
+
+int puts(const char *str);
 
 int scanf(const char *format, ...);
 
 int sscanf(const char *src, const char *format, ...);
 
-size_t strlen(const char *str);
+int printf(const char *format, ...);
 
-int strcmp(const char *str1, const char *str2);
+int sprintf(char *dest, const char *format, ...);
+
+// we use malloc instead of calloc to avoid the overhead of zeroing the memory
+void *malloc(size_t n);
 
 void *memcpy(void *dest, const void *src, size_t n);
 
-void *malloc(size_t n);
+size_t strlen(const char *str);
 
-typedef __builtin_va_list va_list;
-#define va_start(ap, param) __builtin_va_start(ap, param)
-#define va_end(ap)          __builtin_va_end(ap)
-#define va_arg(ap, type)    __builtin_va_arg(ap, type)
+int strcmp(const char *str1, const char *str2);
 
 int _array_size(void *array) {
   return (int) ((size_t *) array)[-1];
@@ -55,7 +61,7 @@ void print(char *str) {
 }
 
 void println(char *str) {
-  printf("%s\n", str);
+  puts(str);
 }
 
 void printInt(int n) {
@@ -136,17 +142,18 @@ char *_concatStringMulti(size_t num, ...) {
   return str;
 }
 
-void *v_allocArrayMulti(size_t size, size_t depth, size_t num, size_t *a) {
-  // use recursive function to allocate multi-dimensional array
+// use recursive function to allocate multi-dimensional array
+void *v_mallocArrayMulti(size_t size, size_t depth, size_t num, va_list dimensions) {
+  size_t dimension = va_arg(dimensions, size_t);
   if (depth == 1) {
-    return _mallocArray(size, a[0]);
+    return _mallocArray(size, dimension);
   }
-  void *array = _mallocArray(sizeof(void *), a[0]);
+  void *array = _mallocArray(sizeof(void *), dimension);
   if (num == 1) {
     return array;
   }
-  for (size_t i = 0; i < a[0]; i++) {
-    void *subArray = v_allocArrayMulti(size, depth - 1, num - 1, a + 1);
+  for (size_t i = 0; i < dimension; i++) {
+    void *subArray = v_mallocArrayMulti(size, depth - 1, num - 1, dimensions);
     ((void **) array)[i] = subArray;
   }
   return array;
@@ -154,13 +161,10 @@ void *v_allocArrayMulti(size_t size, size_t depth, size_t num, size_t *a) {
 
 // depth is used to determine whether we should allocate a sub-array or the actual data
 // in fact in both situations the size is 4 as we are on a 32-bit machine and all the types are assumed to have size 4
-void *_allocArrayMulti(size_t size, size_t depth, size_t num, ...) {
+void *_mallocArrayMulti(size_t size, size_t depth, size_t num, ...) {
   va_list ap;
-  size_t *a = (size_t *) malloc(sizeof(size_t) * num);
   va_start(ap, num);
-  for (size_t i = 0; i < num; i++) {
-    a[i] = va_arg(ap, size_t);
-  }
+  void *array = v_mallocArrayMulti(size, depth, num, ap);
   va_end(ap);
-  return v_allocArrayMulti(size, depth, num, a);
+  return array;
 }

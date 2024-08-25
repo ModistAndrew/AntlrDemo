@@ -9,7 +9,7 @@ public class BuiltinFeatures {
     public static final Symbol.TypeName STRING_TYPE_NAME = new Symbol.TypeName(TokenUtil.getLiteralName(MxLexer.STRING));
     public static final Symbol.TypeName VOID_TYPE_NAME = new Symbol.TypeName(TokenUtil.getLiteralName(MxLexer.VOID));
     // a virtual type for arrays not stored in the symbol table. use .array to avoid conflicts
-    public static final Symbol.TypeName ARRAY_TYPE_NAME = new Symbol.TypeName(".array");
+    public static final Symbol.TypeName ARRAY_TYPE_NAME = new Symbol.TypeName("_array");
 
     // cache the type instances for convenience
     public static final Type INT = new Type(INT_TYPE_NAME);
@@ -32,13 +32,13 @@ public class BuiltinFeatures {
 
     private static final Type PTR = new Type(VOID_TYPE_NAME, 1);
 
-    public static final Symbol.Function _TO_STRING_BOOL = new Symbol.Function(".toStringBool", STRING, BOOL);
-    public static final Symbol.Function _CONCAT_STRING_MULTI = new Symbol.Function(".concatStringMulti", STRING, INT);
-    public static final Symbol.Function _MALLOC_CLASS = new Symbol.Function(".mallocClass", PTR, INT);
-    public static final Symbol.Function _MALLOC_ARRAY = new Symbol.Function(".mallocArray", PTR, INT, INT);
-    public static final Symbol.Function _MALLOC_ARRAY_MULTI = new Symbol.Function(".mallocArrayMulti", PTR, INT, INT, INT);
-    public static final Symbol.Function _COMPARE_STRING = new Symbol.Function(".compareString", INT, STRING, STRING);
-    public static final Symbol.Function _CONCAT_STRING = new Symbol.Function(".concatString", STRING, STRING, STRING);
+    public static final Symbol.Function TO_STRING_BOOL = new Symbol.Function("_toStringBool", STRING, BOOL);
+    public static final Symbol.Function CONCAT_STRING_MULTI = new Symbol.Function("_concatStringMulti", STRING, INT);
+    public static final Symbol.Function MALLOC_CLASS = new Symbol.Function("_mallocClass", PTR, INT);
+    public static final Symbol.Function MALLOC_ARRAY = new Symbol.Function("_mallocArray", PTR, INT, INT);
+    public static final Symbol.Function MALLOC_ARRAY_MULTI = new Symbol.Function("_mallocArrayMulti", PTR, INT, INT, INT);
+    public static final Symbol.Function COMPARE_STRING = new Symbol.Function("_compareString", INT, STRING, STRING);
+    public static final Symbol.Function CONCAT_STRING = new Symbol.Function("_concatString", STRING, STRING, STRING);
 
-    public static final Symbol.Function _INIT = new Symbol.Function(".init", VOID);
+    public static final Symbol.Function INIT = new Symbol.Function("_init", VOID);
 }

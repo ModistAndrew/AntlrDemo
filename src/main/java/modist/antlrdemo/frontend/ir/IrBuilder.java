@@ -24,7 +24,7 @@ public class IrBuilder {
         addBuiltinFeatures();
         programNode.classes.forEach(this::visitDefinition);
         programNode.functions.forEach(this::visitDefinition);
-        beginFunction(BuiltinFeatures._INIT);
+        beginFunction(BuiltinFeatures.INIT);
         programNode.variables.forEach(this::visitDefinition);
         program.functions.add(currentFunction.build());
         return program;
@@ -43,13 +43,13 @@ public class IrBuilder {
         addFunctionDeclaration(BuiltinFeatures.GET_STRING);
         addFunctionDeclaration(BuiltinFeatures.GET_INT);
         addFunctionDeclaration(BuiltinFeatures.TO_STRING);
-        addFunctionDeclaration(BuiltinFeatures._TO_STRING_BOOL);
-        addFunctionVarargsDeclaration(BuiltinFeatures._CONCAT_STRING_MULTI);
-        addFunctionDeclaration(BuiltinFeatures._MALLOC_CLASS);
-        addFunctionDeclaration(BuiltinFeatures._MALLOC_ARRAY);
-        addFunctionVarargsDeclaration(BuiltinFeatures._MALLOC_ARRAY_MULTI);
-        addFunctionDeclaration(BuiltinFeatures._COMPARE_STRING);
-        addFunctionDeclaration(BuiltinFeatures._CONCAT_STRING);
+        addFunctionDeclaration(BuiltinFeatures.TO_STRING_BOOL);
+        addFunctionVarargsDeclaration(BuiltinFeatures.CONCAT_STRING_MULTI);
+        addFunctionDeclaration(BuiltinFeatures.MALLOC_CLASS);
+        addFunctionDeclaration(BuiltinFeatures.MALLOC_ARRAY);
+        addFunctionVarargsDeclaration(BuiltinFeatures.MALLOC_ARRAY_MULTI);
+        addFunctionDeclaration(BuiltinFeatures.COMPARE_STRING);
+        addFunctionDeclaration(BuiltinFeatures.CONCAT_STRING);
     }
 
     // visit a definition and store definitions in the program
@@ -64,7 +64,7 @@ public class IrBuilder {
             case DefinitionAst.Function functionDefinition -> {
                 beginFunction(functionDefinition.symbol);
                 if (functionDefinition.symbol.isMain) {
-                    callGlobalFunction(BuiltinFeatures._INIT);
+                    callGlobalFunction(BuiltinFeatures.INIT);
                 }
                 functionDefinition.parameters.forEach(parameter -> {
                     this.visit(parameter);
@@ -115,7 +115,7 @@ public class IrBuilder {
     private Variable visitExpression(ExpressionOrArrayAst expression) {
         return switch (expression) {
             case ArrayAst array -> {
-                Register result = callGlobalFunction(BuiltinFeatures._MALLOC_ARRAY, new Constant.Int(IrType.MAX_BYTE_SIZE), new Constant.Int(array.elements.size()));
+                Register result = callGlobalFunction(BuiltinFeatures.MALLOC_ARRAY, new Constant.Int(IrType.MAX_BYTE_SIZE), new Constant.Int(array.elements.size()));
                 for (int i = 0; i < array.elements.size(); i++) {
                     ExpressionOrArrayAst element = array.elements.get(i);
                     Register pointer = currentFunction.add(new InstructionIr.Subscript(currentFunction.createTemporary("element"),
@@ -144,12 +144,12 @@ public class IrBuilder {
                     argumentTypes.add(IrType.PTR);
                     arguments.add(addStringConstant(formatString.texts.get(i + 1)));
                 }
-                yield callFunctionVarargs(BuiltinFeatures._CONCAT_STRING_MULTI, argumentTypes, arguments);
+                yield callFunctionVarargs(BuiltinFeatures.CONCAT_STRING_MULTI, argumentTypes, arguments);
             }
             case ExpressionAst.Creator creator -> {
                 if (creator.arrayCreator == null) {
                     Symbol.TypeName typeName = creator.type.resolveTypeName();
-                    Register result = callGlobalFunction(BuiltinFeatures._MALLOC_CLASS,
+                    Register result = callGlobalFunction(BuiltinFeatures.MALLOC_CLASS,
                             new Constant.Int(typeName.variables.size() * IrType.MAX_BYTE_SIZE));
                     if (typeName.constructor != null) {
                         callFunction(typeName.constructor, List.of(), result);
@@ -172,7 +172,7 @@ public class IrBuilder {
                         argumentTypes.add(IrType.I32);
                         arguments.add(visitExpression(dimension));
                     });
-                    yield callFunctionVarargs(BuiltinFeatures._MALLOC_ARRAY_MULTI, argumentTypes, arguments);
+                    yield callFunctionVarargs(BuiltinFeatures.MALLOC_ARRAY_MULTI, argumentTypes, arguments);
                 }
             }
             case ExpressionAst.Subscript subscript ->
@@ -197,40 +197,40 @@ public class IrBuilder {
                         currentFunction.add(new InstructionIr.Bin(currentFunction.createTemporary(preUnary.operator.getIrPrefix()),
                                 IrOperator.SUB, IrType.I32, new Constant.Int(0), visitExpression(preUnary.expression)));
                 case NOT ->
-                        currentFunction.add(new InstructionIr.Icmp(currentFunction.createTemporary(preUnary.operator.getIrPrefix()),
+                        currentFunction.add(new InstructionIr.Bin(currentFunction.createTemporary(preUnary.operator.getIrPrefix()),
                                 IrOperator.XOR, IrType.I32, new Constant.Int(-1), visitExpression(preUnary.expression)));
                 case LOGICAL_NOT ->
-                        currentFunction.add(new InstructionIr.Icmp(currentFunction.createTemporary(preUnary.operator.getIrPrefix()),
+                        currentFunction.add(new InstructionIr.Bin(currentFunction.createTemporary(preUnary.operator.getIrPrefix()),
                                 IrOperator.XOR, IrType.I1, new Constant.Bool(true), visitExpression(preUnary.expression)));
                 default -> throw new IllegalArgumentException();
             };
             case ExpressionAst.Binary binary -> switch (binary.operator) {
                 case AND, XOR, OR, SUB, MUL, DIV, MOD, SHL, SHR ->
                         currentFunction.add(new InstructionIr.Bin(currentFunction.createTemporary(binary.operator.getIrPrefix()),
-                                binary.operator.irOperator, binary.type.irType(), visitExpression(binary.left), visitExpression(binary.right)));
-                case ADD -> binary.type.isString() ?
-                        callGlobalFunction(BuiltinFeatures._CONCAT_STRING, visitExpression(binary.left), visitExpression(binary.right)) :
+                                binary.operator.irOperator, binary.left.type.irType(), visitExpression(binary.left), visitExpression(binary.right)));
+                case ADD -> binary.left.type.isString() ?
+                        callGlobalFunction(BuiltinFeatures.CONCAT_STRING, visitExpression(binary.left), visitExpression(binary.right)) :
                         currentFunction.add(new InstructionIr.Bin(currentFunction.createTemporary(binary.operator.getIrPrefix()),
-                                IrOperator.ADD, binary.type.irType(), visitExpression(binary.left), visitExpression(binary.right)));
-                case GT, LT, GE, LE, EQ, NE -> binary.type.isString() ?
+                                IrOperator.ADD, binary.left.type.irType(), visitExpression(binary.left), visitExpression(binary.right)));
+                case GT, LT, GE, LE, EQ, NE -> binary.left.type.isString() ?
                         currentFunction.add(new InstructionIr.Icmp(currentFunction.createTemporary(binary.operator.getIrPrefix()),
                                 binary.operator.irOperator, IrType.I32,
-                                callGlobalFunction(BuiltinFeatures._COMPARE_STRING,
+                                callGlobalFunction(BuiltinFeatures.COMPARE_STRING,
                                         visitExpression(binary.left), visitExpression(binary.right)), new Constant.Int(0))) :
                         currentFunction.add(new InstructionIr.Icmp(currentFunction.createTemporary(binary.operator.getIrPrefix()),
-                                binary.operator.irOperator, binary.type.irType(), visitExpression(binary.left), visitExpression(binary.right)));
+                                binary.operator.irOperator, binary.left.type.irType(), visitExpression(binary.left), visitExpression(binary.right)));
                 case LOGICAL_AND, LOGICAL_OR -> {
                     boolean isOr = binary.operator == Operator.LOGICAL_OR;
                     String labelName = currentFunction.irNamer.shortCircuit();
                     String rightLabel = IrNamer.append(labelName, "right");
-                    String endLabel = IrNamer.appendEnd(labelName);
-                    String currentLabel = currentFunction.currentLabel();
-                    currentFunction.newBlock(isOr ? new InstructionIr.Br(visitExpression(binary.left), endLabel, rightLabel) :
+                    String endLabel = IrNamer.append(labelName, "end");
+                    String lastCurrentLabel = currentFunction.newBlock(isOr ?
+                            new InstructionIr.Br(visitExpression(binary.left), endLabel, rightLabel) :
                             new InstructionIr.Br(visitExpression(binary.left), rightLabel, endLabel), rightLabel);
                     Variable rightValue = visitExpression(binary.right);
                     currentFunction.newBlock(new InstructionIr.Jump(endLabel), endLabel);
                     yield currentFunction.add(new InstructionIr.Phi(currentFunction.createTemporary(binary.operator.getIrPrefix()),
-                            IrType.I1, new Constant.Bool(isOr), currentLabel, rightValue, rightLabel));
+                            IrType.I1, new Constant.Bool(isOr), lastCurrentLabel, rightValue, rightLabel));
                 }
                 default -> throw new IllegalArgumentException();
             };
@@ -238,19 +238,19 @@ public class IrBuilder {
                 String labelName = currentFunction.irNamer.conditional();
                 String trueLabel = IrNamer.append(labelName, "true");
                 String falseLabel = IrNamer.append(labelName, "false");
-                String endLabel = IrNamer.appendEnd(labelName);
+                String endLabel = IrNamer.append(labelName, "end");
                 currentFunction.newBlock(new InstructionIr.Br(visitExpression(conditional.condition), trueLabel, falseLabel), trueLabel);
                 Variable trueValue = visitExpression(conditional.trueExpression);
-                currentFunction.newBlock(new InstructionIr.Jump(endLabel), falseLabel);
+                String lastTrueLabel = currentFunction.newBlock(new InstructionIr.Jump(endLabel), falseLabel);
                 Variable falseValue = visitExpression(conditional.falseExpression);
-                currentFunction.newBlock(new InstructionIr.Jump(endLabel), endLabel);
+                String lastFalseLabel = currentFunction.newBlock(new InstructionIr.Jump(endLabel), endLabel);
                 yield conditional.type.isVoid() ? null :
                         currentFunction.add(new InstructionIr.Phi(currentFunction.createTemporary("conditional"),
-                                conditional.type.irType(), trueValue, trueLabel, falseValue, falseLabel));
+                                conditional.type.irType(), trueValue, lastTrueLabel, falseValue, lastFalseLabel));
             }
             case ExpressionAst.Assign assign -> {
                 Register pointer = visitExpressionLvalue(assign.left);
-                storePointer(assign.type.irType(), visitExpression(assign.right), pointer);
+                storePointer(assign.right.type.irType(), visitExpression(assign.right), pointer);
                 yield null;
             }
         };
@@ -277,7 +277,7 @@ public class IrBuilder {
             case StatementAst.If ifStatement -> {
                 String labelName = ifStatement.labelName;
                 String thenLabel = IrNamer.append(labelName, "then");
-                String endLabel = IrNamer.appendEnd(labelName);
+                String endLabel = IrNamer.append(labelName, "end");
                 String elseLabel = ifStatement.elseStatements == null ? endLabel : IrNamer.append(labelName, "else");
                 currentFunction.newBlock(new InstructionIr.Br(visitExpression(ifStatement.condition), thenLabel, elseLabel), thenLabel);
                 ifStatement.thenStatements.forEach(this::visit);
@@ -292,10 +292,10 @@ public class IrBuilder {
                     visit(forStatement.initialization);
                 }
                 String labelName = forStatement.labelName;
-                String conditionLabel = IrNamer.appendCondition(labelName);
+                String conditionLabel = IrNamer.append(labelName, "condition");
                 String bodyLabel = IrNamer.append(labelName, "body");
-                String updateLabel = IrNamer.append(labelName, "update");
-                String endLabel = IrNamer.appendEnd(labelName);
+                String updateLabel = IrNamer.appendContinue(labelName);
+                String endLabel = IrNamer.appendBreak(labelName);
                 currentFunction.newBlock(new InstructionIr.Jump(conditionLabel), conditionLabel);
                 if (forStatement.condition != null) {
                     currentFunction.newBlock(new InstructionIr.Br(visitExpression(forStatement.condition), bodyLabel, endLabel), bodyLabel);
@@ -309,18 +309,18 @@ public class IrBuilder {
             }
             case StatementAst.While whileStatement -> {
                 String labelName = whileStatement.labelName;
-                String conditionLabel = IrNamer.appendCondition(labelName);
+                String conditionLabel = IrNamer.appendContinue(labelName);
                 String bodyLabel = IrNamer.append(labelName, "body");
-                String endLabel = IrNamer.appendEnd(labelName);
+                String endLabel = IrNamer.appendBreak(labelName);
                 currentFunction.newBlock(new InstructionIr.Jump(conditionLabel), conditionLabel);
                 currentFunction.newBlock(new InstructionIr.Br(visitExpression(whileStatement.condition), bodyLabel, endLabel), bodyLabel);
                 whileStatement.statements.forEach(this::visit);
                 currentFunction.newBlock(new InstructionIr.Jump(conditionLabel), endLabel);
             }
             case StatementAst.Break breakStatement ->
-                    currentFunction.add(new InstructionIr.Jump(IrNamer.appendEnd(breakStatement.loopLabelName)));
+                    currentFunction.add(new InstructionIr.Jump(IrNamer.appendBreak(breakStatement.loopLabelName)));
             case StatementAst.Continue continueStatement ->
-                    currentFunction.add(new InstructionIr.Jump(IrNamer.appendCondition(continueStatement.loopLabelName)));
+                    currentFunction.add(new InstructionIr.Jump(IrNamer.appendContinue(continueStatement.loopLabelName)));
             case StatementAst.Return returnStatement ->
                     currentFunction.add(returnStatement.expression == null ? new InstructionIr.Ret(IrType.VOID, null) :
                             new InstructionIr.Ret(returnStatement.expression.type.irType(), visitExpression(returnStatement.expression)));
@@ -346,7 +346,7 @@ public class IrBuilder {
             return callGlobalFunction(BuiltinFeatures.TO_STRING, expressionResult);
         }
         if (expression.type.isBool()) {
-            return callGlobalFunction(BuiltinFeatures._TO_STRING_BOOL, expressionResult);
+            return callGlobalFunction(BuiltinFeatures.TO_STRING_BOOL, expressionResult);
         }
         return (Register) expressionResult;
     }
