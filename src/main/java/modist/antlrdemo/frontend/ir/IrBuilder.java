@@ -1,6 +1,6 @@
 package modist.antlrdemo.frontend.ir;
 
-import modist.antlrdemo.frontend.ast.metadata.LiteralEnum;
+import modist.antlrdemo.frontend.ast.metadata.Constant;
 import modist.antlrdemo.frontend.ast.metadata.Operator;
 import modist.antlrdemo.frontend.ast.node.*;
 import modist.antlrdemo.frontend.ir.metadata.*;
@@ -88,7 +88,7 @@ public class IrBuilder {
         return switch (expression) {
             case ExpressionAst.Subscript subscript -> {
                 Register array = (Register) visitExpression(subscript.expression);
-                Variable index = visitExpression(subscript.index);
+                Operand index = visitExpression(subscript.index);
                 yield currentFunction.add(new InstructionIr.Subscript(currentFunction.createTemporary("subscript"),
                         subscript.type.irType(), array, index));
             }
@@ -101,7 +101,7 @@ public class IrBuilder {
             case ExpressionAst.PreUnaryAssign preUnaryAssign -> {
                 Register pointer = visitExpressionLvalue(preUnaryAssign.expression);
                 Register result = currentFunction.add(new InstructionIr.Bin(currentFunction.createTemporary(preUnaryAssign.operator.getIrPrefix()),
-                        preUnaryAssign.operator.irOperator, IrType.I32, loadPointer(IrType.I32, pointer), new Constant.Int(1)));
+                        preUnaryAssign.operator.irOperator, IrType.I32, loadPointer(IrType.I32, pointer), new IrConstant.Int(1)));
                 storePointer(IrType.I32, result, pointer);
                 yield pointer;
             }
@@ -112,30 +112,30 @@ public class IrBuilder {
     // visit an expression and insert instructions into the current block
     // return the register that holds the result with appropriate type, or a constant
     @Nullable
-    private Variable visitExpression(ExpressionOrArrayAst expression) {
+    private Operand visitExpression(ExpressionOrArrayAst expression) {
         return switch (expression) {
             case ArrayAst array -> {
-                Register result = callGlobalFunction(BuiltinFeatures.MALLOC_ARRAY, new Constant.Int(IrType.MAX_BYTE_SIZE), new Constant.Int(array.elements.size()));
+                Register result = callGlobalFunction(BuiltinFeatures.MALLOC_ARRAY, new IrConstant.Int(IrType.MAX_BYTE_SIZE), new IrConstant.Int(array.elements.size()));
                 for (int i = 0; i < array.elements.size(); i++) {
                     ExpressionOrArrayAst element = array.elements.get(i);
                     Register pointer = currentFunction.add(new InstructionIr.Subscript(currentFunction.createTemporary("element"),
-                            element.type.irType(), result, new Constant.Int(i)));
+                            element.type.irType(), result, new IrConstant.Int(i)));
                     storePointer(element.type.irType(), visitExpression(element), pointer);
                 }
                 yield result;
             }
             case ExpressionAst.This ignored -> Register.THIS;
             case ExpressionAst.Literal literal -> switch (literal.value) {
-                case LiteralEnum.Int literalInt -> new Constant.Int(literalInt.value());
-                case LiteralEnum.Bool literalBool -> new Constant.Bool(literalBool.value());
-                case LiteralEnum.Str literalStr -> addStringConstant(literalStr.value());
-                case LiteralEnum.Null ignored -> Constant.Null.INSTANCE;
+                case Constant.Int constantInt -> new IrConstant.Int(constantInt.value());
+                case Constant.Bool constantBool -> new IrConstant.Bool(constantBool.value());
+                case Constant.Str constantStr -> addStringConstant(constantStr.value());
+                case Constant.Null ignored -> IrConstant.Null.INSTANCE;
             };
             case ExpressionAst.FormatString formatString -> {
                 List<IrType> argumentTypes = new ArrayList<>();
-                List<Variable> arguments = new ArrayList<>();
+                List<Operand> arguments = new ArrayList<>();
                 argumentTypes.add(IrType.I32);
-                arguments.add(new Constant.Int(formatString.texts.size() + formatString.expressions.size()));
+                arguments.add(new IrConstant.Int(formatString.texts.size() + formatString.expressions.size()));
                 argumentTypes.add(IrType.PTR);
                 arguments.add(addStringConstant(formatString.texts.getFirst()));
                 for (int i = 0; i < formatString.expressions.size(); i++) {
@@ -150,7 +150,7 @@ public class IrBuilder {
                 if (creator.arrayCreator == null) {
                     Symbol.TypeName typeName = creator.type.resolveTypeName();
                     Register result = callGlobalFunction(BuiltinFeatures.MALLOC_CLASS,
-                            new Constant.Int(typeName.variables.size() * IrType.MAX_BYTE_SIZE));
+                            new IrConstant.Int(typeName.variables.size() * IrType.MAX_BYTE_SIZE));
                     if (typeName.constructor != null) {
                         callFunction(typeName.constructor, List.of(), result);
                     }
@@ -161,13 +161,13 @@ public class IrBuilder {
                     yield visitExpression(arrayCreator.initializer); // treat array itself as new
                 } else {
                     List<IrType> argumentTypes = new ArrayList<>();
-                    List<Variable> arguments = new ArrayList<>();
+                    List<Operand> arguments = new ArrayList<>();
                     argumentTypes.add(IrType.I32);
-                    arguments.add(new Constant.Int(IrType.MAX_BYTE_SIZE));
+                    arguments.add(new IrConstant.Int(IrType.MAX_BYTE_SIZE));
                     argumentTypes.add(IrType.I32);
-                    arguments.add(new Constant.Int(arrayCreator.dimensions.size()));
+                    arguments.add(new IrConstant.Int(arrayCreator.dimensions.size()));
                     argumentTypes.add(IrType.I32);
-                    arguments.add(new Constant.Int(arrayCreator.presentDimensions.size()));
+                    arguments.add(new IrConstant.Int(arrayCreator.presentDimensions.size()));
                     arrayCreator.presentDimensions.forEach(dimension -> {
                         argumentTypes.add(IrType.I32);
                         arguments.add(visitExpression(dimension));
@@ -186,7 +186,7 @@ public class IrBuilder {
                 Register pointer = visitExpressionLvalue(postUnaryAssign.expression);
                 Register data = loadPointer(IrType.I32, pointer);
                 Register result = currentFunction.add(new InstructionIr.Bin(currentFunction.createTemporary(postUnaryAssign.operator.getIrPrefix()),
-                        postUnaryAssign.operator.irOperator, IrType.I32, data, new Constant.Int(1)));
+                        postUnaryAssign.operator.irOperator, IrType.I32, data, new IrConstant.Int(1)));
                 storePointer(IrType.I32, result, pointer);
                 yield data;
             }
@@ -195,13 +195,13 @@ public class IrBuilder {
             case ExpressionAst.PreUnary preUnary -> switch (preUnary.operator) {
                 case SUB ->
                         currentFunction.add(new InstructionIr.Bin(currentFunction.createTemporary(preUnary.operator.getIrPrefix()),
-                                IrOperator.SUB, IrType.I32, new Constant.Int(0), visitExpression(preUnary.expression)));
+                                IrOperator.SUB, IrType.I32, new IrConstant.Int(0), visitExpression(preUnary.expression)));
                 case NOT ->
                         currentFunction.add(new InstructionIr.Bin(currentFunction.createTemporary(preUnary.operator.getIrPrefix()),
-                                IrOperator.XOR, IrType.I32, new Constant.Int(-1), visitExpression(preUnary.expression)));
+                                IrOperator.XOR, IrType.I32, new IrConstant.Int(-1), visitExpression(preUnary.expression)));
                 case LOGICAL_NOT ->
                         currentFunction.add(new InstructionIr.Bin(currentFunction.createTemporary(preUnary.operator.getIrPrefix()),
-                                IrOperator.XOR, IrType.I1, new Constant.Bool(true), visitExpression(preUnary.expression)));
+                                IrOperator.XOR, IrType.I1, new IrConstant.Bool(true), visitExpression(preUnary.expression)));
                 default -> throw new IllegalArgumentException();
             };
             case ExpressionAst.Binary binary -> switch (binary.operator) {
@@ -216,7 +216,7 @@ public class IrBuilder {
                         currentFunction.add(new InstructionIr.Icmp(currentFunction.createTemporary(binary.operator.getIrPrefix()),
                                 binary.operator.irOperator, IrType.I32,
                                 callGlobalFunction(BuiltinFeatures.COMPARE_STRING,
-                                        visitExpression(binary.left), visitExpression(binary.right)), new Constant.Int(0))) :
+                                        visitExpression(binary.left), visitExpression(binary.right)), new IrConstant.Int(0))) :
                         currentFunction.add(new InstructionIr.Icmp(currentFunction.createTemporary(binary.operator.getIrPrefix()),
                                 binary.operator.irOperator, binary.left.type.irType(), visitExpression(binary.left), visitExpression(binary.right)));
                 case LOGICAL_AND, LOGICAL_OR -> {
@@ -227,10 +227,10 @@ public class IrBuilder {
                     String lastCurrentLabel = currentFunction.newBlock(isOr ?
                             new InstructionIr.Br(visitExpression(binary.left), endLabel, rightLabel) :
                             new InstructionIr.Br(visitExpression(binary.left), rightLabel, endLabel), rightLabel);
-                    Variable rightValue = visitExpression(binary.right);
+                    Operand rightValue = visitExpression(binary.right);
                     currentFunction.newBlock(new InstructionIr.Jump(endLabel), endLabel);
                     yield currentFunction.add(new InstructionIr.Phi(currentFunction.createTemporary(binary.operator.getIrPrefix()),
-                            IrType.I1, new Constant.Bool(isOr), lastCurrentLabel, rightValue, rightLabel));
+                            IrType.I1, new IrConstant.Bool(isOr), lastCurrentLabel, rightValue, rightLabel));
                 }
                 default -> throw new IllegalArgumentException();
             };
@@ -240,9 +240,9 @@ public class IrBuilder {
                 String falseLabel = IrNamer.append(labelName, "false");
                 String endLabel = IrNamer.append(labelName, "end");
                 currentFunction.newBlock(new InstructionIr.Br(visitExpression(conditional.condition), trueLabel, falseLabel), trueLabel);
-                Variable trueValue = visitExpression(conditional.trueExpression);
+                Operand trueValue = visitExpression(conditional.trueExpression);
                 String lastTrueLabel = currentFunction.newBlock(new InstructionIr.Jump(endLabel), falseLabel);
-                Variable falseValue = visitExpression(conditional.falseExpression);
+                Operand falseValue = visitExpression(conditional.falseExpression);
                 String lastFalseLabel = currentFunction.newBlock(new InstructionIr.Jump(endLabel), endLabel);
                 yield conditional.type.isVoid() ? null :
                         currentFunction.add(new InstructionIr.Phi(currentFunction.createTemporary("conditional"),
@@ -341,7 +341,7 @@ public class IrBuilder {
 
     // used in format string
     private Register toStringExpression(ExpressionOrArrayAst expression) {
-        Variable expressionResult = visitExpression(expression);
+        Operand expressionResult = visitExpression(expression);
         if (expression.type.isInt()) {
             return callGlobalFunction(BuiltinFeatures.TO_STRING, expressionResult);
         }
@@ -355,25 +355,25 @@ public class IrBuilder {
         return currentFunction.add(new InstructionIr.Load(currentFunction.createTemporary("load"), type, pointer));
     }
 
-    private void storePointer(IrType type, Variable value, Register pointer) {
+    private void storePointer(IrType type, Operand value, Register pointer) {
         currentFunction.add(new InstructionIr.Store(type, value, pointer));
     }
 
     // remember to add this ptr into arguments if necessary
     @Nullable
-    private Register callFunction(Symbol.Function symbol, List<Variable> arguments, @Nullable Register thisPointer) {
+    private Register callFunction(Symbol.Function symbol, List<Operand> arguments, @Nullable Register thisPointer) {
         Register result = symbol.returnType.isVoid() ? null : currentFunction.createTemporary("call");
         return currentFunction.add(new InstructionIr.Call(result,
                 symbol.returnType.irType(), symbol.irName, getParameterTypes(symbol), getArguments(arguments, thisPointer)));
     }
 
     @Nullable
-    private Register callGlobalFunction(Symbol.Function symbol, Variable... arguments) {
+    private Register callGlobalFunction(Symbol.Function symbol, Operand... arguments) {
         return callFunction(symbol, List.of(arguments), null);
     }
 
     @Nullable
-    private Register callFunctionVarargs(Symbol.Function symbol, List<IrType> argumentTypes, List<Variable> arguments) {
+    private Register callFunctionVarargs(Symbol.Function symbol, List<IrType> argumentTypes, List<Operand> arguments) {
         Register result = symbol.returnType.isVoid() ? null : currentFunction.createTemporary("call");
         return currentFunction.add(new InstructionIr.CallVarargs(result,
                 symbol.returnType.irType(), symbol.irName, getParameterTypes(symbol), argumentTypes, arguments));
@@ -391,8 +391,8 @@ public class IrBuilder {
         program.functionVarargsDeclarations.add(new FunctionVarargsDeclarationIr(symbol.irName, symbol.returnType.irType(), getParameterTypes(symbol)));
     }
 
-    private List<Variable> getArguments(List<Variable> arguments, @Nullable Register thisPointer) {
-        List<Variable> result = new ArrayList<>();
+    private List<Operand> getArguments(List<Operand> arguments, @Nullable Register thisPointer) {
+        List<Operand> result = new ArrayList<>();
         if (thisPointer != null) { // add this ptr into arguments if necessary
             result.add(thisPointer);
         }

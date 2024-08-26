@@ -1,21 +1,21 @@
 package modist.antlrdemo.frontend.ir.metadata;
 
-public sealed interface Constant extends Variable {
-    record Int(int value) implements Constant {
+public sealed interface IrConstant extends Operand {
+    record Int(int value) implements IrConstant {
         @Override
         public String toString() {
             return Integer.toString(value);
         }
     }
 
-    record Bool(boolean value) implements Constant {
+    record Bool(boolean value) implements IrConstant {
         @Override
         public String toString() {
             return Boolean.toString(value);
         }
     }
 
-    enum Null implements Constant {
+    enum Null implements IrConstant {
         INSTANCE;
 
         @Override

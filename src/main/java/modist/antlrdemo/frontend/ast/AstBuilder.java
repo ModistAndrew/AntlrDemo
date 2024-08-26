@@ -304,7 +304,7 @@ public class AstBuilder implements MxVisitor<Ast> {
     @Override
     public ExpressionAst.Literal visitLiteral(MxParser.LiteralContext ctx) {
         ExpressionAst.Literal literalNode = withPosition(new ExpressionAst.Literal(), ctx);
-        literalNode.value = TokenUtil.getLiteralEnum(ctx.start);
+        literalNode.value = TokenUtil.getConstant(ctx.start);
         return literalNode;
     }
 

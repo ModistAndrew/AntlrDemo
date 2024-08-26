@@ -1,6 +1,6 @@
 package modist.antlrdemo.frontend.ast.node;
 
-import modist.antlrdemo.frontend.ast.metadata.LiteralEnum;
+import modist.antlrdemo.frontend.ast.metadata.Constant;
 import modist.antlrdemo.frontend.ast.metadata.Operator;
 import modist.antlrdemo.frontend.semantic.Symbol;
 import org.jetbrains.annotations.Nullable;
@@ -12,7 +12,7 @@ public abstract sealed class ExpressionAst extends ExpressionOrArrayAst implemen
     }
 
     public static final class Literal extends ExpressionAst {
-        public LiteralEnum value;
+        public Constant value;
     }
 
     public static final class FormatString extends ExpressionAst {

@@ -1,6 +1,6 @@
 package modist.antlrdemo.frontend.semantic;
 
-import modist.antlrdemo.frontend.ast.metadata.LiteralEnum;
+import modist.antlrdemo.frontend.ast.metadata.Constant;
 import modist.antlrdemo.frontend.ast.metadata.Operator;
 import modist.antlrdemo.frontend.ir.metadata.IrType;
 import modist.antlrdemo.frontend.semantic.error.*;
@@ -184,10 +184,10 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
                     yield new Type(scope.classType);
                 }
                 case ExpressionAst.Literal literal -> switch (literal.value) {
-                    case LiteralEnum.Int ignored -> BuiltinFeatures.INT;
-                    case LiteralEnum.Bool ignored -> BuiltinFeatures.BOOL;
-                    case LiteralEnum.Str ignored -> BuiltinFeatures.STRING;
-                    case LiteralEnum.Null ignored -> NULL;
+                    case Constant.Int ignored -> BuiltinFeatures.INT;
+                    case Constant.Bool ignored -> BuiltinFeatures.BOOL;
+                    case Constant.Str ignored -> BuiltinFeatures.STRING;
+                    case Constant.Null ignored -> NULL;
                 };
                 case ExpressionAst.FormatString formatString -> {
                     formatString.expressions.forEach(child -> build(child).testType(Type::canFormat, "string, int or bool"));

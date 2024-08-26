@@ -1,6 +1,6 @@
 package modist.antlrdemo.frontend.ast;
 
-import modist.antlrdemo.frontend.ast.metadata.LiteralEnum;
+import modist.antlrdemo.frontend.ast.metadata.Constant;
 import modist.antlrdemo.frontend.ast.metadata.Operator;
 import modist.antlrdemo.frontend.ast.metadata.Position;
 import modist.antlrdemo.frontend.grammar.MxLexer;
@@ -21,12 +21,12 @@ public class TokenUtil {
         return Operator.valueOf(MxLexer.VOCABULARY.getSymbolicName(token.getType()));
     }
 
-    public static LiteralEnum getLiteralEnum(Token token) {
+    public static Constant getConstant(Token token) {
         return switch (token.getType()) {
-            case MxLexer.IntegerLiteral -> new LiteralEnum.Int(Integer.parseInt(token.getText()));
-            case MxLexer.StringLiteral -> new LiteralEnum.Str(unesacpeString(token));
-            case MxLexer.BooleanLiteral -> new LiteralEnum.Bool(Boolean.parseBoolean(token.getText()));
-            case MxLexer.NULL -> LiteralEnum.Null.INSTANCE;
+            case MxLexer.IntegerLiteral -> new Constant.Int(Integer.parseInt(token.getText()));
+            case MxLexer.StringLiteral -> new Constant.Str(unesacpeString(token));
+            case MxLexer.BooleanLiteral -> new Constant.Bool(Boolean.parseBoolean(token.getText()));
+            case MxLexer.NULL -> Constant.Null.INSTANCE;
             default -> throw new IllegalArgumentException();
         };
     }
