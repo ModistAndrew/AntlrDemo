@@ -4,7 +4,7 @@ import subprocess
 import shutil
 
 test_file = []
-testcases_folder = 'testcases/codegen/'
+testcases_folder = 'testcases/codegen2/'
 ravel_path = '/mnt/c/Users/zjx/Desktop/Coding/cpp/ravel/cmake-build-debug/src/ravel'
 current_dir = 'C:/Users/zjx/Desktop/Coding/java/AntlrDemo/'
 builtin_asm_path = 'build/generated/clang/builtin.s'
@@ -53,7 +53,7 @@ green_msg = "\033[32m{msg}\033[0m"
 blue_msg = "\033[34m{msg}\033[0m"
 pass_cnt = 0;
 
-test_file = ['testcases/codegen/e1.mx']
+# test_file = ['testcases/codegen/e6.mx']
 for testcase in test_file:
     try:
         os.chdir(current_dir)
