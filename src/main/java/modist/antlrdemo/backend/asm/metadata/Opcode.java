@@ -9,7 +9,7 @@ public enum Opcode {
     SLLI, SRAI,
     ANDI, ORI, XORI,
     SLTI,
-    SEQZ, SNEZ, NOT;
+    SEQZ, SNEZ;
 
     @Override
     public String toString() {

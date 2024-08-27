@@ -99,7 +99,7 @@ public class AsmBuilder {
                         load(icmp.operator() == IrOperator.SLT ? icmp.left() : icmp.right()),
                         load(icmp.operator() == IrOperator.SLT ? icmp.right() : icmp.left())));
                 case SLE, SGE -> add(new InstructionAsm.Un(temp(),
-                        Opcode.NOT, add(new InstructionAsm.Bin(temp(), Opcode.SLT,
+                        Opcode.SEQZ, add(new InstructionAsm.Bin(temp(), Opcode.SLT,
                         load(icmp.operator() == IrOperator.SGE ? icmp.left() : icmp.right()),
                         load(icmp.operator() == IrOperator.SGE ? icmp.right() : icmp.left())))));
                 default -> throw new IllegalArgumentException();
