@@ -9,3 +9,4 @@ else{
 print("i is less than k");
 }
 }
+int uu;

@@ -43,7 +43,4 @@ public sealed interface InstructionAsm extends Asm {
 
     record Ret() implements InstructionAsm {
     }
-
-    record Mv(Register destination, Register value) implements InstructionAsm {
-    }
 }

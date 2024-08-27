@@ -63,15 +63,13 @@ public class IrPrinter {
                     functionVarargsDeclaration.returnType(), functionVarargsDeclaration.name(),
                     toStringTypesVarargs(functionVarargsDeclaration.parameterTypes()));
             case FunctionIr function -> {
-                printStream.printf("define %s %s(%s) ",
+                printStream.printf("define %s %s(%s) {%n",
                         function.returnType, function.name, toStringArguments(function.parameterTypes, function.parameters));
-                printStream.println("{");
                 function.body.forEach(this::print);
                 printStream.println("}");
             }
             case BlockIr block -> {
-                printStream.print(block.label);
-                printStream.println(":");
+                printStream.printf("%s:%n", block.label);
                 push();
                 block.instructions.forEach(this::println);
                 pop();

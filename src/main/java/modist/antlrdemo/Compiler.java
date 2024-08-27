@@ -1,6 +1,7 @@
 package modist.antlrdemo;
 
 import modist.antlrdemo.backend.AsmBuilder;
+import modist.antlrdemo.backend.AsmPrinter;
 import modist.antlrdemo.backend.asm.ProgramAsm;
 import modist.antlrdemo.frontend.ir.IrPrinter;
 import modist.antlrdemo.frontend.semantic.error.CompileException;
@@ -26,11 +27,10 @@ public class Compiler {
         try {
             ProgramIr ir = frontend();
             ProgramAsm asm = backend(ir);
-            System.out.println(asm);
+            new AsmPrinter(System.out).print(asm);
         } catch (CompileException e) {
             if (argList.contains("--debug")) {
-                System.err.printf("%s at [%s]: %s", e.getErrorType(), e.getPosition(), e.getMessage());
-                System.err.println();
+                System.err.printf("%s at [%s]: %s%n", e.getErrorType(), e.getPosition(), e.getMessage());
                 throw e;
             } else {
                 System.out.println(e.getErrorType());

@@ -19,7 +19,7 @@ public class AsmBuilder {
         programIr.globalVariables.forEach(globalVariable ->
                 program.data.add(new GlobalVariableAsm(globalVariable.result().name())));
         programIr.constantStrings.forEach(constantString ->
-                program.roData.add(new ConstantStringAsm(constantString.result().name(), constantString.value())));
+                program.rodata.add(new ConstantStringAsm(constantString.result().name(), constantString.value())));
         programIr.functions.forEach(function -> {
             currentFunction = new FunctionBuilder(function);
             function.body.forEach(block -> {
