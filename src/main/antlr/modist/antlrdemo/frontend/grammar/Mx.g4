@@ -173,6 +173,6 @@ LBRACE: '{';
 RBRACE: '}';
 
 // whitespace and comments
-WhiteSpace: [ \t\n]+ -> skip;
+WhiteSpace: [ \t\r\n]+ -> skip;
 LineComment: '//' ~[\r\n]* -> skip;
 BlockComment: '/*' .*? '*/' -> skip;

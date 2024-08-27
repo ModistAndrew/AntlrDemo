@@ -42,7 +42,7 @@ public abstract class Symbol {
         private Variable(Scope scope, DefinitionAst.Variable definition, String irName, @Nullable TypeName classType, int memberIndex) {
             this(definition.name, definition.position, irName, new Type(scope, definition.type), classType, memberIndex);
             if (definition.initializer != null) {
-                new Type.Builder(scope).tryMatchExpression(definition.initializer, type);
+                new Type.Builder(scope).matchExpression(definition.initializer, type);
             }
             definition.symbol = this;
         }

@@ -58,7 +58,7 @@ public class SemanticChecker {
                     variableDefinitionsStatement.variables.forEach(this::check);
             case StatementAst.If ifStatement -> {
                 check(ifStatement.condition);
-                ifStatement.condition.type.testType(BuiltinFeatures.BOOL);
+                ifStatement.condition.type.test(BuiltinFeatures.BOOL);
                 pushScope(new ChildScope(scope, ifStatement));
                 ifStatement.thenStatements.forEach(this::check);
                 popScope();
@@ -75,7 +75,7 @@ public class SemanticChecker {
                 }
                 if (forStatement.condition != null) {
                     check(forStatement.condition);
-                    forStatement.condition.type.testType(BuiltinFeatures.BOOL);
+                    forStatement.condition.type.test(BuiltinFeatures.BOOL);
                 }
                 if (forStatement.update != null) {
                     check(forStatement.update);
@@ -85,7 +85,7 @@ public class SemanticChecker {
             }
             case StatementAst.While whileStatement -> {
                 check(whileStatement.condition);
-                whileStatement.condition.type.testType(BuiltinFeatures.BOOL);
+                whileStatement.condition.type.test(BuiltinFeatures.BOOL);
                 pushScope(new ChildScope(scope, whileStatement));
                 whileStatement.statements.forEach(this::check);
                 popScope();
@@ -113,7 +113,7 @@ public class SemanticChecker {
                 } else if (returnStatement.expression == null) {
                     throw new TypeMismatchException(BuiltinFeatures.VOID, scope.returnType);
                 } else {
-                    new Type.Builder(scope).tryMatchExpression(returnStatement.expression, scope.returnType);
+                    new Type.Builder(scope).matchExpression(returnStatement.expression, scope.returnType);
                 }
                 scope.returned = true;
             }
@@ -122,7 +122,7 @@ public class SemanticChecker {
             }
             case TypeAst ignored -> throw new UnsupportedOperationException();
             case ArrayAst ignored ->
-                    throw new UnsupportedOperationException(); // should not visit directly. must use tryMatchExpression for type info
+                    throw new UnsupportedOperationException();
         }
     }
 }

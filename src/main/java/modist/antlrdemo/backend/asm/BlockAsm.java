@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class BlockAsm implements Asm {
-    public String name;
+    public final String label;
     public final List<InstructionAsm> instructions = new ArrayList<>();
+
+    public BlockAsm(String label) {
+        this.label = label;
+    }
 }

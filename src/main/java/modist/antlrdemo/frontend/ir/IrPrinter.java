@@ -1,7 +1,7 @@
 package modist.antlrdemo.frontend.ir;
 
 import modist.antlrdemo.frontend.ir.metadata.IrType;
-import modist.antlrdemo.frontend.ir.metadata.Operand;
+import modist.antlrdemo.frontend.ir.metadata.IrOperand;
 import modist.antlrdemo.frontend.ir.node.*;
 
 import java.io.PrintStream;
@@ -129,13 +129,13 @@ public class IrPrinter {
         return String.join(", ", types.stream().map(Object::toString).toList()) + ", ...";
     }
 
-    private String toStringArguments(List<IrType> argumentTypes, List<? extends Operand> arguments) {
+    private String toStringArguments(List<IrType> argumentTypes, List<? extends IrOperand> arguments) {
         return String.join(", ",
                 IntStream.range(0, argumentTypes.size()).mapToObj(i -> String.format("%s %s", argumentTypes.get(i), arguments.get(i)))
                         .toList());
     }
 
-    private String toStringPhiPairs(List<Operand> values, List<String> labels) {
+    private String toStringPhiPairs(List<IrOperand> values, List<String> labels) {
         return String.join(", ",
                 IntStream.range(0, values.size()).mapToObj(i -> String.format("[ %s, %s ]", values.get(i), IrNamer.labelValue(labels.get(i))))
                         .toList());

@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 
 public enum Operator {
     // names correspond to the grammar
+    // ir operators are used in the ir generation phase to simplify switch cases
     INC(IrOperator.ADD), DEC(IrOperator.SUB), NOT, LOGICAL_NOT,
     ADD(IrOperator.ADD), SUB(IrOperator.SUB), MUL(IrOperator.MUL), DIV(IrOperator.SDIV),
     MOD(IrOperator.SREM), SHL(IrOperator.SHL), SHR(IrOperator.ASHR),

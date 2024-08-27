@@ -2,66 +2,73 @@ package modist.antlrdemo.frontend.ir.node;
 
 import modist.antlrdemo.frontend.ir.metadata.IrOperator;
 import modist.antlrdemo.frontend.ir.metadata.IrType;
-import modist.antlrdemo.frontend.ir.metadata.Operand;
-import modist.antlrdemo.frontend.ir.metadata.Register;
+import modist.antlrdemo.frontend.ir.metadata.IrOperand;
+import modist.antlrdemo.frontend.ir.metadata.IrRegister;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 public sealed interface InstructionIr extends Ir {
     sealed interface Result extends InstructionIr {
-        Register result();
+        IrRegister result();
     }
 
     sealed interface End extends InstructionIr {
     }
 
-    record Bin(Register result, IrOperator operator, IrType type, Operand left,
-               Operand right) implements Result {
+    record Bin(IrRegister result, IrOperator operator, IrType type, IrOperand left,
+               IrOperand right) implements Result {
     }
 
-    record Icmp(Register result, IrOperator operator, IrType type, Operand left,
-                Operand right) implements Result {
+    record Icmp(IrRegister result, IrOperator operator, IrType type, IrOperand left,
+                IrOperand right) implements Result {
     }
 
-    record Br(Operand condition, String trueLabel, String falseLabel) implements End {
+    record Br(IrOperand condition, String trueLabel, String falseLabel) implements End {
     }
 
     record Jump(String label) implements End {
     }
 
-    record Ret(IrType type, @Nullable Operand value) implements End {
+    record Ret(IrType type, @Nullable IrOperand value) implements End {
         public Ret(IrType type) {
             this(type, type.defaultValue);
         }
     }
 
-    record Alloca(Register result, IrType type) implements Result {
+    record Alloca(IrRegister result, IrType type) implements Result {
     }
 
-    record Load(Register result, IrType type, Register pointer) implements Result {
+    record Load(IrRegister result, IrType type, IrRegister pointer) implements Result {
     }
 
-    record Store(IrType type, Operand value, Register pointer) implements InstructionIr {
+    record Store(IrType type, IrOperand value, IrRegister pointer) implements InstructionIr {
     }
 
-    record MemberVariable(Register result, String type, Register pointer, int memberIndex) implements Result {
+    record MemberVariable(IrRegister result, String type, IrRegister pointer, int memberIndex) implements Result {
     }
 
-    record Subscript(Register result, IrType type, Register pointer, Operand index) implements Result {
+    record Subscript(IrRegister result, IrType type, IrRegister pointer, IrOperand index) implements Result {
     }
 
-    record Call(@Nullable Register result, IrType type, String function, List<IrType> argumentTypes,
-                List<Operand> arguments) implements Result {
+    sealed interface FunctionCall extends Result {
+        IrType type();
+        String function();
+        List<IrType> argumentTypes();
+        List<IrOperand> arguments();
+    }
+
+    record Call(@Nullable IrRegister result, IrType type, String function, List<IrType> argumentTypes,
+                List<IrOperand> arguments) implements FunctionCall {
     }
 
     // used in builtin global functions
-    record CallVarargs(@Nullable Register result, IrType type, String function, List<IrType> functionArgumentTypes,
-                       List<IrType> argumentTypes, List<Operand> arguments) implements Result {
+    record CallVarargs(@Nullable IrRegister result, IrType type, String function, List<IrType> functionArgumentTypes,
+                       List<IrType> argumentTypes, List<IrOperand> arguments) implements FunctionCall {
     }
 
-    record Phi(Register result, IrType type, List<Operand> values, List<String> labels) implements Result {
-        public Phi(Register result, IrType type, Operand value1, String label1, Operand value2, String label2) {
+    record Phi(IrRegister result, IrType type, List<IrOperand> values, List<String> labels) implements Result {
+        public Phi(IrRegister result, IrType type, IrOperand value1, String label1, IrOperand value2, String label2) {
             this(result, type, List.of(value1, value2), List.of(label1, label2));
         }
     }

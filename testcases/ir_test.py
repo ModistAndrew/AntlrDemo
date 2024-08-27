@@ -52,7 +52,7 @@ green_msg = "\033[32m{msg}\033[0m"
 blue_msg = "\033[34m{msg}\033[0m"
 pass_cnt = 0;
 
-test_file = ['testcases/codegen/e1.mx']
+# test_file = ['testcases/test.mx']
 for testcase in test_file:
     try:
         content, input_data, output_data, exitcode = extract_input_output_exitcode(testcase)

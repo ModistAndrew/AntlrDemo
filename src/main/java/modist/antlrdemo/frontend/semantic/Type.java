@@ -83,7 +83,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
 
     // return the narrower type if matched, throw exception otherwise
     // this should be a typical situation of TypeMismatchException
-    public Type tryMatch(Type other) {
+    public Type match(Type other) {
         if (equals(other)) {
             return this;
         }
@@ -106,7 +106,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
     }
 
     // throw InvalidTypeException if not valid
-    public void testType(Type expectedType) {
+    public void test(Type expectedType) {
         Objects.requireNonNull(expectedType);
         if (equals(expectedType)) {
             return;
@@ -118,7 +118,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
     }
 
     // throw InvalidTypeException if not valid
-    public void testType(Predicate<Type> predicate, String predicateDescription) {
+    public void test(Predicate<Type> predicate, String predicateDescription) {
         if (predicate.test(this)) {
             return;
         }
@@ -154,20 +154,21 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
             return type;
         }
 
+        // array should not be visited directly. must use matchExpression for type information
         // return expectedType if matched, throw exception otherwise
         // we throw TypeMismatchException instead of InvalidTypeException because this function is used to check an ExpressionOrArrayAst against a declared type
-        public Type tryMatchExpression(ExpressionOrArrayAst expressionOrArray, Type expectedType) {
+        public Type matchExpression(ExpressionOrArrayAst expressionOrArray, Type expectedType) {
             Objects.requireNonNull(expectedType.typeName());
             expressionOrArray.type = expectedType;
             return switch (expressionOrArray) {
                 case ExpressionAst expression ->
-                        build(expression).tryMatch(expectedType); // we use tryMatch just for throwing TypeMismatchException; expectedType is already checked
+                        build(expression).match(expectedType); // we use match just for throwing TypeMismatchException; expectedType is already checked
                 case ArrayAst array -> {
                     if (!expectedType.isArray()) {
                         throw new TypeMismatchException("array", expectedType);
                     }
                     Type expectedElementType = expectedType.decreaseDimension();
-                    array.elements.forEach(child -> tryMatchExpression(child, expectedElementType));
+                    array.elements.forEach(child -> matchExpression(child, expectedElementType));
                     yield expectedType;
                 }
             };
@@ -190,7 +191,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
                     case Constant.Null ignored -> NULL;
                 };
                 case ExpressionAst.FormatString formatString -> {
-                    formatString.expressions.forEach(child -> build(child).testType(Type::canFormat, "string, int or bool"));
+                    formatString.expressions.forEach(child -> build(child).test(Type::canFormat, "string, int or bool"));
                     yield BuiltinFeatures.STRING;
                 }
                 case ExpressionAst.Creator creator -> {
@@ -206,7 +207,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
                                 throw new CompileException("Brace array initializer should be used with no dimension length specified");
                             }
                         });
-                        yield tryMatchExpression(arrayCreator.initializer, type);
+                        yield matchExpression(arrayCreator.initializer, type);
                     }
                     if (arrayCreator.dimensions.getFirst() == null) {
                         throw new CompileException("Empty array initializer should be used with at least the first dimension length specified");
@@ -221,7 +222,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
                             if (dimensionLength == null) {
                                 startEmpty = true;
                             } else {
-                                build(dimensionLength).testType(BuiltinFeatures.INT);
+                                build(dimensionLength).test(BuiltinFeatures.INT);
                                 arrayCreator.presentDimensions.add(dimensionLength);
                             }
                         }
@@ -234,7 +235,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
                     if (!arrayType.isArray()) {
                         throw new DimensionOutOfBoundException();
                     }
-                    build(subscript.index).testType(BuiltinFeatures.INT);
+                    build(subscript.index).test(BuiltinFeatures.INT);
                     yield arrayType.decreaseDimension();
                 }
                 case ExpressionAst.Variable variable -> {
@@ -253,7 +254,7 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
                                 function.name, symbol.parameters.size(), function.arguments.size()));
                     }
                     for (int i = 0; i < function.arguments.size(); i++) {
-                        tryMatchExpression(function.arguments.get(i), symbol.parameters.list.get(i).type);
+                        matchExpression(function.arguments.get(i), symbol.parameters.list.get(i).type);
                     }
                     function.symbol = symbol;
                     yield symbol.returnType;
@@ -267,13 +268,13 @@ public record Type(@Nullable Symbol.TypeName typeName, int dimension) {
                 case ExpressionAst.PreUnary preUnary ->
                         build(preUnary.expression).getOperationResult(preUnary.operator);
                 case ExpressionAst.Binary binary ->
-                        build(binary.left).tryMatch(build(binary.right)).getOperationResult(binary.operator);
+                        build(binary.left).match(build(binary.right)).getOperationResult(binary.operator);
                 case ExpressionAst.Conditional conditional -> {
-                    build(conditional.condition).testType(BuiltinFeatures.BOOL);
-                    yield build(conditional.trueExpression).tryMatch(build(conditional.falseExpression));
+                    build(conditional.condition).test(BuiltinFeatures.BOOL);
+                    yield build(conditional.trueExpression).match(build(conditional.falseExpression));
                 }
                 case ExpressionAst.Assign assign -> {
-                    tryMatchExpression(assign.right, buildLvalue(assign.left));
+                    matchExpression(assign.right, buildLvalue(assign.left));
                     yield BuiltinFeatures.VOID;
                 }
             };

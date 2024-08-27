@@ -2,7 +2,7 @@ package modist.antlrdemo.frontend.ir.node;
 
 import modist.antlrdemo.frontend.ir.IrNamer;
 import modist.antlrdemo.frontend.ir.metadata.IrType;
-import modist.antlrdemo.frontend.ir.metadata.Register;
+import modist.antlrdemo.frontend.ir.metadata.IrRegister;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,11 +10,11 @@ import java.util.List;
 public final class FunctionIr implements Ir {
     public final String name;
     public final IrType returnType;
-    public final List<Register> parameters;
+    public final List<IrRegister> parameters;
     public final List<IrType> parameterTypes;
     public final List<BlockIr> body = new ArrayList<>();
 
-    private FunctionIr(String name, IrType returnType, List<Register> parameters, List<IrType> parameterTypes) {
+    private FunctionIr(String name, IrType returnType, List<IrRegister> parameters, List<IrType> parameterTypes) {
         this.name = name;
         this.returnType = returnType;
         this.parameters = parameters;
@@ -28,7 +28,7 @@ public final class FunctionIr implements Ir {
         public IrNamer irNamer;
 
         // (begin -> add* -> (newBlock -> add* ->)* build)*
-        public void begin(String name, IrType returnType, List<Register> parameters, List<IrType> parameterTypes) {
+        public void begin(String name, IrType returnType, List<IrRegister> parameters, List<IrType> parameterTypes) {
             current = new FunctionIr(name, returnType, parameters, parameterTypes);
             currentBlock.begin(IrNamer.FUNCTION_ENTRY);
             irNamer = new IrNamer();
@@ -38,7 +38,7 @@ public final class FunctionIr implements Ir {
             currentBlock.add(instruction);
         }
 
-        public Register add(InstructionIr.Result instruction) {
+        public IrRegister add(InstructionIr.Result instruction) {
             currentBlock.add(instruction);
             return instruction.result();
         }
@@ -56,8 +56,8 @@ public final class FunctionIr implements Ir {
             return current;
         }
 
-        public Register createTemporary(String prefix) {
-            return new Register(irNamer.temporaryVariable(prefix));
+        public IrRegister createTemporary(String prefix) {
+            return new IrRegister(irNamer.temporaryVariable(prefix));
         }
     }
 }

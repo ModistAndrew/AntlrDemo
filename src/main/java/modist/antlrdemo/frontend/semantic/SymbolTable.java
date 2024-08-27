@@ -4,9 +4,10 @@ import modist.antlrdemo.frontend.semantic.error.MultipleDefinitionsException;
 import modist.antlrdemo.frontend.semantic.error.UndefinedIdentifierException;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class SymbolTable<T extends Symbol> {
-    private final HashMap<String, T> table = new HashMap<>();
+    private final Map<String, T> table = new HashMap<>();
 
     public void declare(T value) {
         table.merge(value.name, value, (oldValue, newValue) -> {
