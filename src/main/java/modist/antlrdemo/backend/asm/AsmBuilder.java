@@ -36,10 +36,15 @@ public class AsmBuilder {
     private void visit(InstructionIr ir) {
         switch (ir) {
             case InstructionIr.Result result -> {
-                Register destination = visitResult(result);
-                if (result.result() != null) {
-                    currentFunction.allocRegister(result.result());
-                    store(result.result(), destination);
+                Register data = visitResult(result);
+                IrRegister destination = result.result();
+                if (destination != null) {
+                    if (destination.isGlobal()) {
+                        add(new InstructionAsm.SwLabel(data, destination.name()));
+                    } else {
+                        currentFunction.allocRegister(destination);
+                        currentFunction.storeIrRegister(destination, data);
+                    }
                 }
             }
             case InstructionIr.Store store -> add(new InstructionAsm.Sw(load(store.value()), 0, load(store.pointer())));
@@ -103,10 +108,12 @@ public class AsmBuilder {
     }
 
     // may load from global variables, local variables or constants
+    // specially notice that global variables are addresses in IR while we store the data directly in .data section
+    // as a result, we need to use La instruction to get the address of the global variable
     private Register load(IrOperand operand, Register destination) {
         return switch (operand) {
             case IrRegister register -> register.isGlobal() ?
-                    add(new InstructionAsm.LwLabel(destination, register.name())) :
+                    add(new InstructionAsm.La(destination, register.name())) :
                     currentFunction.loadIrRegister(register, destination);
             case IrConstant constant -> add(new InstructionAsm.Li(destination, constant.asImmediate()));
         };
@@ -114,15 +121,6 @@ public class AsmBuilder {
 
     private Register load(IrOperand operand) {
         return load(operand, temp());
-    }
-
-    // may store to global variables or local variables
-    private void store(IrRegister register, Register value) {
-        if (register.isGlobal()) {
-            add(new InstructionAsm.SwLabel(value, register.name()));
-        } else {
-            currentFunction.storeIrRegister(register, value);
-        }
     }
 
     private void add(InstructionAsm instruction) {

@@ -52,9 +52,9 @@ public class AsmPrinter {
                     printStream.printf("%s %s, %s, %s", bin.opcode(), bin.result(), bin.left(), bin.right());
             case InstructionAsm.BinImm binImm ->
                     printStream.printf("%s %s, %s, %d", binImm.opcode(), binImm.result(), binImm.left(), binImm.immediate());
+            case InstructionAsm.La la -> printStream.printf("la %s, %s", la.result(), la.label());
             case InstructionAsm.Li li -> printStream.printf("li %s, %d", li.result(), li.immediate());
             case InstructionAsm.Lw lw -> printStream.printf("lw %s, %d(%s)", lw.result(), lw.offset(), lw.base());
-            case InstructionAsm.LwLabel lwLabel -> printStream.printf("lw %s, %s", lwLabel.result(), lwLabel.label());
             case InstructionAsm.Sw sw -> printStream.printf("sw %s, %d(%s)", sw.value(), sw.offset(), sw.base());
             case InstructionAsm.SwLabel swLabel -> printStream.printf("sw %s, %s", swLabel.value(), swLabel.label());
             case InstructionAsm.Beqz beqz -> printStream.printf("beqz %s, %s", beqz.value(), beqz.label());

@@ -17,13 +17,13 @@ public sealed interface InstructionAsm extends Asm {
     record BinImm(Register result, Opcode opcode, Register left, int immediate) implements Result {
     }
 
+    record La(Register result, String label) implements Result {
+    }
+
     record Li(Register result, int immediate) implements Result {
     }
 
     record Lw(Register result, int offset, Register base) implements Result {
-    }
-
-    record LwLabel(Register result, String label) implements Result {
     }
 
     record Sw(Register value, int offset, Register base) implements InstructionAsm {
