@@ -15,4 +15,17 @@ public enum Opcode {
     public String toString() {
         return name().toLowerCase();
     }
+
+    public static Opcode imm2reg(Opcode opcode) {
+        return switch (opcode) {
+            case ADDI -> ADD;
+            case SLLI -> SLL;
+            case SRAI -> SRA;
+            case ANDI -> AND;
+            case ORI -> OR;
+            case XORI -> XOR;
+            case SLTI -> SLT;
+            default -> throw new IllegalArgumentException();
+        };
+    }
 }

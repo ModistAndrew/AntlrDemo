@@ -24,7 +24,8 @@ public sealed interface InstructionIr extends Ir {
                 IrOperand right) implements Result {
     }
 
-    record Br(IrOperand condition, String trueLabel, String falseLabel) implements End {
+    // nearTrue to avoid beqz and bnez immediate out of range
+    record Br(IrOperand condition, String trueLabel, String falseLabel, boolean nearTrue) implements End {
     }
 
     record Jump(String label) implements End {

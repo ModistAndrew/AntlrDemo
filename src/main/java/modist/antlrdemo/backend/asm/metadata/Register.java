@@ -6,10 +6,11 @@ public enum Register {
     S0, S1,
     A0, A1, A2, A3, A4, A5, A6, A7,
     S2, S3, S4, S5, S6, S7, S8, S9, S10, S11,
-    T3, T4, T5, T6;
+    T3, T4, T5,
+    T6; // T6 is left for immediate value
 
     public static final int BYTE_SIZE = 4;
-    public static final Register[] TEMP_REGISTERS = {T0, T1, T2, T3, T4, T5, T6};
+    public static final Register[] TEMP_REGISTERS = {T0, T1, T2, T3, T4, T5};
     public static final Register[] ARG_REGISTERS = {A0, A1, A2, A3, A4, A5, A6, A7};
     private static int tempRegisterIndex = 0;
 

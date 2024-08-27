@@ -227,8 +227,8 @@ public class IrBuilder {
                     IrOperand leftValue = visitExpression(binary.left);
                     storePointer(IrType.I1, leftValue, resultPointer);
                     currentFunction.newBlock(isOr ?
-                            new InstructionIr.Br(leftValue, endLabel, rightLabel) :
-                            new InstructionIr.Br(leftValue, rightLabel, endLabel), rightLabel);
+                            new InstructionIr.Br(leftValue, endLabel, rightLabel, false) :
+                            new InstructionIr.Br(leftValue, rightLabel, endLabel, true), rightLabel);
                     storePointer(IrType.I1, visitExpression(binary.right), resultPointer);
                     currentFunction.newBlock(new InstructionIr.Jump(endLabel), endLabel);
                     yield loadPointer(IrType.I1, resultPointer);
@@ -242,14 +242,14 @@ public class IrBuilder {
                 String endLabel = IrNamer.append(labelName, "end");
                 if (!conditional.type.isVoid()) {
                     IrRegister resultPointer = add(new InstructionIr.Alloc(temp("conditionalPointer"), conditional.type.irType()));
-                    currentFunction.newBlock(new InstructionIr.Br(visitExpression(conditional.condition), trueLabel, falseLabel), trueLabel);
+                    currentFunction.newBlock(new InstructionIr.Br(visitExpression(conditional.condition), trueLabel, falseLabel, true), trueLabel);
                     storePointer(conditional.type.irType(), visitExpression(conditional.trueExpression), resultPointer);
                     currentFunction.newBlock(new InstructionIr.Jump(endLabel), falseLabel);
                     storePointer(conditional.type.irType(), visitExpression(conditional.falseExpression), resultPointer);
                     currentFunction.newBlock(new InstructionIr.Jump(endLabel), endLabel);
                     yield loadPointer(conditional.type.irType(), resultPointer);
                 } else {
-                    currentFunction.newBlock(new InstructionIr.Br(visitExpression(conditional.condition), trueLabel, falseLabel), trueLabel);
+                    currentFunction.newBlock(new InstructionIr.Br(visitExpression(conditional.condition), trueLabel, falseLabel, true), trueLabel);
                     visitExpression(conditional.trueExpression);
                     currentFunction.newBlock(new InstructionIr.Jump(endLabel), falseLabel);
                     visitExpression(conditional.falseExpression);
@@ -288,7 +288,7 @@ public class IrBuilder {
                 String thenLabel = IrNamer.append(labelName, "then");
                 String endLabel = IrNamer.append(labelName, "end");
                 String elseLabel = ifStatement.elseStatements == null ? endLabel : IrNamer.append(labelName, "else");
-                currentFunction.newBlock(new InstructionIr.Br(visitExpression(ifStatement.condition), thenLabel, elseLabel), thenLabel);
+                currentFunction.newBlock(new InstructionIr.Br(visitExpression(ifStatement.condition), thenLabel, elseLabel, true), thenLabel);
                 ifStatement.thenStatements.forEach(this::visit);
                 currentFunction.newBlock(new InstructionIr.Jump(endLabel), elseLabel);
                 if (ifStatement.elseStatements != null) {
@@ -307,7 +307,7 @@ public class IrBuilder {
                 String endLabel = IrNamer.appendBreak(labelName);
                 currentFunction.newBlock(new InstructionIr.Jump(conditionLabel), conditionLabel);
                 if (forStatement.condition != null) {
-                    currentFunction.newBlock(new InstructionIr.Br(visitExpression(forStatement.condition), bodyLabel, endLabel), bodyLabel);
+                    currentFunction.newBlock(new InstructionIr.Br(visitExpression(forStatement.condition), bodyLabel, endLabel, true), bodyLabel);
                 }
                 forStatement.statements.forEach(this::visit);
                 if (forStatement.update != null) {
@@ -322,7 +322,7 @@ public class IrBuilder {
                 String bodyLabel = IrNamer.append(labelName, "body");
                 String endLabel = IrNamer.appendBreak(labelName);
                 currentFunction.newBlock(new InstructionIr.Jump(conditionLabel), conditionLabel);
-                currentFunction.newBlock(new InstructionIr.Br(visitExpression(whileStatement.condition), bodyLabel, endLabel), bodyLabel);
+                currentFunction.newBlock(new InstructionIr.Br(visitExpression(whileStatement.condition), bodyLabel, endLabel, true), bodyLabel);
                 whileStatement.statements.forEach(this::visit);
                 currentFunction.newBlock(new InstructionIr.Jump(conditionLabel), endLabel);
             }

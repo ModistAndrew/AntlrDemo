@@ -49,10 +49,11 @@ public class AsmPrinter {
                     printStream.printf("%s %s, %s, %d", binImm.opcode(), binImm.result(), binImm.left(), binImm.immediate());
             case InstructionAsm.La la -> printStream.printf("la %s, %s", la.result(), la.label());
             case InstructionAsm.Li li -> printStream.printf("li %s, %d", li.result(), li.immediate());
-            case InstructionAsm.Lw lw -> printStream.printf("lw %s, %d(%s)", lw.result(), lw.offset(), lw.base());
-            case InstructionAsm.Sw sw -> printStream.printf("sw %s, %d(%s)", sw.value(), sw.offset(), sw.base());
+            case InstructionAsm.Lw lw -> printStream.printf("lw %s, %d(%s)", lw.result(), lw.immediate(), lw.base());
+            case InstructionAsm.Sw sw -> printStream.printf("sw %s, %d(%s)", sw.value(), sw.immediate(), sw.base());
             case InstructionAsm.SwLabel swLabel -> printStream.printf("sw %s, %s", swLabel.value(), swLabel.label());
             case InstructionAsm.Beqz beqz -> printStream.printf("beqz %s, %s", beqz.value(), beqz.label());
+            case InstructionAsm.Bnez bnez -> printStream.printf("bnez %s, %s", bnez.value(), bnez.label());
             case InstructionAsm.J j -> printStream.printf("j %s", j.label());
             case InstructionAsm.Call call -> printStream.printf("call %s", call.function());
             case InstructionAsm.Ret ignored -> printStream.print("ret");

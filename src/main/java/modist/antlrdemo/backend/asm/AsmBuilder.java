@@ -49,8 +49,13 @@ public class AsmBuilder {
             case InstructionIr.Store store -> add(new InstructionAsm.Sw(load(store.value()), 0, load(store.pointer())));
             case InstructionIr.Jump jump -> add(new InstructionAsm.J(currentFunction.renameLabel(jump.label())));
             case InstructionIr.Br br -> {
-                add(new InstructionAsm.Beqz(load(br.condition()), currentFunction.renameLabel(br.falseLabel())));
-                add(new InstructionAsm.J(currentFunction.renameLabel(br.trueLabel())));
+                if (br.nearTrue()) {
+                    add(new InstructionAsm.Bnez(load(br.condition()), currentFunction.renameLabel(br.trueLabel())));
+                    add(new InstructionAsm.J(currentFunction.renameLabel(br.falseLabel())));
+                } else {
+                    add(new InstructionAsm.Beqz(load(br.condition()), currentFunction.renameLabel(br.falseLabel())));
+                    add(new InstructionAsm.J(currentFunction.renameLabel(br.trueLabel())));
+                }
             }
             case InstructionIr.Ret ret -> {
                 if (ret.value() != null) {

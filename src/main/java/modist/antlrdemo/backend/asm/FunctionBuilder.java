@@ -82,12 +82,25 @@ public class FunctionBuilder {
         return size;
     }
 
+    // may perform some checks, e.g. check immediate range
     public void add(InstructionAsm instruction) {
-        current.blocks.getLast().instructions.add(instruction);
+        if (instruction instanceof InstructionAsm.Immediate immediate && !immediate.isImmInRange()) {
+            Register immediateRegister = add(new InstructionAsm.Li(Register.T6, immediate.immediate()));
+            switch (immediate) {
+                case InstructionAsm.BinImm binImm ->
+                        add(new InstructionAsm.Bin(binImm.result(), Opcode.imm2reg(binImm.opcode()), binImm.left(), immediateRegister));
+                case InstructionAsm.Lw lw -> add(new InstructionAsm.Lw(lw.result(), 0,
+                        add(new InstructionAsm.Bin(Register.T6, Opcode.ADD, immediateRegister, lw.base()))));
+                case InstructionAsm.Sw sw -> add(new InstructionAsm.Sw(sw.value(), 0,
+                        add(new InstructionAsm.Bin(Register.T6, Opcode.ADD, immediateRegister, sw.base()))));
+            }
+        } else {
+            current.blocks.getLast().instructions.add(instruction);
+        }
     }
 
     public Register add(InstructionAsm.Result instruction) {
-        current.blocks.getLast().instructions.add(instruction);
+        add((InstructionAsm) instruction);
         return instruction.result();
     }
 
