@@ -13,4 +13,8 @@ public record IrRegister(String name) implements IrOperand {
     public String toString() {
         return name;
     }
+
+    public boolean isGlobal() {
+        return IrNamer.isGlobal(name);
+    }
 }

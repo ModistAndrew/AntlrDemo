@@ -36,7 +36,7 @@ public sealed interface InstructionIr extends Ir {
         }
     }
 
-    record Alloca(IrRegister result, IrType type) implements Result {
+    record Alloc(IrRegister result, IrType type) implements Result {
     }
 
     record Load(IrRegister result, IrType type, IrRegister pointer) implements Result {

@@ -89,8 +89,8 @@ public class IrPrinter {
                     printStream.printf(" %s", ret.value());
                 }
             }
-            case InstructionIr.Alloca alloca -> printStream.printf("%s = alloca %s",
-                    alloca.result(), alloca.type());
+            case InstructionIr.Alloc alloc -> printStream.printf("%s = alloca %s",
+                    alloc.result(), alloc.type());
             case InstructionIr.Load load -> printStream.printf("%s = load %s, %s %s",
                     load.result(), load.type(), IrType.PTR, load.pointer());
             case InstructionIr.Store store -> printStream.printf("store %s %s, %s %s",

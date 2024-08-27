@@ -1,5 +1,11 @@
 int main(){
-int k;
 int i;
-bool b = k == i;
+int k;
+bool b = i >= k;
+if(b){
+print("i is greater than or equal to k");
+}
+else{
+print("i is less than k");
+}
 }

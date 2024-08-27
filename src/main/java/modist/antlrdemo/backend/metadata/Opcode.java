@@ -4,14 +4,15 @@ public enum Opcode {
     ADD, SUB, MUL, DIV, REM,
     SLL, SRA,
     AND, OR, XOR,
-    SLT, SEQZ,
+    SLT,
     ADDI,
     SLLI, SRAI,
     ANDI, ORI, XORI,
-    SLTI;
+    SLTI,
+    SEQZ, SNEZ, NOT;
 
     @Override
-    public String toString(){
+    public String toString() {
         return name().toLowerCase();
     }
 }

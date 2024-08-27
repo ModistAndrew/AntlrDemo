@@ -38,11 +38,6 @@ public final class FunctionIr implements Ir {
             currentBlock.add(instruction);
         }
 
-        public IrRegister add(InstructionIr.Result instruction) {
-            currentBlock.add(instruction);
-            return instruction.result();
-        }
-
         // returns the label of the previous block
         public String newBlock(InstructionIr.End end, String name) {
             String currentLabel = currentBlock.currentLabel();

@@ -71,6 +71,10 @@ public class IrNamer {
         return dot(name, count);
     }
 
+    public static boolean isGlobal(String name) {
+        return name.startsWith("@");
+    }
+
     private static String dot(String prefix, String name) {
         return prefix + "." + name;
     }

@@ -17,7 +17,7 @@ public enum Register {
         return TEMP_REGISTERS[tempRegisterIndex++];
     }
 
-    public static void resetTempRegister() {
+    public static void resetTempRegisters() {
         tempRegisterIndex = 0;
     }
 

@@ -25,18 +25,11 @@ public class FunctionBuilder {
     // the current stack size(in bytes)
     // saved registers should be pushed to the stack
     // one ir register occupies one stack slot(including parameters)
-    // alloc occupies one stack slot
+    // alloc instruction may enlarge the stack size
     // function call with too many arguments may enlarge the stack size
     // stackSize should be aligned
-    // registers use the stack from the top to the bottom; function parameters use the stack from the bottom to the top
-    private final Map<IrRegister, Integer> localVariables = new HashMap<>();
-
-    // allocate a stack slot for an ir register and return the offset from the stack pointer
-    private int allocRegister(IrRegister register) {
-        stackTop -= IrType.MAX_BYTE_SIZE;
-        localVariables.put(register, stackTop);
-        return stackTop;
-    }
+    // ir registers use the stack from the top to the bottom; function parameters use the stack from the bottom to the top
+    private final Map<IrRegister, Integer> irRegisters = new HashMap<>();
 
     // (new -> add* -> (newBlock -> add* ->)* build)*
     public FunctionBuilder(FunctionIr function) {
@@ -59,13 +52,13 @@ public class FunctionBuilder {
             } else {
                 // a trick here: we needn't allocate a stack slot for the parameter but use the original stack slot
                 // note that sp is already decremented by stackSize; we need to add stackSize back
-                localVariables.put(parameter, stackSize + IrType.MAX_BYTE_SIZE * (i - Register.ARG_REGISTERS.length));
+                irRegisters.put(parameter, stackSize + IrType.MAX_BYTE_SIZE * (i - Register.ARG_REGISTERS.length));
             }
         }
     }
 
     // we have to calculate the stack size before building the function so that stack pointer won't be changed during the process
-    // must be careful that this corresponds to allocRegister calls
+    // must be careful that this corresponds to calls that change the stack pointer
     private int calculateStackSize(FunctionIr function) {
         int size = savedRegisters.size() * Register.BYTE_SIZE;
         size += IrType.MAX_BYTE_SIZE * Math.min(Register.ARG_REGISTERS.length, function.parameters.size());
@@ -75,7 +68,7 @@ public class FunctionBuilder {
                 if (instruction instanceof InstructionIr.Result result && result.result() != null) {
                     size += IrType.MAX_BYTE_SIZE;
                 }
-                if (instruction instanceof InstructionIr.Alloca) {
+                if (instruction instanceof InstructionIr.Alloc) {
                     size += IrType.MAX_BYTE_SIZE;
                 }
                 if (instruction instanceof InstructionIr.FunctionCall functionCall) {
@@ -92,8 +85,17 @@ public class FunctionBuilder {
         current.blocks.getLast().instructions.add(instruction);
     }
 
+    public Register add(InstructionAsm.Result instruction) {
+        current.blocks.getLast().instructions.add(instruction);
+        return instruction.result();
+    }
+
     public void newBlock(String name) {
-        current.blocks.add(new BlockAsm(current.name + "." + name));
+        current.blocks.add(new BlockAsm(renameLabel(name)));
+    }
+
+    public String renameLabel(String name) {
+        return current.name + "." + name;
     }
 
     public FunctionAsm build() {
@@ -104,5 +106,27 @@ public class FunctionBuilder {
         // pop stack pointer
         add(new InstructionAsm.BinImm(Register.SP, Opcode.ADDI, Register.SP, stackSize));
         return current;
+    }
+
+    // load an ir register from the stack into a temp register
+    public Register loadIrRegister(IrRegister register, Register destination) {
+        return add(new InstructionAsm.Lw(destination, irRegisters.get(register), Register.SP));
+    }
+
+    public void storeIrRegister(IrRegister register, Register value) {
+        add(new InstructionAsm.Sw(value, irRegisters.get(register), Register.SP));
+    }
+
+    // allocate a stack slot for an ir register and return the offset from the stack pointer
+    public int allocRegister(IrRegister register) {
+        stackTop -= IrType.MAX_BYTE_SIZE;
+        irRegisters.put(register, stackTop);
+        return stackTop;
+    }
+
+    // for alloc instruction. return a temp register that points to the allocated memory
+    public Register alloc() {
+        stackTop -= IrType.MAX_BYTE_SIZE;
+        return add(new InstructionAsm.BinImm(Register.newTempRegister(), Opcode.ADDI, Register.SP, stackTop));
     }
 }

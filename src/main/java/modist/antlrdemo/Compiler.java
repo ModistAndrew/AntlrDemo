@@ -1,5 +1,7 @@
 package modist.antlrdemo;
 
+import modist.antlrdemo.backend.AsmBuilder;
+import modist.antlrdemo.backend.asm.ProgramAsm;
 import modist.antlrdemo.frontend.ir.IrPrinter;
 import modist.antlrdemo.frontend.semantic.error.CompileException;
 import modist.antlrdemo.frontend.ir.IrBuilder;
@@ -22,7 +24,9 @@ public class Compiler {
     public static void main(String[] args) throws IOException {
         List<String> argList = Arrays.asList(args);
         try {
-            frontend();
+            ProgramIr ir = frontend();
+            ProgramAsm asm = backend(ir);
+            System.out.println(asm);
         } catch (CompileException e) {
             if (argList.contains("--debug")) {
                 System.err.printf("%s at [%s]: %s", e.getErrorType(), e.getPosition(), e.getMessage());
@@ -35,13 +39,16 @@ public class Compiler {
         }
     }
 
-    private static void frontend() throws IOException {
+    private static ProgramIr frontend() throws IOException {
         MxLexer lexer = withFastFailErrorListener(new MxLexer(CharStreams.fromStream(System.in)));
         MxParser parser = withFastFailErrorListener(new MxParser(new CommonTokenStream(lexer)));
         ProgramAst ast = new AstBuilder().visitProgram(parser.program());
         new SemanticChecker().check(ast);
-        ProgramIr ir = new IrBuilder().visitProgram(ast);
-        new IrPrinter(System.out).print(ir);
+        return new IrBuilder().visitProgram(ast);
+    }
+
+    private static ProgramAsm backend(ProgramIr program) {
+        return new AsmBuilder().visitProgram(program);
     }
 
     private static <T extends Recognizer<?, ?>> T withFastFailErrorListener(T recognizer) {

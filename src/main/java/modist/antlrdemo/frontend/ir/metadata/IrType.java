@@ -7,6 +7,7 @@ public enum IrType {
     // we are on a 32-bit machine
     // assuming 4 bytes for every type (for simplicity, as we don't know how the memory is laid out)
     public static final int MAX_BYTE_SIZE = 4;
+    public static final int LOG_MAX_BYTE_SIZE = 2;
     public final IrConstant defaultValue;
 
     IrType(IrConstant defaultValue) {
