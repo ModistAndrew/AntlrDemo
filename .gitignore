@@ -1,5 +1,9 @@
 .gradle
-build/
+build/classes
+build/distributions
+build/libs
+build/scripts
+build/tmp
 tmp/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
