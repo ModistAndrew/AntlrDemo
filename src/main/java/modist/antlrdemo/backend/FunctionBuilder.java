@@ -5,6 +5,7 @@ import modist.antlrdemo.backend.asm.FunctionAsm;
 import modist.antlrdemo.backend.asm.InstructionAsm;
 import modist.antlrdemo.backend.metadata.Opcode;
 import modist.antlrdemo.backend.metadata.Register;
+import modist.antlrdemo.frontend.ir.IrNamer;
 import modist.antlrdemo.frontend.ir.metadata.IrRegister;
 import modist.antlrdemo.frontend.ir.metadata.IrType;
 import modist.antlrdemo.frontend.ir.node.BlockIr;
@@ -33,7 +34,7 @@ public class FunctionBuilder {
 
     // (new -> add* -> (newBlock -> add* ->)* build)*
     public FunctionBuilder(FunctionIr function) {
-        current = new FunctionAsm(function.name);
+        current = new FunctionAsm(IrNamer.removePrefix(function.name));
         savedRegisters = List.of(Register.RA); // only ra needs to be saved currently
         stackSize = calculateStackSize(function);
         stackTop = stackSize;

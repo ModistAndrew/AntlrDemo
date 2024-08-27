@@ -15,16 +15,16 @@ public class AsmPrinter {
     public void print(Asm asm) {
         switch (asm) {
             case ProgramAsm program -> {
-                printStream.println("\t.section text");
+                printStream.println("\t.section .text");
                 program.text.forEach(this::print);
-                printStream.println("\t.section rodata");
+                printStream.println("\t.section .rodata");
                 program.rodata.forEach(this::print);
-                printStream.println("\t.section data");
+                printStream.println("\t.section .data");
                 program.data.forEach(this::print);
             }
             case FunctionAsm function -> {
                 printStream.printf("\t.globl\t%s%n", function.name);
-                printStream.printf("\t.type\t%s,@function%n", function.name);
+                printStream.printf("\t.type\t%s, @function%n", function.name);
                 function.blocks.forEach(this::print);
             }
             case BlockAsm block -> {

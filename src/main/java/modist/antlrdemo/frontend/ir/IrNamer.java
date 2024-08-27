@@ -75,6 +75,10 @@ public class IrNamer {
         return name.startsWith("@");
     }
 
+    public static String removePrefix(String name) {
+        return name.substring(1);
+    }
+
     private static String dot(String prefix, String name) {
         return prefix + "." + name;
     }

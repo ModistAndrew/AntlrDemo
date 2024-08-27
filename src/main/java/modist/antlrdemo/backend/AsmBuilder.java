@@ -6,6 +6,7 @@ import modist.antlrdemo.backend.asm.InstructionAsm;
 import modist.antlrdemo.backend.asm.ProgramAsm;
 import modist.antlrdemo.backend.metadata.Opcode;
 import modist.antlrdemo.backend.metadata.Register;
+import modist.antlrdemo.frontend.ir.IrNamer;
 import modist.antlrdemo.frontend.ir.metadata.*;
 import modist.antlrdemo.frontend.ir.node.InstructionIr;
 import modist.antlrdemo.frontend.ir.node.ProgramIr;
@@ -46,7 +47,7 @@ public class AsmBuilder {
                 add(new InstructionAsm.Beqz(load(br.condition()), currentFunction.renameLabel(br.falseLabel())));
                 add(new InstructionAsm.J(currentFunction.renameLabel(br.trueLabel())));
             }
-            case InstructionIr.Ret ret -> {
+            case InstructionIr.Ret ret -> { // TODO: renaming; return after SP adjustment
                 if (ret.value() != null) {
                     load(ret.value(), Register.A0);
                 }
@@ -76,7 +77,7 @@ public class AsmBuilder {
                     }
                     Register.resetTempRegisters(); // must reuse temp registers for each argument
                 }
-                add(new InstructionAsm.Call(functionCall.function()));
+                add(new InstructionAsm.Call(IrNamer.removePrefix(functionCall.function())));
                 yield functionCall.result() != null ? Register.A0 : null;
             }
             case InstructionIr.Load load -> add(new InstructionAsm.Lw(temp(), 0, load(load.pointer())));
