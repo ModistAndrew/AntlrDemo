@@ -36,7 +36,7 @@ test {
 tasks.register('compileBuiltin') {
     def cFileName = 'builtin.c'
     def llFileName = 'builtin.ll'
-    def llFileReplacedName = 'builtin_replaced.ll'
+    def llFileRenamedName = 'builtin_renamed.ll'
     def asmFileName = 'builtin.s'
     def outputDir = layout.buildDirectory.dir('generated/clang').get()
     def sourceDir = layout.projectDirectory.dir('src/main/c')
@@ -52,7 +52,7 @@ tasks.register('compileBuiltin') {
             from file("${outputDir}/${llFileName}")
             into outputDir
             rename {
-                llFileReplacedName
+                llFileRenamedName
             }
             filter {
                 String line ->
@@ -63,7 +63,7 @@ tasks.register('compileBuiltin') {
         exec {
             executable 'clang'
             args '-S', '--target=riscv32-unknown-elf', '-O2',
-                    "${outputDir}/${llFileReplacedName}",
+                    "${outputDir}/${llFileRenamedName}",
                     '-o', "${outputDir}/${asmFileName}"
         }
     }

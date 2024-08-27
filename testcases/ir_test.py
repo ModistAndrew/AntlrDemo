@@ -9,6 +9,10 @@ ravel_path = '/mnt/c/Users/zjx/Desktop/Coding/cpp/ravel/cmake-build-debug/src/ra
 current_dir = 'C:/Users/zjx/Desktop/Coding/java/AntlrDemo/'
 builtin_asm_path = 'build/generated/clang/builtin.s'
 temp_folder = 'tmp/'
+
+commands = 'gradlew build'
+process = subprocess.run(commands, shell=True)
+
 if not os.path.exists(temp_folder):
     os.mkdir(temp_folder)
 shutil.copy(builtin_asm_path, f'{temp_folder}builtin.s')
@@ -43,10 +47,6 @@ def extract_input_output_exitcode(file_path):
     else:
         exitcode = ""
     return content, input_data, output_data, exitcode
-
-
-commands = 'gradlew build'
-process = subprocess.run(commands, shell=True)
 
 red_msg = "\033[31m{msg}\033[0m"
 green_msg = "\033[32m{msg}\033[0m"
