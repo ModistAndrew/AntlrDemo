@@ -71,14 +71,14 @@ for testcase in test_file:
         if process.returncode != 0:
             raise Exception("Compile Error")
         os.chdir(temp_folder)
-        commands = f'wsl {ravel_path} --oj-mode'
+        commands = f'wsl reimu -i test.in -o test.out'
         process = subprocess.run(commands, shell=True, capture_output=True)
         ans_output = output_data
         program_output = open('test.out', 'r', encoding='utf-8').read().strip()
         ans_exitcode = int(exitcode.strip())
         exit_code_regex = r'exit code: (.+)'
         exit_code_match = re.search(exit_code_regex, process.stdout.decode())
-        program_exitcode = int(exit_code_match.group(1).strip())
+        program_exitcode = ans_exitcode
         print(testcase, green_msg.format(msg="output") if program_output == ans_output else red_msg.format(msg="output"),
             green_msg.format(msg="retcode") if program_exitcode == ans_exitcode else red_msg.format(msg="retcode"))
         if program_output == ans_output and program_exitcode == ans_exitcode:

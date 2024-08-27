@@ -75,7 +75,7 @@ for testcase in test_file:
         process = subprocess.run(commands, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         if process.returncode != 0:
             raise Exception("Binary Compile Error")
-        commands = f'wsl {ravel_path} --oj-mode'
+        commands = f'wsl reimu -i test.in -o test.out'
         process = subprocess.run(commands, shell=True, capture_output=True)
         ans_output = output_data
         program_output = open('test.out', 'r', encoding='utf-8').read().strip()
