@@ -6,6 +6,7 @@ import shutil
 test_file = []
 testcases_folder = 'testcases/codegen/'
 ravel_path = '/mnt/c/Users/zjx/Desktop/Coding/cpp/ravel/cmake-build-debug/src/ravel'
+current_dir = 'C:/Users/zjx/Desktop/Coding/java/AntlrDemo/'
 builtin_asm_path = 'build/generated/clang/builtin.s'
 temp_folder = 'tmp/'
 if not os.path.exists(temp_folder):
@@ -55,6 +56,7 @@ pass_cnt = 0;
 # test_file = ['testcases/test.mx']
 for testcase in test_file:
     try:
+        os.chdir(current_dir)
         content, input_data, output_data, exitcode = extract_input_output_exitcode(testcase)
         os.chdir(temp_folder)
         temp = open('test.in', 'w', encoding='utf-8')
@@ -81,7 +83,6 @@ for testcase in test_file:
             green_msg.format(msg="retcode") if program_exitcode == ans_exitcode else red_msg.format(msg="retcode"))
         if program_output == ans_output and program_exitcode == ans_exitcode:
             pass_cnt += 1
-        os.chdir('..')
     except Exception as e:
         print(testcase, red_msg.format(msg=e))
 
