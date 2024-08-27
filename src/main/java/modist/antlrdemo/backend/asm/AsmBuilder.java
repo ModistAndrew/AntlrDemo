@@ -11,7 +11,6 @@ import modist.antlrdemo.frontend.ir.metadata.*;
 import modist.antlrdemo.frontend.ir.node.InstructionIr;
 import modist.antlrdemo.frontend.ir.node.ProgramIr;
 
-// TODO: renaming of labels
 public class AsmBuilder {
     private ProgramAsm program;
     private FunctionBuilder currentFunction;
@@ -19,9 +18,9 @@ public class AsmBuilder {
     public ProgramAsm visitProgram(ProgramIr programIr) {
         program = new ProgramAsm();
         programIr.globalVariables.forEach(globalVariable ->
-                program.data.add(new GlobalVariableAsm(globalVariable.result().name())));
+                program.data.add(new GlobalVariableAsm(IrNamer.removePrefix(globalVariable.result().name()))));
         programIr.constantStrings.forEach(constantString ->
-                program.rodata.add(new ConstantStringAsm(constantString.result().name(), constantString.value())));
+                program.rodata.add(new ConstantStringAsm(IrNamer.removePrefix(constantString.result().name()), constantString.value())));
         programIr.functions.forEach(function -> {
             currentFunction = new FunctionBuilder(function);
             function.body.forEach(block -> {
@@ -40,7 +39,7 @@ public class AsmBuilder {
                 IrRegister destination = result.result();
                 if (destination != null) {
                     if (destination.isGlobal()) {
-                        add(new InstructionAsm.SwLabel(data, destination.name()));
+                        add(new InstructionAsm.SwLabel(data, IrNamer.removePrefix(destination.name())));
                     } else {
                         currentFunction.allocRegister(destination);
                         currentFunction.storeIrRegister(destination, data);
@@ -113,7 +112,7 @@ public class AsmBuilder {
     private Register load(IrOperand operand, Register destination) {
         return switch (operand) {
             case IrRegister register -> register.isGlobal() ?
-                    add(new InstructionAsm.La(destination, register.name())) :
+                    add(new InstructionAsm.La(destination, IrNamer.removePrefix(register.name()))) :
                     currentFunction.loadIrRegister(register, destination);
             case IrConstant constant -> add(new InstructionAsm.Li(destination, constant.asImmediate()));
         };
