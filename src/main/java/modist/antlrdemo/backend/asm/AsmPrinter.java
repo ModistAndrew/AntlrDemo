@@ -37,7 +37,7 @@ public class AsmPrinter {
             case ConstantStringAsm constantString -> {
 //                printStream.printf("\t.type\t%s, @object%n", constantString.name());
                 printStream.printf("%s:%n", constantString.name());
-                printStream.printf("\t.asciz\t\"%s\"%n", constantString.value());
+                printStream.printf("\t.asciz\t\"%s\"%n", escape(constantString.value()));
 //                printStream.printf("\t.size\t%s, %d%n", constantString.name(), constantString.value().length() + 1);
             }
             case GlobalVariableAsm globalVariable -> {
@@ -62,5 +62,9 @@ public class AsmPrinter {
             case InstructionAsm.Call call -> printStream.printf("call %s", call.function());
             case InstructionAsm.Ret ignored -> printStream.print("ret");
         }
+    }
+
+    private String escape(String str) {
+        return str.replace("\\", "\\\\").replace("\n", "\\n").replace("\"", "\\\"");
     }
 }

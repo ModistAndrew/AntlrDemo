@@ -23,7 +23,9 @@ int main() {
 	p = getInt();
 	k = getInt();
 	if(p-k>1) print("<< ");
-	for(i= p-k; i<=p+k;i++)
+	for(i= p-k; i<=p+k;i++) {
+
+	print(f"i:$i$;p+k:$p+k$;result:$i<=p+k$\n");
 	      if(1<= i && i <= n) {
 	         if(i==p){
 				 print("(");
@@ -34,6 +36,7 @@ int main() {
 				printInt(i);
 				print(" ");
 			}
+	  }
 	  }
 	if(p + k < n) print(">> ");
  
