@@ -35,7 +35,7 @@ public class FunctionBuilder {
     // (new -> add* -> (newBlock -> add* ->)* build)*
     public FunctionBuilder(FunctionIr function) {
         current = new FunctionAsm(IrNamer.removePrefix(function.name));
-        savedRegisters = List.of(Register.RA); // only ra needs to be saved currently
+        savedRegisters = List.of(Register.RA); // only ra needs to be saved currently: ra may be overwritten
         stackSize = calculateStackSize(function);
         stackTop = stackSize;
         // push stack pointer
@@ -99,13 +99,16 @@ public class FunctionBuilder {
         return current.name + "." + name;
     }
 
-    public FunctionAsm build() {
-        // load saved registers
-        for (int i = 0; i < savedRegisters.size(); i++) {
+    public void prepareReturn() {
+        // restore saved registers
+        for (int i = savedRegisters.size() - 1; i >= 0; i--) {
             add(new InstructionAsm.Lw(savedRegisters.get(i), stackSize - Register.BYTE_SIZE * (i + 1), Register.SP));
         }
         // pop stack pointer
         add(new InstructionAsm.BinImm(Register.SP, Opcode.ADDI, Register.SP, stackSize));
+    }
+
+    public FunctionAsm build() {
         return current;
     }
 

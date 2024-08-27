@@ -11,6 +11,8 @@ import modist.antlrdemo.frontend.ir.metadata.*;
 import modist.antlrdemo.frontend.ir.node.InstructionIr;
 import modist.antlrdemo.frontend.ir.node.ProgramIr;
 
+// TODO: phi nodes
+// TODO: renaming of labels
 public class AsmBuilder {
     private ProgramAsm program;
     private FunctionBuilder currentFunction;
@@ -47,10 +49,11 @@ public class AsmBuilder {
                 add(new InstructionAsm.Beqz(load(br.condition()), currentFunction.renameLabel(br.falseLabel())));
                 add(new InstructionAsm.J(currentFunction.renameLabel(br.trueLabel())));
             }
-            case InstructionIr.Ret ret -> { // TODO: renaming; return after SP adjustment
+            case InstructionIr.Ret ret -> {
                 if (ret.value() != null) {
                     load(ret.value(), Register.A0);
                 }
+                currentFunction.prepareReturn();
                 add(new InstructionAsm.Ret());
             }
         }

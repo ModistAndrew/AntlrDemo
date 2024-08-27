@@ -3,7 +3,6 @@ package modist.antlrdemo;
 import modist.antlrdemo.backend.AsmBuilder;
 import modist.antlrdemo.backend.AsmPrinter;
 import modist.antlrdemo.backend.asm.ProgramAsm;
-import modist.antlrdemo.frontend.ir.IrPrinter;
 import modist.antlrdemo.frontend.semantic.error.CompileException;
 import modist.antlrdemo.frontend.ir.IrBuilder;
 import modist.antlrdemo.frontend.ir.node.ProgramIr;
