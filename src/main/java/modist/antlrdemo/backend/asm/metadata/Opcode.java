@@ -1,4 +1,4 @@
-package modist.antlrdemo.backend.metadata;
+package modist.antlrdemo.backend.asm.metadata;
 
 public enum Opcode {
     ADD, SUB, MUL, DIV, REM,

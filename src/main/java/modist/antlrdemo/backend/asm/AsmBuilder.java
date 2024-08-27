@@ -1,17 +1,16 @@
-package modist.antlrdemo.backend;
+package modist.antlrdemo.backend.asm;
 
-import modist.antlrdemo.backend.asm.ConstantStringAsm;
-import modist.antlrdemo.backend.asm.GlobalVariableAsm;
-import modist.antlrdemo.backend.asm.InstructionAsm;
-import modist.antlrdemo.backend.asm.ProgramAsm;
-import modist.antlrdemo.backend.metadata.Opcode;
-import modist.antlrdemo.backend.metadata.Register;
+import modist.antlrdemo.backend.asm.node.ConstantStringAsm;
+import modist.antlrdemo.backend.asm.node.GlobalVariableAsm;
+import modist.antlrdemo.backend.asm.node.InstructionAsm;
+import modist.antlrdemo.backend.asm.node.ProgramAsm;
+import modist.antlrdemo.backend.asm.metadata.Opcode;
+import modist.antlrdemo.backend.asm.metadata.Register;
 import modist.antlrdemo.frontend.ir.IrNamer;
 import modist.antlrdemo.frontend.ir.metadata.*;
 import modist.antlrdemo.frontend.ir.node.InstructionIr;
 import modist.antlrdemo.frontend.ir.node.ProgramIr;
 
-// TODO: phi nodes
 // TODO: renaming of labels
 public class AsmBuilder {
     private ProgramAsm program;

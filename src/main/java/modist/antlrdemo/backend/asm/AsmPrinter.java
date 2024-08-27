@@ -1,7 +1,7 @@
-package modist.antlrdemo.backend;
+package modist.antlrdemo.backend.asm;
 
-import modist.antlrdemo.backend.asm.*;
-import modist.antlrdemo.backend.metadata.Register;
+import modist.antlrdemo.backend.asm.node.*;
+import modist.antlrdemo.backend.asm.metadata.Register;
 
 import java.io.PrintStream;
 

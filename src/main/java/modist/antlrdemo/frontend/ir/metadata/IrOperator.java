@@ -1,6 +1,6 @@
 package modist.antlrdemo.frontend.ir.metadata;
 
-import modist.antlrdemo.backend.metadata.Opcode;
+import modist.antlrdemo.backend.asm.metadata.Opcode;
 
 public enum IrOperator {
     ADD(Opcode.ADD), SUB(Opcode.SUB), MUL(Opcode.MUL), SDIV(Opcode.DIV), SREM(Opcode.REM),

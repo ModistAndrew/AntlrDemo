@@ -223,13 +223,15 @@ public class IrBuilder {
                     String labelName = currentFunction.irNamer.shortCircuit();
                     String rightLabel = IrNamer.append(labelName, "right");
                     String endLabel = IrNamer.append(labelName, "end");
-                    String lastCurrentLabel = currentFunction.newBlock(isOr ?
-                            new InstructionIr.Br(visitExpression(binary.left), endLabel, rightLabel) :
-                            new InstructionIr.Br(visitExpression(binary.left), rightLabel, endLabel), rightLabel);
-                    IrOperand rightValue = visitExpression(binary.right);
+                    IrRegister resultPointer = add(new InstructionIr.Alloc(temp("shortCircuitPointer"), IrType.I1));
+                    IrOperand leftValue = visitExpression(binary.left);
+                    storePointer(IrType.I1, leftValue, resultPointer);
+                    currentFunction.newBlock(isOr ?
+                            new InstructionIr.Br(leftValue, endLabel, rightLabel) :
+                            new InstructionIr.Br(leftValue, rightLabel, endLabel), rightLabel);
+                    storePointer(IrType.I1, visitExpression(binary.right), resultPointer);
                     currentFunction.newBlock(new InstructionIr.Jump(endLabel), endLabel);
-                    yield add(new InstructionIr.Phi(temp(binary.operator.getIrPrefix()),
-                            IrType.I1, new IrConstant.Bool(isOr), lastCurrentLabel, rightValue, rightLabel));
+                    yield loadPointer(IrType.I1, resultPointer);
                 }
                 default -> throw new IllegalArgumentException();
             };
@@ -238,14 +240,22 @@ public class IrBuilder {
                 String trueLabel = IrNamer.append(labelName, "true");
                 String falseLabel = IrNamer.append(labelName, "false");
                 String endLabel = IrNamer.append(labelName, "end");
-                currentFunction.newBlock(new InstructionIr.Br(visitExpression(conditional.condition), trueLabel, falseLabel), trueLabel);
-                IrOperand trueValue = visitExpression(conditional.trueExpression);
-                String lastTrueLabel = currentFunction.newBlock(new InstructionIr.Jump(endLabel), falseLabel);
-                IrOperand falseValue = visitExpression(conditional.falseExpression);
-                String lastFalseLabel = currentFunction.newBlock(new InstructionIr.Jump(endLabel), endLabel);
-                yield conditional.type.isVoid() ? null :
-                        add(new InstructionIr.Phi(temp("conditional"),
-                                conditional.type.irType(), trueValue, lastTrueLabel, falseValue, lastFalseLabel));
+                if (!conditional.type.isVoid()) {
+                    IrRegister resultPointer = add(new InstructionIr.Alloc(temp("conditionalPointer"), conditional.type.irType()));
+                    currentFunction.newBlock(new InstructionIr.Br(visitExpression(conditional.condition), trueLabel, falseLabel), trueLabel);
+                    storePointer(conditional.type.irType(), visitExpression(conditional.trueExpression), resultPointer);
+                    currentFunction.newBlock(new InstructionIr.Jump(endLabel), falseLabel);
+                    storePointer(conditional.type.irType(), visitExpression(conditional.falseExpression), resultPointer);
+                    currentFunction.newBlock(new InstructionIr.Jump(endLabel), endLabel);
+                    yield loadPointer(conditional.type.irType(), resultPointer);
+                } else {
+                    currentFunction.newBlock(new InstructionIr.Br(visitExpression(conditional.condition), trueLabel, falseLabel), trueLabel);
+                    visitExpression(conditional.trueExpression);
+                    currentFunction.newBlock(new InstructionIr.Jump(endLabel), falseLabel);
+                    visitExpression(conditional.falseExpression);
+                    currentFunction.newBlock(new InstructionIr.Jump(endLabel), endLabel);
+                    yield null;
+                }
             }
             case ExpressionAst.Assign assign -> {
                 IrRegister pointer = visitExpressionLvalue(assign.left);

@@ -52,7 +52,7 @@ green_msg = "\033[32m{msg}\033[0m"
 blue_msg = "\033[34m{msg}\033[0m"
 pass_cnt = 0;
 
-# test_file = ['testcases/codegen/t72.mx']
+# test_file = ['testcases/test.mx']
 for testcase in test_file:
     try:
         content, input_data, output_data, exitcode = extract_input_output_exitcode(testcase)
@@ -64,15 +64,11 @@ for testcase in test_file:
         temp.write(output_data)
         temp.flush()
         os.chdir('..')
-        commands = f'gradlew run --no-rebuild < {testcase} > {temp_folder}test.ll'
+        commands = f'gradlew run --no-rebuild < {testcase} > {temp_folder}test.s'
         process = subprocess.run(commands, shell=True)
         if process.returncode != 0:
-            raise Exception("LLVM Compile Error")
+            raise Exception("Compile Error")
         os.chdir(temp_folder)
-        commands = 'clang -S --target=riscv32-unknown-elf test.ll'
-        process = subprocess.run(commands, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        if process.returncode != 0:
-            raise Exception("Binary Compile Error")
         commands = f'wsl {ravel_path} --oj-mode'
         process = subprocess.run(commands, shell=True, capture_output=True)
         ans_output = output_data
@@ -85,9 +81,8 @@ for testcase in test_file:
             green_msg.format(msg="retcode") if program_exitcode == ans_exitcode else red_msg.format(msg="retcode"))
         if program_output == ans_output and program_exitcode == ans_exitcode:
             pass_cnt += 1
+        os.chdir('..')
     except Exception as e:
         print(testcase, red_msg.format(msg=e))
-    finally:
-        os.chdir('..')
 
 print("\033[32mPassed Cases:", pass_cnt, f"\033[0m, \033[34mTotal Cases: {len(test_file)}\033[0m")

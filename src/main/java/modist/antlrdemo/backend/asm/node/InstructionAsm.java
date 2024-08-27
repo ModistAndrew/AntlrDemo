@@ -1,7 +1,7 @@
-package modist.antlrdemo.backend.asm;
+package modist.antlrdemo.backend.asm.node;
 
-import modist.antlrdemo.backend.metadata.Opcode;
-import modist.antlrdemo.backend.metadata.Register;
+import modist.antlrdemo.backend.asm.metadata.Opcode;
+import modist.antlrdemo.backend.asm.metadata.Register;
 
 public sealed interface InstructionAsm extends Asm {
     sealed interface Result extends InstructionAsm {

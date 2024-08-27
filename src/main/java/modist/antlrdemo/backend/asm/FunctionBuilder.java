@@ -1,10 +1,10 @@
-package modist.antlrdemo.backend;
+package modist.antlrdemo.backend.asm;
 
-import modist.antlrdemo.backend.asm.BlockAsm;
-import modist.antlrdemo.backend.asm.FunctionAsm;
-import modist.antlrdemo.backend.asm.InstructionAsm;
-import modist.antlrdemo.backend.metadata.Opcode;
-import modist.antlrdemo.backend.metadata.Register;
+import modist.antlrdemo.backend.asm.node.BlockAsm;
+import modist.antlrdemo.backend.asm.node.FunctionAsm;
+import modist.antlrdemo.backend.asm.node.InstructionAsm;
+import modist.antlrdemo.backend.asm.metadata.Opcode;
+import modist.antlrdemo.backend.asm.metadata.Register;
 import modist.antlrdemo.frontend.ir.IrNamer;
 import modist.antlrdemo.frontend.ir.metadata.IrRegister;
 import modist.antlrdemo.frontend.ir.metadata.IrType;
