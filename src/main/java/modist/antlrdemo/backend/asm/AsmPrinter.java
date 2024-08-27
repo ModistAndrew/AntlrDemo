@@ -1,7 +1,6 @@
 package modist.antlrdemo.backend.asm;
 
 import modist.antlrdemo.backend.asm.node.*;
-import modist.antlrdemo.backend.asm.metadata.Register;
 
 import java.io.PrintStream;
 
@@ -24,7 +23,7 @@ public class AsmPrinter {
             }
             case FunctionAsm function -> {
                 printStream.printf("\t.globl\t%s%n", function.name);
-                printStream.printf("\t.type\t%s, @function%n", function.name);
+//                printStream.printf("\t.type\t%s, @function%n", function.name);
                 function.blocks.forEach(this::print);
             }
             case BlockAsm block -> {
@@ -36,17 +35,17 @@ public class AsmPrinter {
                 });
             }
             case ConstantStringAsm constantString -> {
-                printStream.printf("\t.type\t%s, @object%n", constantString.name());
+//                printStream.printf("\t.type\t%s, @object%n", constantString.name());
                 printStream.printf("%s:%n", constantString.name());
                 printStream.printf("\t.asciz\t\"%s\"%n", constantString.value());
-                printStream.printf("\t.size\t%s, %d%n", constantString.name(), constantString.value().length() + 1);
+//                printStream.printf("\t.size\t%s, %d%n", constantString.name(), constantString.value().length() + 1);
             }
             case GlobalVariableAsm globalVariable -> {
-                printStream.printf("\t.type\t%s, @object%n", globalVariable.name());
+//                printStream.printf("\t.type\t%s, @object%n", globalVariable.name());
                 printStream.printf("\t.globl\t%s%n", globalVariable.name());
                 printStream.printf("%s:%n", globalVariable.name());
                 printStream.printf("\t.word\t%d%n", globalVariable.value());
-                printStream.printf("\t.size\t%s, %d%n", globalVariable.name(), Register.BYTE_SIZE);
+//                printStream.printf("\t.size\t%s, %d%n", globalVariable.name(), Register.BYTE_SIZE);
             }
             case InstructionAsm.Un un -> printStream.printf("%s %s, %s", un.opcode(), un.result(), un.operand());
             case InstructionAsm.Bin bin ->

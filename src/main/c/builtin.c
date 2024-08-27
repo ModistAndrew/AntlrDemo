@@ -11,8 +11,6 @@ typedef __builtin_va_list va_list;
 
 #define va_arg(ap, type)    __builtin_va_arg(ap, type)
 
-int puts(const char *str);
-
 int scanf(const char *format, ...);
 
 int sscanf(const char *src, const char *format, ...);
@@ -61,7 +59,7 @@ void print(char *str) {
 }
 
 void println(char *str) {
-  puts(str);
+  printf("%s\n", str);
 }
 
 void printInt(int n) {
@@ -143,7 +141,7 @@ char *_concatStringMulti(size_t num, ...) {
 }
 
 // use recursive function to allocate multi-dimensional array
-void *v_mallocArrayMulti(size_t size, size_t depth, size_t num, va_list dimensions) {
+void *v_allocArrayMulti(size_t size, size_t depth, size_t num, va_list dimensions) {
   size_t dimension = va_arg(dimensions, size_t);
   if (depth == 1) {
     return _mallocArray(size, dimension);
@@ -153,7 +151,7 @@ void *v_mallocArrayMulti(size_t size, size_t depth, size_t num, va_list dimensio
     return array;
   }
   for (size_t i = 0; i < dimension; i++) {
-    void *subArray = v_mallocArrayMulti(size, depth - 1, num - 1, dimensions);
+    void *subArray = v_allocArrayMulti(size, depth - 1, num - 1, dimensions);
     ((void **) array)[i] = subArray;
   }
   return array;
@@ -161,10 +159,10 @@ void *v_mallocArrayMulti(size_t size, size_t depth, size_t num, va_list dimensio
 
 // depth is used to determine whether we should allocate a sub-array or the actual data
 // in fact in both situations the size is 4 as we are on a 32-bit machine and all the types are assumed to have size 4
-void *_mallocArrayMulti(size_t size, size_t depth, size_t num, ...) {
+void *_allocArrayMulti(size_t size, size_t depth, size_t num, ...) {
   va_list ap;
   va_start(ap, num);
-  void *array = v_mallocArrayMulti(size, depth, num, ap);
+  void *array = v_allocArrayMulti(size, depth, num, ap);
   va_end(ap);
   return array;
 }
