@@ -25,7 +25,7 @@ public class DominatorTreeBuilder {
     }
 
     private void bfs() {
-        BlockIr entry = function.body.getFirst();
+        BlockIr entry = function.getEntry();
         entry.bfsVisited = true;
         function.bfsOrder.add(entry);
         int head = 0;

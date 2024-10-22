@@ -1,11 +1,9 @@
 package modist.antlrdemo.frontend.ir.node;
 
-import modist.antlrdemo.frontend.ir.metadata.IrOperator;
-import modist.antlrdemo.frontend.ir.metadata.IrType;
-import modist.antlrdemo.frontend.ir.metadata.IrOperand;
-import modist.antlrdemo.frontend.ir.metadata.IrRegister;
+import modist.antlrdemo.frontend.ir.metadata.*;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public sealed interface InstructionIr extends Ir {
@@ -56,8 +54,11 @@ public sealed interface InstructionIr extends Ir {
 
     sealed interface FunctionCall extends Result {
         IrType type();
+
         String function();
+
         List<IrType> argumentTypes();
+
         List<IrOperand> arguments();
     }
 
@@ -73,6 +74,15 @@ public sealed interface InstructionIr extends Ir {
     record Phi(IrRegister result, IrType type, List<IrOperand> values, List<String> labels) implements Result {
         public Phi(IrRegister result, IrType type, IrOperand value1, String label1, IrOperand value2, String label2) {
             this(result, type, List.of(value1, value2), List.of(label1, label2));
+        }
+
+        public Phi(IrRegister result, IrType type) {
+            this(result, type, new ArrayList<>(), new ArrayList<>());
+        }
+
+        public void add(BlockIr block, IrConcrete value) {
+            values.add(value);
+            labels.add(block.label);
         }
     }
 }

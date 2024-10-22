@@ -8,6 +8,7 @@ import modist.antlrdemo.frontend.ir.metadata.VariableReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public final class FunctionIr implements Ir {
     public final String name;
@@ -16,7 +17,7 @@ public final class FunctionIr implements Ir {
     public final List<IrType> parameterTypes;
     public final List<BlockIr> body = new ArrayList<>();
     // for ControlFlowGraphBuilder
-    public final HashMap<String, BlockIr> blockMap = new HashMap<>();
+    public final Map<String, BlockIr> blockMap = new HashMap<>();
     // for DominatorTreeBuilder
     public final List<BlockIr> bfsOrder = new ArrayList<>();
 
@@ -25,6 +26,10 @@ public final class FunctionIr implements Ir {
         this.returnType = returnType;
         this.parameters = parameters;
         this.parameterTypes = parameterTypes;
+    }
+
+    public BlockIr getEntry() {
+        return body.getFirst();
     }
 
     // a builder which can build multiple instances of FunctionIr

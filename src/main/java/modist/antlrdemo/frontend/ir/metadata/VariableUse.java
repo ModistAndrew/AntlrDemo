@@ -11,6 +11,11 @@ public final class VariableUse implements IrOperand, VariableReference {
 
     @Override
     public String toString() {
-        return name; // TODO: change to value.toString() after Mem2Reg
+        return value.toString();
+    }
+
+    @Override
+    public IrConcrete asConcrete() {
+        return value;
     }
 }

@@ -5,6 +5,7 @@ import modist.antlrdemo.backend.asm.AsmPrinter;
 import modist.antlrdemo.backend.asm.node.ProgramAsm;
 import modist.antlrdemo.backend.optimize.ControlFlowGraphBuilder;
 import modist.antlrdemo.backend.optimize.DominatorTreeBuilder;
+import modist.antlrdemo.backend.optimize.Mem2Reg;
 import modist.antlrdemo.frontend.ir.IrPrinter;
 import modist.antlrdemo.frontend.semantic.error.CompileException;
 import modist.antlrdemo.frontend.ir.IrBuilder;
@@ -61,6 +62,7 @@ public class Compiler {
     private static void optimize(ProgramIr program) {
         new ControlFlowGraphBuilder().visitProgram(program);
         new DominatorTreeBuilder().visitProgram(program);
+        new Mem2Reg().visitProgram(program);
     }
 
     private static <T extends Recognizer<?, ?>> T withFastFailErrorListener(T recognizer) {

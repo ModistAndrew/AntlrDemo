@@ -16,6 +16,7 @@ import java.util.Map;
 // parameter variables: %(name).addr
 // local variables: %(name).[count]
 // temporary variables: %.(prefix).[count]
+// phi variables: %.phi.(name).[count]
 // label naming: entry or (prefix).[count].(suffix)
 // something is done here rather than in symbol namer because it is related to the IR generation
 public class IrNamer {
@@ -25,6 +26,10 @@ public class IrNamer {
     private int shortCircuitCounter;
     private static int constantStringCounter; // global counter for constant strings
     private final Map<String, Integer> temporaryVariableCounter = new HashMap<>(); // for variable renaming
+
+    public String phiVariable(String name) {
+        return temporaryVariable(dot("phi", removePrefix(name)));
+    }
 
     public String temporaryVariable(String prefix) {
         return percent(withTemporaryVariableCounter(dot(prefix)));

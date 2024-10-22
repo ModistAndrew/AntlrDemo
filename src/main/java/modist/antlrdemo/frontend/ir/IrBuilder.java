@@ -365,7 +365,7 @@ public class IrBuilder {
     private void storePointer(IrType type, IrOperand value, IrOperand pointer) {
         switch (pointer) {
             case IrRegister register -> add(new InstructionIr.Store(type, value, register));
-            case VariableUse variable -> addVariableReference(new VariableDef(variable.name, value));
+            case VariableUse variable -> addVariableReference(new VariableDef(variable.name, type, value));
             case IrConstant ignored -> throw new UnsupportedOperationException();
         }
     }
