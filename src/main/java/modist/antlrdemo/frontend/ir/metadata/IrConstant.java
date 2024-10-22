@@ -1,6 +1,6 @@
 package modist.antlrdemo.frontend.ir.metadata;
 
-public sealed interface IrConstant extends IrConcrete {
+public sealed interface IrConstant extends IrConcrete, IrOperand {
     int asImmediate();
 
     record Int(int value) implements IrConstant {

@@ -29,6 +29,7 @@ public class Mem2Reg {
     private void visitFunction() {
         placePhi();
         fillVariables(function.getEntry());
+        function.body.forEach(block -> block.phiMap.forEach((name, phi) -> block.instructions.addFirst(phi)));
     }
 
     private void placePhi() {
@@ -42,12 +43,8 @@ public class Mem2Reg {
         if (block.phiMap.containsKey(def.name())) {
             return;
         }
-        if (!block.variableUseNames.contains(def.name())) {
-            return;
-        }
         InstructionIr.Phi phi = new InstructionIr.Phi(new IrRegister(irNamer.phiVariable(def.name())), def.type());
         block.phiMap.put(def.name(), phi);
-        block.instructions.addFirst(phi);
         block.dominanceFrontiers.forEach(dominanceFrontier -> insertPhi(dominanceFrontier, def));
     }
 
@@ -55,16 +52,23 @@ public class Mem2Reg {
         block.phiMap.forEach((name, phi) -> pushVariable(name, phi.result()));
         block.variableReferences.forEach(variableReference -> {
             switch (variableReference) {
+                // use concrete value
                 case VariableDef def -> pushVariable(def.name(), def.value().asConcrete());
                 case VariableUse use -> use.value = peekVariable(use.name);
             }
         });
-        block.successors.forEach(successor ->
-                successor.phiMap.forEach((name, phi) ->
-                        phi.add(block, peekVariable(name))));
+        block.successors.forEach(successor -> {
+            // removing invalid phi nodes
+            successor.phiMap.keySet().removeIf(name -> !variablePresent(name));
+            successor.phiMap.forEach((name, phi) -> phi.add(block, peekVariable(name)));
+        });
         block.dominatorTreeChildren.forEach(this::fillVariables);
         block.variableDefs.forEach(def -> popVariable(def.name()));
         block.phiMap.forEach((name, phi) -> popVariable(name));
+    }
+
+    private boolean variablePresent(String name) {
+        return variableStacks.containsKey(name) && !variableStacks.get(name).isEmpty();
     }
 
     private void pushVariable(String name, IrConcrete value) {

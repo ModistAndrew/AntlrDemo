@@ -46,10 +46,10 @@ public sealed interface InstructionIr extends Ir {
     record Store(IrType type, IrOperand value, IrRegister pointer) implements InstructionIr {
     }
 
-    record MemberVariable(IrRegister result, String type, IrRegister pointer, int memberIndex) implements Result {
+    record MemberVariable(IrRegister result, String type, IrDynamic pointer, int memberIndex) implements Result {
     }
 
-    record Subscript(IrRegister result, IrType type, IrRegister pointer, IrOperand index) implements Result {
+    record Subscript(IrRegister result, IrType type, IrDynamic pointer, IrOperand index) implements Result {
     }
 
     sealed interface FunctionCall extends Result {

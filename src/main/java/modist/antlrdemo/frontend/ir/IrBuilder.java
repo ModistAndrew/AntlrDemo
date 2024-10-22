@@ -84,10 +84,10 @@ public class IrBuilder {
     }
 
     // return the pointer to the lvalue rather that the value itself
-    private IrOperand visitExpressionLvalue(ExpressionAst expression) {
+    private IrDynamic visitExpressionLvalue(ExpressionAst expression) {
         return switch (expression) {
             case ExpressionAst.Subscript subscript -> {
-                IrRegister array = (IrRegister) visitExpression(subscript.expression);
+                IrDynamic array = (IrDynamic) visitExpression(subscript.expression);
                 IrOperand index = visitExpression(subscript.index);
                 yield add(new InstructionIr.Subscript(temp("subscript"),
                         subscript.type.irType(), array, index));
@@ -99,11 +99,11 @@ public class IrBuilder {
                 }
                 yield add(new InstructionIr.MemberVariable(temp("member"),
                         variable.symbol.classType.irName,
-                        variable.expression == null ? IrRegister.THIS : (IrRegister) visitExpression(variable.expression),
+                        variable.expression == null ? IrRegister.THIS : (IrDynamic) visitExpression(variable.expression),
                         variable.symbol.memberIndex));
             }
             case ExpressionAst.PreUnaryAssign preUnaryAssign -> {
-                IrOperand pointer = visitExpressionLvalue(preUnaryAssign.expression);
+                IrDynamic pointer = visitExpressionLvalue(preUnaryAssign.expression);
                 IrRegister result = add(new InstructionIr.Bin(temp(preUnaryAssign.operator.getIrPrefix()),
                         preUnaryAssign.operator.irOperator, IrType.I32, loadPointer(IrType.I32, pointer), new IrConstant.Int(1)));
                 storePointer(IrType.I32, result, pointer);
@@ -188,9 +188,9 @@ public class IrBuilder {
             case ExpressionAst.Function function -> callFunction(function.symbol,
                     function.arguments.stream().map(this::visitExpression).toList(),
                     function.symbol.classType == null ? null :
-                            function.expression == null ? IrRegister.THIS : (IrRegister) visitExpression(function.expression));
+                            function.expression == null ? IrRegister.THIS : (IrDynamic) visitExpression(function.expression));
             case ExpressionAst.PostUnaryAssign postUnaryAssign -> {
-                IrOperand pointer = visitExpressionLvalue(postUnaryAssign.expression);
+                IrDynamic pointer = visitExpressionLvalue(postUnaryAssign.expression);
                 IrOperand data = loadPointer(IrType.I32, pointer);
                 IrRegister result = add(new InstructionIr.Bin(temp(postUnaryAssign.operator.getIrPrefix()),
                         postUnaryAssign.operator.irOperator, IrType.I32, data, new IrConstant.Int(1)));
@@ -253,7 +253,7 @@ public class IrBuilder {
                                 conditional.type.irType(), trueValue, lastTrueLabel, falseValue, lastFalseLabel));
             }
             case ExpressionAst.Assign assign -> {
-                IrOperand pointer = visitExpressionLvalue(assign.left);
+                IrDynamic pointer = visitExpressionLvalue(assign.left);
                 storePointer(assign.right.type.irType(), visitExpression(assign.right), pointer);
                 yield null;
             }
@@ -354,25 +354,23 @@ public class IrBuilder {
         return (IrRegister) expressionResult;
     }
 
-    private IrOperand loadPointer(IrType type, IrOperand pointer) {
+    private IrDynamic loadPointer(IrType type, IrDynamic pointer) {
         return switch (pointer) {
             case IrRegister register -> add(new InstructionIr.Load(temp("load"), type, register));
             case VariableUse variable -> addVariableReference(variable);
-            case IrConstant ignored -> throw new UnsupportedOperationException();
         };
     }
 
-    private void storePointer(IrType type, IrOperand value, IrOperand pointer) {
+    private void storePointer(IrType type, IrOperand value, IrDynamic pointer) {
         switch (pointer) {
             case IrRegister register -> add(new InstructionIr.Store(type, value, register));
             case VariableUse variable -> addVariableReference(new VariableDef(variable.name, type, value));
-            case IrConstant ignored -> throw new UnsupportedOperationException();
         }
     }
 
     // remember to add this ptr into arguments if necessary
     @Nullable
-    private IrRegister callFunction(Symbol.Function symbol, List<IrOperand> arguments, @Nullable IrRegister thisPointer) {
+    private IrRegister callFunction(Symbol.Function symbol, List<IrOperand> arguments, @Nullable IrDynamic thisPointer) {
         IrRegister result = symbol.returnType.isVoid() ? null : temp("call");
         return add(new InstructionIr.Call(result,
                 symbol.returnType.irType(), symbol.irName, getParameterTypes(symbol), getArguments(arguments, thisPointer)));
@@ -402,7 +400,7 @@ public class IrBuilder {
         program.functionVarargsDeclarations.add(new FunctionVarargsDeclarationIr(symbol.irName, symbol.returnType.irType(), getParameterTypes(symbol)));
     }
 
-    private List<IrOperand> getArguments(List<IrOperand> arguments, @Nullable IrRegister thisPointer) {
+    private List<IrOperand> getArguments(List<IrOperand> arguments, @Nullable IrDynamic thisPointer) {
         List<IrOperand> result = new ArrayList<>();
         if (thisPointer != null) { // add this ptr into arguments if necessary
             result.add(thisPointer);
@@ -442,7 +440,7 @@ public class IrBuilder {
         currentFunction.addVariableReference(variableDef);
     }
 
-    private IrOperand addVariableReference(VariableUse variableUse) {
+    private VariableUse addVariableReference(VariableUse variableUse) {
         currentFunction.addVariableReference(variableUse);
         return variableUse;
     }
