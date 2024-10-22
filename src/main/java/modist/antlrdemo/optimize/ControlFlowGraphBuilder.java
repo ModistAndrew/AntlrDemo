@@ -1,4 +1,4 @@
-package modist.antlrdemo.backend.optimize;
+package modist.antlrdemo.optimize;
 
 import modist.antlrdemo.frontend.ir.node.BlockIr;
 import modist.antlrdemo.frontend.ir.node.FunctionIr;

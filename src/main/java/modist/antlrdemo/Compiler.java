@@ -3,9 +3,9 @@ package modist.antlrdemo;
 import modist.antlrdemo.backend.asm.AsmBuilder;
 import modist.antlrdemo.backend.asm.AsmPrinter;
 import modist.antlrdemo.backend.asm.node.ProgramAsm;
-import modist.antlrdemo.backend.optimize.ControlFlowGraphBuilder;
-import modist.antlrdemo.backend.optimize.DominatorTreeBuilder;
-import modist.antlrdemo.backend.optimize.Mem2Reg;
+import modist.antlrdemo.optimize.ControlFlowGraphBuilder;
+import modist.antlrdemo.optimize.DominatorTreeBuilder;
+import modist.antlrdemo.optimize.Mem2Reg;
 import modist.antlrdemo.frontend.ir.IrPrinter;
 import modist.antlrdemo.frontend.semantic.error.CompileException;
 import modist.antlrdemo.frontend.ir.IrBuilder;
@@ -29,6 +29,7 @@ public class Compiler {
         List<String> argList = Arrays.asList(args);
         try {
             ProgramIr ir = frontend();
+            optimize(ir);
             if (argList.contains("--ir")) {
                 new IrPrinter(System.out).print(ir);
             } else {
@@ -55,7 +56,6 @@ public class Compiler {
     }
 
     private static ProgramAsm backend(ProgramIr program) {
-        optimize(program);
         return new AsmBuilder().visitProgram(program);
     }
 

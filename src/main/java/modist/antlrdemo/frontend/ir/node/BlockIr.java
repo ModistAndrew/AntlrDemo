@@ -12,7 +12,7 @@ public final class BlockIr implements Ir {
     // for Mem2Reg
     public final List<VariableReference> variableReferences = new ArrayList<>();
     public final List<VariableDef> variableDefs = new ArrayList<>();
-    public final List<VariableUse> variableUses = new ArrayList<>();
+    public final Set<String> variableUseNames = new HashSet<>();
     public final Map<String, InstructionIr.Phi> phiMap = new HashMap<>();
     // for ControlFlowGraphBuilder
     public InstructionIr.End end;
@@ -48,7 +48,7 @@ public final class BlockIr implements Ir {
                 current.variableReferences.add(variableReference);
                 switch (variableReference) {
                     case VariableDef def -> current.variableDefs.add(def);
-                    case VariableUse use -> current.variableUses.add(use);
+                    case VariableUse use -> current.variableUseNames.add(use.name);
                 }
             }
         }

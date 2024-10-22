@@ -1,4 +1,4 @@
-package modist.antlrdemo.backend.optimize;
+package modist.antlrdemo.optimize;
 
 import modist.antlrdemo.frontend.ir.IrNamer;
 import modist.antlrdemo.frontend.ir.metadata.IrConcrete;
@@ -40,6 +40,9 @@ public class Mem2Reg {
 
     private void insertPhi(BlockIr block, VariableDef def) {
         if (block.phiMap.containsKey(def.name())) {
+            return;
+        }
+        if (!block.variableUseNames.contains(def.name())) {
             return;
         }
         InstructionIr.Phi phi = new InstructionIr.Phi(new IrRegister(irNamer.phiVariable(def.name())), def.type());
