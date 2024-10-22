@@ -36,10 +36,10 @@ public final class BlockIr implements Ir {
         public void add(InstructionIr instruction) {
             if (!finished) {
                 current.instructions.add(instruction);
-            }
-            if (instruction instanceof InstructionIr.End end) {
-                current.end = end;
-                finished = true;
+                if (instruction instanceof InstructionIr.End end) {
+                    current.end = end;
+                    finished = true;
+                }
             }
         }
 

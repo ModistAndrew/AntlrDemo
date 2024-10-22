@@ -57,6 +57,7 @@ public class Mem2Reg {
                 case VariableUse use -> use.value = peekVariable(use.name);
             }
         });
+        // TODO: eliminate default value
         block.successors.forEach(successor -> successor.phiMap.forEach((name, phi) -> phi.add(block,
                 variablePresent(name) ? peekVariable(name) : phi.type().defaultValue)));
         block.dominatorTreeChildren.forEach(this::fillVariables);
