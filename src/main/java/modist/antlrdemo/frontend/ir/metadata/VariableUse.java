@@ -19,4 +19,9 @@ public final class VariableUse implements IrDynamic, IrOperand, VariableReferenc
     public IrConcrete asConcrete() {
         return value;
     }
+
+    @Override
+    public IrDynamic copy() {
+        return new VariableUse(name);
+    }
 }

@@ -57,11 +57,8 @@ public class Mem2Reg {
                 case VariableUse use -> use.value = peekVariable(use.name);
             }
         });
-        block.successors.forEach(successor -> {
-            // removing invalid phi nodes
-            successor.phiMap.keySet().removeIf(name -> !variablePresent(name));
-            successor.phiMap.forEach((name, phi) -> phi.add(block, peekVariable(name)));
-        });
+        block.successors.forEach(successor -> successor.phiMap.forEach((name, phi) -> phi.add(block,
+                variablePresent(name) ? peekVariable(name) : phi.type().defaultValue)));
         block.dominatorTreeChildren.forEach(this::fillVariables);
         block.variableDefs.forEach(def -> popVariable(def.name()));
         block.phiMap.forEach((name, phi) -> popVariable(name));

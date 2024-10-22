@@ -107,7 +107,7 @@ public class IrBuilder {
                 IrRegister result = add(new InstructionIr.Bin(temp(preUnaryAssign.operator.getIrPrefix()),
                         preUnaryAssign.operator.irOperator, IrType.I32, loadPointer(IrType.I32, pointer), new IrConstant.Int(1)));
                 storePointer(IrType.I32, result, pointer);
-                yield pointer;
+                yield pointer.copy(); // we need to return a copy of the pointer to avoid duplicate VariableUse
             }
             default -> throw new UnsupportedOperationException();
         };

@@ -17,4 +17,9 @@ public record IrRegister(String name) implements IrConcrete, IrDynamic, IrOperan
     public boolean isGlobal() {
         return IrNamer.isGlobal(name);
     }
+
+    @Override
+    public IrDynamic copy() {
+        return this;
+    }
 }
