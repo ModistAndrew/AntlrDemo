@@ -29,7 +29,7 @@ public class DominatorTreeBuilder {
         entry.bfsVisited = true;
         function.bfsOrder.add(entry);
         int head = 0;
-        while (head < function.body.size()) {
+        while (head < function.bfsOrder.size()) {
             function.bfsOrder.get(head).successors.stream()
                     .filter(successor -> !successor.bfsVisited)
                     .forEach(successor -> {
@@ -38,6 +38,8 @@ public class DominatorTreeBuilder {
                     });
             head++;
         }
+        // dead code elimination
+        function.body.removeIf(block -> !block.bfsVisited);
     }
 
     private void getDominators() {
