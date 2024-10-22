@@ -24,7 +24,7 @@ application {
 }
 
 run {
-    args = ['--debug']
+    args += ['--debug']
     standardInput = System.in
     standardOutput = System.out
 }

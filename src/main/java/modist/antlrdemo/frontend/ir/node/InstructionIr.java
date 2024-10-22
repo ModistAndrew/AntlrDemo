@@ -25,6 +25,7 @@ public sealed interface InstructionIr extends Ir {
     }
 
     // nearTrue to avoid beqz and bnez immediate out of range
+    // TODO: make a simple Br command with only one label? how to calculate the distance?
     record Br(IrOperand condition, String trueLabel, String falseLabel, boolean nearTrue) implements End {
     }
 
@@ -37,6 +38,7 @@ public sealed interface InstructionIr extends Ir {
         }
     }
 
+    @Deprecated
     record Alloc(IrRegister result, IrType type) implements Result {
     }
 

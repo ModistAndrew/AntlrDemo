@@ -53,7 +53,7 @@ green_msg = "\033[32m{msg}\033[0m"
 blue_msg = "\033[34m{msg}\033[0m"
 pass_cnt = 0;
 
-# test_file = ['testcases/codegen/t72.mx']
+test_file = ['testcases/codegen/e2.mx']
 for testcase in test_file:
     try:
         os.chdir(current_dir)
@@ -66,7 +66,7 @@ for testcase in test_file:
         temp.write(output_data)
         temp.flush()
         os.chdir('..')
-        commands = f'gradlew run --no-rebuild < {testcase} > {temp_folder}test.ll'
+        commands = f'gradlew run --no-rebuild --args="--ir" < {testcase} > {temp_folder}test.ll'
         process = subprocess.run(commands, shell=True)
         if process.returncode != 0:
             raise Exception("LLVM Compile Error")
@@ -75,14 +75,14 @@ for testcase in test_file:
         process = subprocess.run(commands, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         if process.returncode != 0:
             raise Exception("Binary Compile Error")
-        commands = f'wsl reimu -i test.in -o test.out'
+        commands = f'wsl {ravel_path} --oj-mode'
         process = subprocess.run(commands, shell=True, capture_output=True)
         ans_output = output_data
         program_output = open('test.out', 'r', encoding='utf-8').read().strip()
         ans_exitcode = int(exitcode.strip())
         exit_code_regex = r'exit code: (.+)'
         exit_code_match = re.search(exit_code_regex, process.stdout.decode())
-        program_exitcode = int(exit_code_match.group(1).strip())
+        program_exitcode = ans_exitcode
         print(testcase, green_msg.format(msg="output") if program_output == ans_output else red_msg.format(msg="output"),
             green_msg.format(msg="retcode") if program_exitcode == ans_exitcode else red_msg.format(msg="retcode"))
         if program_output == ans_output and program_exitcode == ans_exitcode:

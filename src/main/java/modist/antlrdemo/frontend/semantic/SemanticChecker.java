@@ -22,26 +22,26 @@ public class SemanticChecker {
         scope = scope.getParent();
     }
 
-    public void check(Ast node) {
+    public void visit(Ast node) {
         PositionRecord.set(node.getPosition());
         switch (node) {
             case ProgramAst program -> {
                 pushScope(new GlobalScope(program));
-                program.definitions.forEach(this::check);
+                program.definitions.forEach(this::visit);
                 popScope();
             }
             case ArrayCreatorAst ignored -> throw new UnsupportedOperationException();
             case DefinitionAst.Class classDefinition -> {
                 pushScope(new ChildScope(scope, classDefinition));
-                classDefinition.variables.forEach(this::check);
-                classDefinition.constructors.forEach(this::check);
-                classDefinition.functions.forEach(this::check);
+                classDefinition.variables.forEach(this::visit);
+                classDefinition.constructors.forEach(this::visit);
+                classDefinition.functions.forEach(this::visit);
                 popScope();
             }
             case DefinitionAst.Function functionDefinition -> {
                 pushScope(new ChildScope(scope, functionDefinition));
-                functionDefinition.parameters.forEach(this::check);
-                functionDefinition.body.forEach(this::check);
+                functionDefinition.parameters.forEach(this::visit);
+                functionDefinition.body.forEach(this::visit);
                 if (!scope.returned && functionDefinition.symbol.shouldReturn()) {
                     throw new MissingReturnStatementException();
                 }
@@ -51,43 +51,43 @@ public class SemanticChecker {
             case ExpressionAst expression -> new Type.Builder(scope).build(expression);
             case StatementAst.Block blockStatement -> {
                 pushScope(new ChildScope(scope, blockStatement));
-                blockStatement.statements.forEach(this::check);
+                blockStatement.statements.forEach(this::visit);
                 popScope();
             }
             case StatementAst.VariableDefinitions variableDefinitionsStatement ->
-                    variableDefinitionsStatement.variables.forEach(this::check);
+                    variableDefinitionsStatement.variables.forEach(this::visit);
             case StatementAst.If ifStatement -> {
-                check(ifStatement.condition);
+                visit(ifStatement.condition);
                 ifStatement.condition.type.test(BuiltinFeatures.BOOL);
                 pushScope(new ChildScope(scope, ifStatement));
-                ifStatement.thenStatements.forEach(this::check);
+                ifStatement.thenStatements.forEach(this::visit);
                 popScope();
                 if (ifStatement.elseStatements != null) {
                     pushScope(new ChildScope(scope, ifStatement));
-                    ifStatement.elseStatements.forEach(this::check);
+                    ifStatement.elseStatements.forEach(this::visit);
                     popScope();
                 }
             }
             case StatementAst.For forStatement -> {
                 pushScope(new ChildScope(scope, forStatement));
                 if (forStatement.initialization != null) {
-                    check(forStatement.initialization);
+                    visit(forStatement.initialization);
                 }
                 if (forStatement.condition != null) {
-                    check(forStatement.condition);
+                    visit(forStatement.condition);
                     forStatement.condition.type.test(BuiltinFeatures.BOOL);
                 }
                 if (forStatement.update != null) {
-                    check(forStatement.update);
+                    visit(forStatement.update);
                 }
-                forStatement.statements.forEach(this::check);
+                forStatement.statements.forEach(this::visit);
                 popScope();
             }
             case StatementAst.While whileStatement -> {
-                check(whileStatement.condition);
+                visit(whileStatement.condition);
                 whileStatement.condition.type.test(BuiltinFeatures.BOOL);
                 pushScope(new ChildScope(scope, whileStatement));
-                whileStatement.statements.forEach(this::check);
+                whileStatement.statements.forEach(this::visit);
                 popScope();
             }
             case StatementAst.Break breakStatement -> {
@@ -117,7 +117,7 @@ public class SemanticChecker {
                 }
                 scope.returned = true;
             }
-            case StatementAst.Expression expressionStatement -> check(expressionStatement.expression);
+            case StatementAst.Expression expressionStatement -> visit(expressionStatement.expression);
             case StatementAst.Empty ignored -> {
             }
             case TypeAst ignored -> throw new UnsupportedOperationException();

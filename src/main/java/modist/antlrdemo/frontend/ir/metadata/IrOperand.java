@@ -1,4 +1,4 @@
 package modist.antlrdemo.frontend.ir.metadata;
 
-public sealed interface IrOperand permits IrConstant, IrRegister {
+public sealed interface IrOperand permits IrConcrete, VariableUse {
 }

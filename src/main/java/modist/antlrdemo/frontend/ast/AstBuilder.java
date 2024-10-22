@@ -25,7 +25,7 @@ public class AstBuilder implements MxVisitor<Ast> {
                 .flatMap(node -> switch (node) {
                     case StatementAst.VariableDefinitions variableDefinitions -> variableDefinitions.variables.stream();
                     case DefinitionAst definition -> Stream.of(definition);
-                    default -> throw new ClassCastException();
+                    default -> throw new UnsupportedOperationException();
                 }).toList();
         programNode.classes = new ArrayList<>();
         programNode.functions = new ArrayList<>();

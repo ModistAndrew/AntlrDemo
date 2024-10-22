@@ -2,7 +2,7 @@ package modist.antlrdemo.frontend.ir.metadata;
 
 import modist.antlrdemo.frontend.ir.IrNamer;
 
-public record IrRegister(String name) implements IrOperand {
+public record IrRegister(String name) implements IrConcrete {
     public static final IrRegister THIS = new IrRegister(IrNamer.THIS_VAR);
 
     public static IrRegister createConstantString() {

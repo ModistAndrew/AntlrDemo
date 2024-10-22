@@ -116,9 +116,11 @@ public class AsmBuilder {
     // as a result, we need to use La instruction to get the address of the global variable
     private Register load(IrOperand operand, Register destination) {
         return switch (operand) {
+            case VariableUse variable -> load(variable.value, destination);
             case IrRegister register -> register.isGlobal() ?
                     add(new InstructionAsm.La(destination, IrNamer.removePrefix(register.name()))) :
                     currentFunction.loadIrRegister(register, destination);
+            // TODO: use asm for immediate values directly
             case IrConstant constant -> add(new InstructionAsm.Li(destination, constant.asImmediate()));
         };
     }

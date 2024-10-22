@@ -3,6 +3,9 @@ package modist.antlrdemo;
 import modist.antlrdemo.backend.asm.AsmBuilder;
 import modist.antlrdemo.backend.asm.AsmPrinter;
 import modist.antlrdemo.backend.asm.node.ProgramAsm;
+import modist.antlrdemo.backend.optimize.ControlFlowGraphBuilder;
+import modist.antlrdemo.backend.optimize.DominatorTreeBuilder;
+import modist.antlrdemo.frontend.ir.IrPrinter;
 import modist.antlrdemo.frontend.semantic.error.CompileException;
 import modist.antlrdemo.frontend.ir.IrBuilder;
 import modist.antlrdemo.frontend.ir.node.ProgramIr;
@@ -25,8 +28,12 @@ public class Compiler {
         List<String> argList = Arrays.asList(args);
         try {
             ProgramIr ir = frontend();
-            ProgramAsm asm = backend(ir);
-            new AsmPrinter(System.out).print(asm);
+            if (argList.contains("--ir")) {
+                new IrPrinter(System.out).print(ir);
+            } else {
+                ProgramAsm asm = backend(ir);
+                new AsmPrinter(System.out).print(asm);
+            }
         } catch (CompileException e) {
             if (argList.contains("--debug")) {
                 System.err.printf("%s at [%s]: %s%n", e.getErrorType(), e.getPosition(), e.getMessage());
@@ -42,12 +49,18 @@ public class Compiler {
         MxLexer lexer = withFastFailErrorListener(new MxLexer(CharStreams.fromStream(System.in)));
         MxParser parser = withFastFailErrorListener(new MxParser(new CommonTokenStream(lexer)));
         ProgramAst ast = new AstBuilder().visitProgram(parser.program());
-        new SemanticChecker().check(ast);
+        new SemanticChecker().visit(ast);
         return new IrBuilder().visitProgram(ast);
     }
 
     private static ProgramAsm backend(ProgramIr program) {
+        optimize(program);
         return new AsmBuilder().visitProgram(program);
+    }
+
+    private static void optimize(ProgramIr program) {
+        new ControlFlowGraphBuilder().visitProgram(program);
+        new DominatorTreeBuilder().visitProgram(program);
     }
 
     private static <T extends Recognizer<?, ?>> T withFastFailErrorListener(T recognizer) {

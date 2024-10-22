@@ -3,8 +3,10 @@ package modist.antlrdemo.frontend.ir.node;
 import modist.antlrdemo.frontend.ir.IrNamer;
 import modist.antlrdemo.frontend.ir.metadata.IrType;
 import modist.antlrdemo.frontend.ir.metadata.IrRegister;
+import modist.antlrdemo.frontend.ir.metadata.VariableReference;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public final class FunctionIr implements Ir {
@@ -13,6 +15,10 @@ public final class FunctionIr implements Ir {
     public final List<IrRegister> parameters;
     public final List<IrType> parameterTypes;
     public final List<BlockIr> body = new ArrayList<>();
+    // for ControlFlowGraphBuilder
+    public final HashMap<String, BlockIr> blockMap = new HashMap<>();
+    // for DominatorTreeBuilder
+    public final List<BlockIr> bfsOrder = new ArrayList<>();
 
     private FunctionIr(String name, IrType returnType, List<IrRegister> parameters, List<IrType> parameterTypes) {
         this.name = name;
@@ -36,6 +42,10 @@ public final class FunctionIr implements Ir {
 
         public void add(InstructionIr instruction) {
             currentBlock.add(instruction);
+        }
+
+        public void addVariableReference(VariableReference variableReference) {
+            currentBlock.addVariableReference(variableReference);
         }
 
         // returns the label of the previous block
