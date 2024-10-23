@@ -107,7 +107,7 @@ public class IrBuilder {
                 IrRegister result = add(new InstructionIr.Bin(temp(preUnaryAssign.operator.getIrPrefix()),
                         preUnaryAssign.operator.irOperator, IrType.I32, loadPointer(IrType.I32, pointer), new IrConstant.Int(1)));
                 storePointer(IrType.I32, result, pointer);
-                yield pointer.copy(); // we need to return a copy of the pointer to avoid duplicate VariableUse
+                yield pointer;
             }
             default -> throw new UnsupportedOperationException();
         };
@@ -267,9 +267,8 @@ public class IrBuilder {
             case ArrayCreatorAst ignored -> throw new UnsupportedOperationException();
             case DefinitionAst.Variable variableDefinition -> {
                 VariableUse pointer = new VariableUse(variableDefinition.symbol.irName);
-                if (variableDefinition.initializer != null) {
-                    storePointer(variableDefinition.symbol.type.irType(), visitExpression(variableDefinition.initializer), pointer);
-                }
+                IrType type = variableDefinition.symbol.type.irType();
+                storePointer(type, variableDefinition.initializer == null ? type.defaultValue : visitExpression(variableDefinition.initializer), pointer);
             }
             case DefinitionAst.Class ignored -> throw new UnsupportedOperationException();
             case DefinitionAst.Function ignored -> throw new UnsupportedOperationException();
@@ -357,7 +356,7 @@ public class IrBuilder {
     private IrDynamic loadPointer(IrType type, IrDynamic pointer) {
         return switch (pointer) {
             case IrRegister register -> add(new InstructionIr.Load(temp("load"), type, register));
-            case VariableUse variable -> addVariableReference(variable);
+            case VariableUse variable -> addVariableReference(new VariableUse(variable.name)); // use a copy every time
         };
     }
 
@@ -442,7 +441,7 @@ public class IrBuilder {
 
     private VariableUse addVariableReference(VariableUse variableUse) {
         currentFunction.addVariableReference(variableUse);
-        return variableUse;
+        return variableUse; // return the same object to provide a link to the variable
     }
 
     private IrRegister temp(String prefix) {

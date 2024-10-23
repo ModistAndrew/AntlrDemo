@@ -53,13 +53,17 @@ public class Mem2Reg {
         block.variableReferences.forEach(variableReference -> {
             switch (variableReference) {
                 // use concrete value
-                case VariableDef def -> pushVariable(def.name(), def.value().asConcrete());
+                case VariableDef def -> pushVariable(def.name(), switch (def.value()) {
+                    case IrConcrete concrete -> concrete;
+                    case VariableUse use -> peekVariable(use.name);
+                });
                 case VariableUse use -> use.value = peekVariable(use.name);
             }
         });
-        // TODO: eliminate default value
-        block.successors.forEach(successor -> successor.phiMap.forEach((name, phi) -> phi.add(block,
-                variablePresent(name) ? peekVariable(name) : phi.type().defaultValue)));
+        block.successors.forEach(successor -> {
+            successor.phiMap.keySet().removeIf(name -> !variablePresent(name)); // remove phi that should never be used
+            successor.phiMap.forEach((name, phi) -> phi.add(block, peekVariable(name)));
+        });
         block.dominatorTreeChildren.forEach(this::fillVariables);
         block.variableDefs.forEach(def -> popVariable(def.name()));
         block.phiMap.forEach((name, phi) -> popVariable(name));
