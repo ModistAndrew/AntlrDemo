@@ -25,7 +25,8 @@ public final class BlockIr implements Ir {
     public final Set<BlockIr> dominatorTreeChildren = new HashSet<>();
     public final Set<BlockIr> dominanceFrontiers = new HashSet<>();
     // for PhiElimination
-    public final List<InstructionIr.Mv> mvs = new ArrayList<>();
+    public final List<InstructionIr.Mv> mvPhis = new ArrayList<>();
+    public final List<InstructionIr.Mv> mvTemps = new ArrayList<>();
 
     private BlockIr(String label) {
         this.label = label;

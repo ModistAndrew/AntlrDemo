@@ -17,6 +17,7 @@ import java.util.Map;
 // local variables: %(name).[count]
 // temporary variables: %.(prefix).[count]
 // phi variables: %.phi.(name).[count]
+// mv temp variables: %(name).mv
 // label naming: entry or (prefix).[count].(suffix)
 // something is done here rather than in symbol namer because it is related to the IR generation
 public class IrNamer {
