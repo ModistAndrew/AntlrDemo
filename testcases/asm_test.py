@@ -53,7 +53,7 @@ green_msg = "\033[32m{msg}\033[0m"
 blue_msg = "\033[34m{msg}\033[0m"
 pass_cnt = 0;
 
-# test_file = ['testcases/codegen/t1.mx']
+# test_file = ['testcases/codegen/t5.mx']
 for testcase in test_file:
     try:
         os.chdir(current_dir)
