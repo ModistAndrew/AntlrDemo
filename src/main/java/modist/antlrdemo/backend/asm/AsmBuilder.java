@@ -10,6 +10,7 @@ import modist.antlrdemo.frontend.ir.IrNamer;
 import modist.antlrdemo.frontend.ir.metadata.*;
 import modist.antlrdemo.frontend.ir.node.InstructionIr;
 import modist.antlrdemo.frontend.ir.node.ProgramIr;
+import org.jetbrains.annotations.Nullable;
 
 public class AsmBuilder {
     private ProgramAsm program;
@@ -68,6 +69,8 @@ public class AsmBuilder {
     }
 
     // return the register that holds the result of the instruction
+    // return null for void function calls
+    @Nullable
     private Register visitResult(InstructionIr.Result ir) {
         return switch (ir) {
             case InstructionIr.Subscript subscript -> add(new InstructionAsm.Bin(temp(),
@@ -121,6 +124,7 @@ public class AsmBuilder {
                     currentFunction.loadIrRegister(register, destination);
             // TODO: use asm for immediate values directly
             case IrConstant constant -> add(new InstructionAsm.Li(destination, constant.asImmediate()));
+            case null -> Register.ZERO; // undefined value. use an arbitrary register
         };
     }
 
