@@ -18,28 +18,9 @@ public class DominatorTreeBuilder {
     }
 
     private void visitFunction() {
-        bfs();
         getDominators();
         buildDominatorTree();
         getDominatorFrontiers();
-    }
-
-    private void bfs() {
-        BlockIr entry = function.getEntry();
-        entry.bfsVisited = true;
-        function.bfsOrder.add(entry);
-        int head = 0;
-        while (head < function.bfsOrder.size()) {
-            function.bfsOrder.get(head).successors.stream()
-                    .filter(successor -> !successor.bfsVisited)
-                    .forEach(successor -> {
-                        successor.bfsVisited = true;
-                        function.bfsOrder.add(successor);
-                    });
-            head++;
-        }
-        // dead code elimination
-        function.body.removeIf(block -> !block.bfsVisited);
     }
 
     private void getDominators() {

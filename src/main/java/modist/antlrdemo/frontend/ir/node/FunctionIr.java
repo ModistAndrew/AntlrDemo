@@ -18,7 +18,6 @@ public final class FunctionIr implements Ir {
     public final List<BlockIr> body = new ArrayList<>();
     // for ControlFlowGraphBuilder
     public final Map<String, BlockIr> blockMap = new HashMap<>();
-    // for DominatorTreeBuilder
     public final List<BlockIr> bfsOrder = new ArrayList<>();
 
     private FunctionIr(String name, IrType returnType, List<IrRegister> parameters, List<IrType> parameterTypes) {

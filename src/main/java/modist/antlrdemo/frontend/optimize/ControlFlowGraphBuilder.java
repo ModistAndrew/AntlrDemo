@@ -18,6 +18,7 @@ public class ControlFlowGraphBuilder {
     private void visitFunction() {
         function.body.forEach(block -> function.blockMap.put(block.label, block));
         function.body.forEach(this::visitBlock);
+        bfs();
     }
 
     private void visitBlock(BlockIr block) {
@@ -36,5 +37,28 @@ public class ControlFlowGraphBuilder {
         BlockIr to = function.blockMap.get(toLabel);
         from.successors.add(to);
         to.predecessors.add(from);
+    }
+
+    private void bfs() {
+        BlockIr entry = function.getEntry();
+        entry.bfsVisited = true;
+        function.bfsOrder.add(entry);
+        int head = 0;
+        while (head < function.bfsOrder.size()) {
+            function.bfsOrder.get(head).successors.stream()
+                    .filter(successor -> !successor.bfsVisited)
+                    .forEach(successor -> {
+                        successor.bfsVisited = true;
+                        function.bfsOrder.add(successor);
+                    });
+            head++;
+        }
+        // dead code elimination
+        function.body.removeIf(block -> !block.bfsVisited);
+        function.blockMap.values().removeIf(block -> !block.bfsVisited);
+        function.body.forEach(block -> {
+            block.successors.removeIf(successor -> !successor.bfsVisited);
+            block.predecessors.removeIf(predecessor -> !predecessor.bfsVisited);
+        });
     }
 }
