@@ -87,8 +87,6 @@ public class IrPrinter {
                     printStream.printf(" %s", ret.value());
                 }
             }
-            case InstructionIr.Alloc alloc -> printStream.printf("%s = alloca %s",
-                    alloc.result(), alloc.type());
             case InstructionIr.Load load -> printStream.printf("%s = load %s, %s %s",
                     load.result(), load.type(), IrType.PTR, load.pointer());
             case InstructionIr.Store store -> printStream.printf("store %s %s, %s %s",
@@ -115,7 +113,8 @@ public class IrPrinter {
                         callVarargs.function(), toStringArguments(callVarargs.argumentTypes(), callVarargs.arguments()));
             }
             case InstructionIr.Phi phi -> printStream.printf("%s = phi %s %s",
-                    phi.result(), phi.type(), toStringPhiPairs(phi.values(), phi.labels()));
+                    phi.result(), phi.type(), toStringPhiPairs(phi.type(), phi.values(), phi.labels()));
+            case InstructionIr.Mv ignored -> throw new UnsupportedOperationException();
         }
     }
 
@@ -133,10 +132,11 @@ public class IrPrinter {
                         .toList());
     }
 
-    private String toStringPhiPairs(List<IrOperand> values, List<String> labels) {
-        return String.join(", ",
-                IntStream.range(0, values.size()).mapToObj(i -> String.format("[ %s, %s ]", values.get(i), IrNamer.labelValue(labels.get(i))))
-                        .toList());
+    private String toStringPhiPairs(IrType type, List<IrOperand> values, List<String> labels) {
+        return String.join(", ", IntStream
+                .range(0, values.size())
+                .mapToObj(i -> String.format("[ %s, %s ]", values.get(i) == null ? type.defaultValue : values.get(i), IrNamer.labelValue(labels.get(i))))
+                .toList());
     }
 
     private String escape(String str) {

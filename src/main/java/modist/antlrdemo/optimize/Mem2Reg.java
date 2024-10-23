@@ -56,6 +56,7 @@ public class Mem2Reg {
                 case VariableDef def -> pushVariable(def.name(), switch (def.value()) {
                     case IrConcrete concrete -> concrete;
                     case VariableUse use -> peekVariable(use.name);
+                    case null -> null;
                 });
                 case VariableUse use -> use.value = peekVariable(use.name);
             }

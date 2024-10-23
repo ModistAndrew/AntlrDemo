@@ -12,9 +12,7 @@ import modist.antlrdemo.frontend.ir.node.BlockIr;
 import modist.antlrdemo.frontend.ir.node.FunctionIr;
 import modist.antlrdemo.frontend.ir.node.InstructionIr;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class FunctionBuilder {
     private static final int STACK_ALIGN = 16;
@@ -26,7 +24,6 @@ public class FunctionBuilder {
     // the current stack size(in bytes)
     // saved registers should be pushed to the stack
     // one ir register occupies one stack slot(including parameters)
-    // alloc instruction may enlarge the stack size
     // function call with too many arguments may enlarge the stack size
     // stackSize should be aligned
     // ir registers use the stack from the top to the bottom; function parameters use the stack from the bottom to the top
@@ -49,11 +46,20 @@ public class FunctionBuilder {
         for (int i = 0; i < function.parameters.size(); i++) {
             IrRegister parameter = function.parameters.get(i);
             if (i < Register.ARG_REGISTERS.length) {
-                add(new InstructionAsm.Sw(Register.ARG_REGISTERS[i], allocRegister(parameter), Register.SP));
+                allocRegister(parameter);
+                storeIrRegister(parameter, Register.ARG_REGISTERS[i]);
             } else {
                 // a trick here: we needn't allocate a stack slot for the parameter but use the original stack slot
                 // note that sp is already decremented by stackSize; we need to add stackSize back
                 irRegisters.put(parameter, stackSize + IrType.MAX_BYTE_SIZE * (i - Register.ARG_REGISTERS.length));
+            }
+        }
+        // allocate stack slots for ir registers
+        for (BlockIr block : function.body) {
+            for (InstructionIr instruction : block.instructions) {
+                if (instruction instanceof InstructionIr.Result result && result.result() != null) {
+                    allocRegister(result.result());
+                }
             }
         }
     }
@@ -61,25 +67,32 @@ public class FunctionBuilder {
     // we have to calculate the stack size before building the function so that stack pointer won't be changed during the process
     // must be careful that this corresponds to calls that change the stack pointer
     private int calculateStackSize(FunctionIr function) {
-        int size = savedRegisters.size() * Register.BYTE_SIZE;
-        size += IrType.MAX_BYTE_SIZE * Math.min(Register.ARG_REGISTERS.length, function.parameters.size());
+        int size = savedRegisters.size() * Register.BYTE_SIZE; // saved registers
+        size += IrType.MAX_BYTE_SIZE * Math.min(Register.ARG_REGISTERS.length, function.parameters.size()); // parameters in arg registers
         int maxFunctionCallParameters = 0;
+        Set<IrRegister> registers = new HashSet<>();
         for (BlockIr block : function.body) {
             for (InstructionIr instruction : block.instructions) {
                 if (instruction instanceof InstructionIr.Result result && result.result() != null) {
-                    size += IrType.MAX_BYTE_SIZE;
-                }
-                if (instruction instanceof InstructionIr.Alloc) {
-                    size += IrType.MAX_BYTE_SIZE;
+                    registers.add(result.result());
                 }
                 if (instruction instanceof InstructionIr.FunctionCall functionCall) {
                     maxFunctionCallParameters = Math.max(maxFunctionCallParameters, functionCall.arguments().size());
                 }
             }
         }
-        size += Math.max(maxFunctionCallParameters - Register.ARG_REGISTERS.length, 0) * IrType.MAX_BYTE_SIZE;
-        size = (size + STACK_ALIGN - 1) / STACK_ALIGN * STACK_ALIGN;
+        size += registers.size() * IrType.MAX_BYTE_SIZE; // ir registers
+        size += Math.max(maxFunctionCallParameters - Register.ARG_REGISTERS.length, 0) * IrType.MAX_BYTE_SIZE; // space for function call parameters
+        size = (size + STACK_ALIGN - 1) / STACK_ALIGN * STACK_ALIGN; // align the stack size
         return size;
+    }
+
+    // allocate a stack slot for an ir register if it hasn't been allocated
+    private void allocRegister(IrRegister register) {
+        if (!irRegisters.containsKey(register)) {
+            stackTop -= IrType.MAX_BYTE_SIZE;
+            irRegisters.put(register, stackTop);
+        }
     }
 
     // may perform some checks, e.g. check immediate range
@@ -132,18 +145,5 @@ public class FunctionBuilder {
 
     public void storeIrRegister(IrRegister register, Register value) {
         add(new InstructionAsm.Sw(value, irRegisters.get(register), Register.SP));
-    }
-
-    // allocate a stack slot for an ir register and return the offset from the stack pointer
-    public int allocRegister(IrRegister register) {
-        stackTop -= IrType.MAX_BYTE_SIZE;
-        irRegisters.put(register, stackTop);
-        return stackTop;
-    }
-
-    // for alloc instruction. return a temp register that points to the allocated memory
-    public Register alloc() {
-        stackTop -= IrType.MAX_BYTE_SIZE;
-        return add(new InstructionAsm.BinImm(Register.newTempRegister(), Opcode.ADDI, Register.SP, stackTop));
     }
 }

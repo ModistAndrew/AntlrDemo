@@ -36,10 +36,6 @@ public sealed interface InstructionIr extends Ir {
         }
     }
 
-    @Deprecated
-    record Alloc(IrRegister result, IrType type) implements Result {
-    }
-
     record Load(IrRegister result, IrType type, IrRegister pointer) implements Result {
     }
 
@@ -84,5 +80,8 @@ public sealed interface InstructionIr extends Ir {
             values.add(value);
             labels.add(block.label);
         }
+    }
+
+    record Mv(IrRegister result, IrOperand value) implements Result {
     }
 }

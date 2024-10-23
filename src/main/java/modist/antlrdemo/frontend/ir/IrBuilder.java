@@ -268,7 +268,7 @@ public class IrBuilder {
             case DefinitionAst.Variable variableDefinition -> {
                 VariableUse pointer = new VariableUse(variableDefinition.symbol.irName);
                 IrType type = variableDefinition.symbol.type.irType();
-                storePointer(type, variableDefinition.initializer == null ? type.defaultValue : visitExpression(variableDefinition.initializer), pointer);
+                storePointer(type, variableDefinition.initializer == null ? null : visitExpression(variableDefinition.initializer), pointer);
             }
             case DefinitionAst.Class ignored -> throw new UnsupportedOperationException();
             case DefinitionAst.Function ignored -> throw new UnsupportedOperationException();
@@ -360,7 +360,7 @@ public class IrBuilder {
         };
     }
 
-    private void storePointer(IrType type, IrOperand value, IrDynamic pointer) {
+    private void storePointer(IrType type, @Nullable IrOperand value, IrDynamic pointer) {
         switch (pointer) {
             case IrRegister register -> add(new InstructionIr.Store(type, value, register));
             case VariableUse variable -> addVariableReference(new VariableDef(variable.name, type, value));

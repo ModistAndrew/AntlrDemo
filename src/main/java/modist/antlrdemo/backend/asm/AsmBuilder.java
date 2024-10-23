@@ -41,7 +41,6 @@ public class AsmBuilder {
                     if (destination.isGlobal()) {
                         add(new InstructionAsm.SwLabel(data, IrNamer.removePrefix(destination.name())));
                     } else {
-                        currentFunction.allocRegister(destination);
                         currentFunction.storeIrRegister(destination, data);
                     }
                 }
@@ -71,7 +70,6 @@ public class AsmBuilder {
     // return the register that holds the result of the instruction
     private Register visitResult(InstructionIr.Result ir) {
         return switch (ir) {
-            case InstructionIr.Alloc ignored -> currentFunction.alloc();
             case InstructionIr.Subscript subscript -> add(new InstructionAsm.Bin(temp(),
                     Opcode.ADD, load(subscript.pointer()),
                     add(new InstructionAsm.BinImm(temp(), Opcode.SLLI, load(subscript.index()), IrType.LOG_MAX_BYTE_SIZE))));
@@ -108,6 +106,7 @@ public class AsmBuilder {
                         load(icmp.operator() == IrOperator.SGE ? icmp.right() : icmp.left())))));
                 default -> throw new IllegalArgumentException();
             };
+            case InstructionIr.Mv mv -> load(mv.value());
         };
     }
 
