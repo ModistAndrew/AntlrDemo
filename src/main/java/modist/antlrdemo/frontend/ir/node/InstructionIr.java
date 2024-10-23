@@ -23,7 +23,6 @@ public sealed interface InstructionIr extends Ir {
     }
 
     // nearTrue to avoid beqz and bnez immediate out of range
-    // TODO: make a simple Br command with only one label? how to calculate the distance?
     record Br(IrOperand condition, String trueLabel, String falseLabel, boolean nearTrue) implements End {
     }
 
@@ -67,6 +66,7 @@ public sealed interface InstructionIr extends Ir {
                        List<IrType> argumentTypes, List<IrOperand> arguments) implements FunctionCall {
     }
 
+    // elements in values may be null which represents an undefined value
     record Phi(IrRegister result, IrType type, List<IrOperand> values, List<String> labels) implements Result {
         public Phi(IrRegister result, IrType type, IrOperand value1, String label1, IrOperand value2, String label2) {
             this(result, type, List.of(value1, value2), List.of(label1, label2));

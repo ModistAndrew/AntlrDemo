@@ -3,9 +3,10 @@ package modist.antlrdemo;
 import modist.antlrdemo.backend.asm.AsmBuilder;
 import modist.antlrdemo.backend.asm.AsmPrinter;
 import modist.antlrdemo.backend.asm.node.ProgramAsm;
-import modist.antlrdemo.optimize.ControlFlowGraphBuilder;
-import modist.antlrdemo.optimize.DominatorTreeBuilder;
-import modist.antlrdemo.optimize.Mem2Reg;
+import modist.antlrdemo.backend.optimize.PhiElimination;
+import modist.antlrdemo.frontend.optimize.ControlFlowGraphBuilder;
+import modist.antlrdemo.frontend.optimize.DominatorTreeBuilder;
+import modist.antlrdemo.frontend.optimize.Mem2Reg;
 import modist.antlrdemo.frontend.ir.IrPrinter;
 import modist.antlrdemo.frontend.semantic.error.CompileException;
 import modist.antlrdemo.frontend.ir.IrBuilder;
@@ -29,7 +30,6 @@ public class Compiler {
         List<String> argList = Arrays.asList(args);
         try {
             ProgramIr ir = frontend();
-            optimize(ir);
             if (argList.contains("--ir")) {
                 new IrPrinter(System.out).print(ir);
             } else {
@@ -52,17 +52,24 @@ public class Compiler {
         MxParser parser = withFastFailErrorListener(new MxParser(new CommonTokenStream(lexer)));
         ProgramAst ast = new AstBuilder().visitProgram(parser.program());
         new SemanticChecker().visit(ast);
-        return new IrBuilder().visitProgram(ast);
+        ProgramIr ir = new IrBuilder().visitProgram(ast);
+        optimizeFrontend(ir);
+        return ir;
     }
 
-    private static ProgramAsm backend(ProgramIr program) {
-        return new AsmBuilder().visitProgram(program);
+    private static void optimizeFrontend(ProgramIr ir) {
+        new ControlFlowGraphBuilder().visitProgram(ir);
+        new DominatorTreeBuilder().visitProgram(ir);
+        new Mem2Reg().visitProgram(ir);
     }
 
-    private static void optimize(ProgramIr program) {
-        new ControlFlowGraphBuilder().visitProgram(program);
-        new DominatorTreeBuilder().visitProgram(program);
-        new Mem2Reg().visitProgram(program);
+    private static void optimizeBackend(ProgramIr ir) {
+        new PhiElimination().visitProgram(ir);
+    }
+
+    private static ProgramAsm backend(ProgramIr ir) {
+        optimizeBackend(ir);
+        return new AsmBuilder().visitProgram(ir);
     }
 
     private static <T extends Recognizer<?, ?>> T withFastFailErrorListener(T recognizer) {
