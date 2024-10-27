@@ -63,6 +63,10 @@ public class IrPrinter {
                     functionVarargsDeclaration.returnType(), functionVarargsDeclaration.name(),
                     toStringTypesVarargs(functionVarargsDeclaration.parameterTypes()));
             case FunctionIr function -> {
+                // print RegAlloc information
+                printStream.println("; Color map:");
+                function.colorMap.forEach((register, color) -> printStream.printf("; %s: %d%n", register, color));
+                printStream.println();
                 printStream.printf("define %s %s(%s) {%n",
                         function.returnType, function.name, toStringArguments(function.parameterTypes, function.parameters));
                 function.body.forEach(this::print);
@@ -114,7 +118,6 @@ public class IrPrinter {
             }
             case InstructionIr.Phi phi -> printStream.printf("%s = phi %s %s",
                     phi.result(), phi.type(), toStringPhiPairs(phi.type(), phi.values(), phi.labels()));
-            case InstructionIr.Mv ignored -> throw new UnsupportedOperationException();
         }
     }
 

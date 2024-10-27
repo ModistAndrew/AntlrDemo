@@ -1,4 +1,4 @@
-package modist.antlrdemo.frontend.optimize;
+package modist.antlrdemo.optimize;
 
 import modist.antlrdemo.frontend.ir.node.BlockIr;
 import modist.antlrdemo.frontend.ir.node.FunctionIr;
@@ -33,7 +33,7 @@ public class DominatorTreeBuilder {
                 if (block.predecessors.isEmpty()) {
                     newDominators = Set.of(block);
                 } else {
-                    newDominators = new HashSet<>(block.predecessors.getFirst().dominators);
+                    newDominators = new HashSet<>(block.predecessors.stream().findAny().get().dominators);
                     block.predecessors.forEach(predecessor -> newDominators.retainAll(predecessor.dominators));
                     newDominators.add(block);
                 }

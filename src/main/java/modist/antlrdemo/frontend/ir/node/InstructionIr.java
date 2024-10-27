@@ -7,8 +7,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 public sealed interface InstructionIr extends Ir {
+    default List<IrRegister> defs() {
+        return List.of();
+    }
+
+    List<IrOperand> uses();
+
     sealed interface Result extends InstructionIr {
         IrRegister result();
+
+        @Override
+        default List<IrRegister> defs() {
+            IrRegister result = result();
+            return result == null ? List.of() : List.of(result);
+        }
     }
 
     sealed interface End extends InstructionIr {
@@ -16,35 +28,72 @@ public sealed interface InstructionIr extends Ir {
 
     record Bin(IrRegister result, IrOperator operator, IrType type, IrOperand left,
                IrOperand right) implements Result {
+        @Override
+        public List<IrOperand> uses() {
+            return List.of(left, right);
+        }
     }
 
     record Icmp(IrRegister result, IrOperator operator, IrType type, IrOperand left,
                 IrOperand right) implements Result {
+        @Override
+        public List<IrOperand> uses() {
+            return List.of(left, right);
+        }
     }
 
     // nearTrue to avoid beqz and bnez immediate out of range
     record Br(IrOperand condition, String trueLabel, String falseLabel, boolean nearTrue) implements End {
+        @Override
+        public List<IrOperand> uses() {
+            return List.of(condition);
+        }
     }
 
     record Jump(String label) implements End {
+        @Override
+        public List<IrOperand> uses() {
+            return List.of();
+        }
     }
 
     record Ret(IrType type, @Nullable IrOperand value) implements End {
         public Ret(IrType type) {
             this(type, type.defaultValue);
         }
+
+        @Override
+        public List<IrOperand> uses() {
+            return value == null ? List.of() : List.of(value);
+        }
     }
 
     record Load(IrRegister result, IrType type, IrRegister pointer) implements Result {
+        @Override
+        public List<IrOperand> uses() {
+            return List.of(pointer);
+        }
     }
 
     record Store(IrType type, IrOperand value, IrRegister pointer) implements InstructionIr {
+        @Override
+        public List<IrOperand> uses() {
+            return List.of(value, pointer);
+        }
     }
 
     record MemberVariable(IrRegister result, String type, IrDynamic pointer, int memberIndex) implements Result {
+        @Override
+        public List<IrOperand> uses() {
+            return List.of(pointer);
+        }
     }
 
     record Subscript(IrRegister result, IrType type, IrDynamic pointer, IrOperand index) implements Result {
+        @Override
+        public List<IrOperand> uses() {
+            return List.of(pointer, index);
+        }
     }
 
     sealed interface FunctionCall extends Result {
@@ -59,11 +108,19 @@ public sealed interface InstructionIr extends Ir {
 
     record Call(@Nullable IrRegister result, IrType type, String function, List<IrType> argumentTypes,
                 List<IrOperand> arguments) implements FunctionCall {
+        @Override
+        public List<IrOperand> uses() {
+            return arguments();
+        }
     }
 
     // used in builtin global functions
     record CallVarargs(@Nullable IrRegister result, IrType type, String function, List<IrType> functionArgumentTypes,
                        List<IrType> argumentTypes, List<IrOperand> arguments) implements FunctionCall {
+        @Override
+        public List<IrOperand> uses() {
+            return arguments();
+        }
     }
 
     // elements in values may be null which represents an undefined value
@@ -80,8 +137,10 @@ public sealed interface InstructionIr extends Ir {
             values.add(value);
             labels.add(block.label);
         }
-    }
 
-    record Mv(IrRegister result, IrOperand value) implements Result {
+        @Override
+        public List<IrOperand> uses() {
+            return values;
+        }
     }
 }

@@ -1,4 +1,4 @@
-package modist.antlrdemo.frontend.optimize;
+package modist.antlrdemo.optimize;
 
 import modist.antlrdemo.frontend.ir.node.BlockIr;
 import modist.antlrdemo.frontend.ir.node.FunctionIr;
@@ -22,7 +22,7 @@ public class ControlFlowGraphBuilder {
     }
 
     private void visitBlock(BlockIr block) {
-        switch (block.end) {
+        switch ((InstructionIr.End) block.instructions.getLast()) {
             case InstructionIr.Ret ignored -> {
             }
             case InstructionIr.Jump jump -> addEdge(block, jump.label());

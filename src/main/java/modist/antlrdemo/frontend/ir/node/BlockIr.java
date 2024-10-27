@@ -1,5 +1,6 @@
 package modist.antlrdemo.frontend.ir.node;
 
+import modist.antlrdemo.frontend.ir.metadata.IrRegister;
 import modist.antlrdemo.frontend.ir.metadata.VariableDef;
 import modist.antlrdemo.frontend.ir.metadata.VariableReference;
 import modist.antlrdemo.frontend.ir.metadata.VariableUse;
@@ -8,25 +9,24 @@ import java.util.*;
 
 public final class BlockIr implements Ir {
     public final String label;
-    public final Deque<InstructionIr> instructions = new ArrayDeque<>();
+    public final List<InstructionIr> instructions = new ArrayList<>();
     // for Mem2Reg
     public final List<VariableReference> variableReferences = new ArrayList<>();
-    public final List<VariableDef> variableDefs = new ArrayList<>();
-    public final List<VariableUse> variableUses = new ArrayList<>();
+    public final Set<VariableDef> variableDefs = new HashSet<>();
+    public final Set<VariableUse> variableUses = new HashSet<>();
     public final Map<String, InstructionIr.Phi> phiMap = new HashMap<>();
     // for ControlFlowGraphBuilder
-    public InstructionIr.End end;
-    public final List<BlockIr> successors = new ArrayList<>();
-    public final List<BlockIr> predecessors = new ArrayList<>();
+    public final Set<BlockIr> successors = new HashSet<>();
+    public final Set<BlockIr> predecessors = new HashSet<>();
     // for DominatorTreeBuilder
     public boolean bfsVisited;
     public Set<BlockIr> dominators;
     public BlockIr immediateDominator;
     public final Set<BlockIr> dominatorTreeChildren = new HashSet<>();
     public final Set<BlockIr> dominanceFrontiers = new HashSet<>();
-    // for PhiElimination
-    public final List<InstructionIr.Mv> mvPhis = new ArrayList<>();
-    public final List<InstructionIr.Mv> mvTemps = new ArrayList<>();
+    // for LiveAnalysis
+    public final Set<IrRegister> liveIn = new HashSet<>();
+    public final Map<InstructionIr, Set<IrRegister>> instructionLiveOut = new HashMap<>();
 
     private BlockIr(String label) {
         this.label = label;
@@ -39,8 +39,7 @@ public final class BlockIr implements Ir {
         public void add(InstructionIr instruction) {
             if (!finished) {
                 current.instructions.add(instruction);
-                if (instruction instanceof InstructionIr.End end) {
-                    current.end = end;
+                if (instruction instanceof InstructionIr.End) {
                     finished = true;
                 }
             }

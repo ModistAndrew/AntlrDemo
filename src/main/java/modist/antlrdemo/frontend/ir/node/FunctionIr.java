@@ -19,6 +19,8 @@ public final class FunctionIr implements Ir {
     // for ControlFlowGraphBuilder
     public final Map<String, BlockIr> blockMap = new HashMap<>();
     public final List<BlockIr> bfsOrder = new ArrayList<>();
+    // for RegAlloc
+    public Map<IrRegister, Integer> colorMap;
 
     private FunctionIr(String name, IrType returnType, List<IrRegister> parameters, List<IrType> parameterTypes) {
         this.name = name;

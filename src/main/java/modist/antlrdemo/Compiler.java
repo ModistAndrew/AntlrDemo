@@ -3,10 +3,7 @@ package modist.antlrdemo;
 import modist.antlrdemo.backend.asm.AsmBuilder;
 import modist.antlrdemo.backend.asm.AsmPrinter;
 import modist.antlrdemo.backend.asm.node.ProgramAsm;
-import modist.antlrdemo.backend.optimize.PhiElimination;
-import modist.antlrdemo.frontend.optimize.ControlFlowGraphBuilder;
-import modist.antlrdemo.frontend.optimize.DominatorTreeBuilder;
-import modist.antlrdemo.frontend.optimize.Mem2Reg;
+import modist.antlrdemo.optimize.*;
 import modist.antlrdemo.frontend.ir.IrPrinter;
 import modist.antlrdemo.frontend.semantic.error.CompileException;
 import modist.antlrdemo.frontend.ir.IrBuilder;
@@ -30,7 +27,7 @@ public class Compiler {
         List<String> argList = Arrays.asList(args);
         try {
             ProgramIr ir = frontend();
-            if (argList.contains("--ir")) {
+            if (true) { // now can only print IR
                 new IrPrinter(System.out).print(ir);
             } else {
                 ProgramAsm asm = backend(ir);
@@ -53,22 +50,15 @@ public class Compiler {
         ProgramAst ast = new AstBuilder().visitProgram(parser.program());
         new SemanticChecker().visit(ast);
         ProgramIr ir = new IrBuilder().visitProgram(ast);
-        optimizeFrontend(ir);
-        return ir;
-    }
-
-    private static void optimizeFrontend(ProgramIr ir) {
         new ControlFlowGraphBuilder().visitProgram(ir);
         new DominatorTreeBuilder().visitProgram(ir);
         new Mem2Reg().visitProgram(ir);
-    }
-
-    private static void optimizeBackend(ProgramIr ir) {
-        new PhiElimination().visitProgram(ir);
+        new LiveAnalysis().visitProgram(ir);
+        new RegAlloc().visitProgram(ir);
+        return ir;
     }
 
     private static ProgramAsm backend(ProgramIr ir) {
-        optimizeBackend(ir);
         return new AsmBuilder().visitProgram(ir);
     }
 

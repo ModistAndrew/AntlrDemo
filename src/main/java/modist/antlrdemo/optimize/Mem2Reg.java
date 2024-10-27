@@ -1,4 +1,4 @@
-package modist.antlrdemo.frontend.optimize;
+package modist.antlrdemo.optimize;
 
 import modist.antlrdemo.frontend.ir.IrNamer;
 import modist.antlrdemo.frontend.ir.metadata.IrConcrete;
