@@ -35,8 +35,10 @@ public class LiveAnalysis {
                                 this.block = predecessor;
                                 this.index = predecessor.instructions.size() - 1;
                                 this.currentRegister = register;
-                                addInstructionLiveOut(); // add phi value to predecessor's live out but not current block's live in
-                                spreadUse();
+                                // add phi value to predecessor's live out but not current block's live in
+                                if (addInstructionLiveOut()) {
+                                    spreadUse();
+                                }
                             }
                         }
                     }
@@ -56,26 +58,28 @@ public class LiveAnalysis {
     }
 
     private void spreadUse() {
-        if (getCurrentInstruction().defs().contains(currentRegister)) {
-            return;
-        }
-        if (index == 0) {
-            addLiveIn();
-            for (BlockIr predecessor : block.predecessors) {
-                this.block = predecessor;
-                this.index = predecessor.instructions.size() - 1;
-                addInstructionLiveOut();
-                spreadUse();
+        while (index > 0) {
+            if (getCurrentInstruction().defs().contains(currentRegister)) {
+                return;
             }
-        } else {
             this.index--;
-            addInstructionLiveOut();
+            if (!addInstructionLiveOut()) {
+                return;
+            }
+        }
+        addLiveIn();
+        for (BlockIr predecessor : block.predecessors) {
+            this.block = predecessor;
+            this.index = predecessor.instructions.size() - 1;
+            if (!addInstructionLiveOut()) {
+                return;
+            }
             spreadUse();
         }
     }
 
-    private void addInstructionLiveOut() {
-        block.instructionLiveOut.get(getCurrentInstruction()).add(currentRegister);
+    private boolean addInstructionLiveOut() {
+        return block.instructionLiveOut.get(getCurrentInstruction()).add(currentRegister);
     }
 
     private void addLiveIn() {
