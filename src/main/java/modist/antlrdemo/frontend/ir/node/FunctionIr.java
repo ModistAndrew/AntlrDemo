@@ -64,6 +64,8 @@ public final class FunctionIr implements Ir {
 
         public FunctionIr build() {
             current.body.add(currentBlock.build(new InstructionIr.Ret(current.returnType)));
+            BlockIr entry = current.body.getFirst();
+            current.parameters.forEach(parameter -> entry.instructions.addFirst(new InstructionIr.Param(parameter)));
             return current;
         }
 

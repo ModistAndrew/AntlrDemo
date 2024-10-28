@@ -118,6 +118,7 @@ public class IrPrinter {
             }
             case InstructionIr.Phi phi -> printStream.printf("%s = phi %s %s",
                     phi.result(), phi.type(), toStringPhiPairs(phi.type(), phi.values(), phi.labels()));
+            case InstructionIr.Param param -> printStream.printf("; param %s", param.result());
         }
     }
 

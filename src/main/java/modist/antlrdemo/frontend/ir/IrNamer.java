@@ -36,6 +36,7 @@ public class IrNamer {
         return percent(withTemporaryVariableCounter(dot(prefix)));
     }
 
+    // concrete parameter value
     public static String parameter(String name) {
         return percent(dot(name, "parameter"));
     }

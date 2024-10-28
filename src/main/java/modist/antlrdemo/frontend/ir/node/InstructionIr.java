@@ -147,4 +147,12 @@ public sealed interface InstructionIr extends Ir {
             return values;
         }
     }
+
+    // a virtual instruction to represent the parameter of a function
+    record Param(IrRegister result) implements Result {
+        @Override
+        public List<IrOperand> uses() {
+            return List.of();
+        }
+    }
 }

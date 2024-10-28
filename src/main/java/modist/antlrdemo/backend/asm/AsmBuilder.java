@@ -69,6 +69,7 @@ public class AsmBuilder {
     @Nullable
     private Register visitResult(InstructionIr.Result ir) {
         return switch (ir) {
+            case InstructionIr.Param ignored -> throw new UnsupportedOperationException(); // TODO: handle parameters
             case InstructionIr.Subscript subscript -> add(new InstructionAsm.Bin(temp(),
                     Opcode.ADD, load(subscript.pointer()),
                     add(new InstructionAsm.BinImm(temp(), Opcode.SLLI, load(subscript.index()), IrType.LOG_MAX_BYTE_SIZE))));
