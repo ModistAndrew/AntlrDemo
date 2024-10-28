@@ -13,7 +13,6 @@ import java.util.Set;
 
 public class RegAlloc {
     private FunctionIr function;
-    private final Set<Integer> inUseColors = new HashSet<>();
     private final Map<IrRegister, Integer> colorMap = new HashMap<>();
     private BlockIr block;
 
@@ -25,7 +24,6 @@ public class RegAlloc {
     }
 
     private void visitFunction() {
-        this.inUseColors.clear();
         this.colorMap.clear();
         this.block = function.getEntry();
         color();
@@ -33,8 +31,9 @@ public class RegAlloc {
     }
 
     private void color() {
+        Set<Integer> inUseColors = new HashSet<>();
         block.liveIn.forEach(register -> {
-            if (colorMap.containsKey(register)) {
+            if (colorMap.containsKey(register)) { // all liveIn registers must be in colorMap or defined in the current block
                 inUseColors.add(colorMap.get(register));
             }
         });
