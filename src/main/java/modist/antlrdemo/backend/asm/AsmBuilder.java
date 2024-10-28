@@ -57,6 +57,8 @@ public class AsmBuilder {
                     functionBuilder.move(functionBuilder.getLocation(functionCall.result()), new Location.Reg(Register.A0));
                 }
             }
+            case InstructionIr.Phi ignored -> { // handled specially
+            }
             case InstructionIr.Result result -> {
                 switch (functionBuilder.getLocation(result.result())) {
                     case Location.Reg reg -> visitResult(result, reg.register());
@@ -141,8 +143,7 @@ public class AsmBuilder {
                     default -> throw new IllegalArgumentException();
                 }
             }
-            case InstructionIr.Phi ignored -> { // handled specially
-            }
+            case InstructionIr.Phi ignored -> throw new UnsupportedOperationException(); // handled in visit
             case InstructionIr.Param ignored -> throw new UnsupportedOperationException(); // handled in visit
             case InstructionIr.FunctionCall ignored -> throw new UnsupportedOperationException(); // handled in visit
         }
