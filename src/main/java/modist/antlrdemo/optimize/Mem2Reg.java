@@ -28,7 +28,14 @@ public class Mem2Reg {
         placePhi();
         this.variableStacks.clear();
         fillVariables(function.getEntry());
-        function.body.forEach(block -> block.phiMap.forEach((name, phi) -> block.instructions.addFirst(phi)));
+        function.body.forEach(block -> {
+            // extract original phi instructions into phiMap
+            while (block.instructions.getFirst() instanceof InstructionIr.Phi) {
+                InstructionIr.Phi phi = (InstructionIr.Phi) block.instructions.removeFirst();
+                block.phiMap.put(phi.result().name(), phi);
+            }
+            block.phiMap.forEach((name, phi) -> block.instructions.addFirst(phi));
+        });
     }
 
     private void placePhi() {

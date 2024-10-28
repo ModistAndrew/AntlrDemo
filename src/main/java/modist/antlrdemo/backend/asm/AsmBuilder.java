@@ -199,7 +199,7 @@ public class AsmBuilder {
     private void addPhis(String fromLabel, Map<String, InstructionIr.Phi> toPhis) {
         List<IrRegister> destinations = toPhis.values().stream().map(InstructionIr.Phi::result).toList();
         List<IrOperand> sources = toPhis.values().stream().map(phi -> phi.values().get(phi.labels().indexOf(fromLabel))).toList();
-        Map<Location, Set<Location>> destinationMap = new HashMap<>();
+        Map<Location, Set<Location>> destinationMap = new HashMap<>(); // only present for locations which are also destinations of other moves
         Map<Location, IrOperand> sourceMap = new HashMap<>();
         destinations.forEach(destination -> destinationMap.put(functionBuilder.getLocation(destination), new HashSet<>()));
         for (int i = 0; i < destinations.size(); i++) {
