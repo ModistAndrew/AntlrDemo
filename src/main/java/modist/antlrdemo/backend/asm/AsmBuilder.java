@@ -14,8 +14,7 @@ import modist.antlrdemo.frontend.ir.node.FunctionIr;
 import modist.antlrdemo.frontend.ir.node.InstructionIr;
 import modist.antlrdemo.frontend.ir.node.ProgramIr;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class AsmBuilder {
     private ProgramAsm program;
@@ -200,10 +199,68 @@ public class AsmBuilder {
     private void addPhis(String fromLabel, Map<String, InstructionIr.Phi> toPhis) {
         List<IrRegister> destinations = toPhis.values().stream().map(InstructionIr.Phi::result).toList();
         List<IrOperand> sources = toPhis.values().stream().map(phi -> phi.values().get(phi.labels().indexOf(fromLabel))).toList();
+        Map<Location, Set<Location>> destinationMap = new HashMap<>();
+        Map<Location, IrOperand> sourceMap = new HashMap<>();
+        destinations.forEach(destination -> destinationMap.put(functionBuilder.getLocation(destination), new HashSet<>()));
         for (int i = 0; i < destinations.size(); i++) {
             IrRegister destination = destinations.get(i);
             IrOperand source = sources.get(i);
-            move(functionBuilder.getLocation(destination), source);
+            Location destinationLocation = functionBuilder.getLocation(destination);
+            sourceMap.put(destinationLocation, source);
+            if (source.asConcrete() instanceof IrRegister sourceRegister) {
+                Location sourceLocation = functionBuilder.getLocation(sourceRegister);
+                if (destinationMap.containsKey(sourceLocation)) {
+                    destinationMap.get(sourceLocation).add(destinationLocation);
+                }
+            }
+        }
+        while (!sourceMap.isEmpty()) {
+            Location destinationLocation = sourceMap.keySet().iterator().next();
+            IrOperand source = sourceMap.get(destinationLocation);
+            Stack<Location> visited = new Stack<>();
+            Location current = destinationLocation;
+            boolean hasEnd = false;
+            while (!visited.contains(current)) {
+                visited.push(current);
+                if (destinationMap.get(current).isEmpty()) {
+                    hasEnd = true;
+                    break;
+                }
+                current = destinationMap.get(current).iterator().next();
+            }
+            if (hasEnd) {
+                for (int i = visited.size() - 1; i > 0; i--) {
+                    Location d = visited.get(i);
+                    Location s = visited.get(i - 1);
+                    functionBuilder.move(d, s);
+                    sourceMap.remove(d);
+                    destinationMap.get(s).remove(d);
+                }
+                move(destinationLocation, source);
+                sourceMap.remove(destinationLocation);
+                if (source.asConcrete() instanceof IrRegister sourceRegister) {
+                    Location sourceLocation = functionBuilder.getLocation(sourceRegister);
+                    if (destinationMap.containsKey(sourceLocation)) {
+                        destinationMap.get(sourceLocation).remove(destinationLocation);
+                    }
+                }
+            } else {
+                sourceMap.remove(current);
+                destinationMap.get(visited.peek()).remove(current);
+                // if self-loop, do nothing, otherwise do move on the loop
+                if (!visited.peek().equals(current)) {
+                    // store peek to T1 as it will never be used in move
+                    functionBuilder.move(new Location.Reg(Register.T1), visited.peek());
+                    while (!visited.peek().equals(current)) {
+                        Location d = visited.pop();
+                        Location s = visited.peek();
+                        functionBuilder.move(d, s);
+                        sourceMap.remove(d);
+                        destinationMap.get(s).remove(d);
+                    }
+                    functionBuilder.move(current, new Location.Reg(Register.T1));
+                }
+            }
         }
     }
 }
