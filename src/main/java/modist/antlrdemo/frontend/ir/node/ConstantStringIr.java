@@ -1,6 +1,6 @@
 package modist.antlrdemo.frontend.ir.node;
 
-import modist.antlrdemo.frontend.ir.metadata.IrRegister;
+import modist.antlrdemo.frontend.ir.metadata.IrGlobal;
 
-public record ConstantStringIr(IrRegister result, String value) implements Ir {
+public record ConstantStringIr(IrGlobal result, String value) implements Ir {
 }

@@ -72,14 +72,14 @@ public sealed interface InstructionIr extends Ir {
         }
     }
 
-    record Load(IrRegister result, IrType type, IrRegister pointer) implements Result {
+    record Load(IrRegister result, IrType type, IrDynamic pointer) implements Result {
         @Override
         public List<IrOperand> uses() {
             return List.of(pointer);
         }
     }
 
-    record Store(IrType type, IrOperand value, IrRegister pointer) implements InstructionIr, Effect {
+    record Store(IrType type, IrOperand value, IrDynamic pointer) implements InstructionIr, Effect {
         @Override
         public List<IrOperand> uses() {
             return List.of(value, pointer);

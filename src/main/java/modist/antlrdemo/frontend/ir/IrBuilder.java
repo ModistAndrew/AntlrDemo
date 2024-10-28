@@ -74,7 +74,7 @@ public class IrBuilder {
                 program.functions.add(currentFunction.build());
             }
             case DefinitionAst.Variable variableDefinition -> { // treat as global variable. use visit() for local variable
-                IrRegister pointer = new IrRegister(variableDefinition.symbol.irName);
+                IrGlobal pointer = new IrGlobal(variableDefinition.symbol.irName);
                 program.globalVariables.add(new GlobalVariableIr(pointer, variableDefinition.symbol.type.irType()));
                 if (variableDefinition.initializer != null) {
                     storePointer(variableDefinition.symbol.type.irType(), visitExpression(variableDefinition.initializer), pointer);
@@ -95,7 +95,7 @@ public class IrBuilder {
             case ExpressionAst.Variable variable -> {
                 if (variable.symbol.classType == null) {
                     String irName = variable.symbol.irName;
-                    yield IrNamer.isGlobal(irName) ? new IrRegister(irName) : new VariableUse(irName);
+                    yield IrNamer.isGlobal(irName) ? new IrGlobal(irName) : new VariableUse(irName);
                 }
                 yield add(new InstructionIr.MemberVariable(temp("member"),
                         variable.symbol.classType.irName,
@@ -253,8 +253,7 @@ public class IrBuilder {
                                 conditional.type.irType(), trueValue, lastTrueLabel, falseValue, lastFalseLabel));
             }
             case ExpressionAst.Assign assign -> {
-                IrDynamic pointer = visitExpressionLvalue(assign.left);
-                storePointer(assign.right.type.irType(), visitExpression(assign.right), pointer);
+                storePointer(assign.right.type.irType(), visitExpression(assign.right), visitExpressionLvalue(assign.left));
                 yield null;
             }
         };
@@ -335,8 +334,8 @@ public class IrBuilder {
     }
 
     // add a string constant to the program and return the global variable register
-    private IrRegister addStringConstant(String value) {
-        IrRegister pointer = IrRegister.createConstantString();
+    private IrGlobal addStringConstant(String value) {
+        IrGlobal pointer = IrGlobal.createConstantString();
         program.constantStrings.add(new ConstantStringIr(pointer, value));
         return pointer;
     }
@@ -356,6 +355,7 @@ public class IrBuilder {
     private IrDynamic loadPointer(IrType type, IrDynamic pointer) {
         return switch (pointer) {
             case IrRegister register -> add(new InstructionIr.Load(temp("load"), type, register));
+            case IrGlobal global -> add(new InstructionIr.Load(temp("load"), type, global));
             case VariableUse variable -> addVariableReference(new VariableUse(variable.name)); // use a copy every time
         };
     }
@@ -363,6 +363,7 @@ public class IrBuilder {
     private void storePointer(IrType type, IrOperand value, IrDynamic pointer) {
         switch (pointer) {
             case IrRegister register -> add(new InstructionIr.Store(type, value, register));
+            case IrGlobal global -> add(new InstructionIr.Store(type, value, global));
             case VariableUse variable -> addVariableReference(new VariableDef(variable.name, type, value));
         }
     }

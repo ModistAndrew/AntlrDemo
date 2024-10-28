@@ -39,11 +39,7 @@ public class AsmBuilder {
                 Register data = visitResult(result);
                 IrRegister destination = result.result();
                 if (destination != null) {
-                    if (destination.isGlobal()) {
-                        add(new InstructionAsm.SwLabel(data, IrNamer.removePrefix(destination.name())));
-                    } else {
-                        currentFunction.storeIrRegister(destination, data);
-                    }
+                    currentFunction.storeIrRegister(destination, data);
                 }
             }
             case InstructionIr.Store store -> add(new InstructionAsm.Sw(load(store.value()), 0, load(store.pointer())));
@@ -117,9 +113,8 @@ public class AsmBuilder {
     // as a result, we need to use La instruction to get the address of the global variable
     private Register load(IrOperand operand, Register destination) {
         return switch (operand.asConcrete()) {
-            case IrRegister register -> register.isGlobal() ?
-                    add(new InstructionAsm.La(destination, IrNamer.removePrefix(register.name()))) :
-                    currentFunction.loadIrRegister(register, destination);
+            case IrGlobal global -> add(new InstructionAsm.La(destination, IrNamer.removePrefix(global.name())));
+            case IrRegister register -> currentFunction.loadIrRegister(register, destination);
             // TODO: use asm for immediate values directly
             case IrConstant constant -> add(new InstructionAsm.Li(destination, constant.asImmediate()));
             case IrUndefined ignored -> Register.ZERO; // undefined value. use an arbitrary register

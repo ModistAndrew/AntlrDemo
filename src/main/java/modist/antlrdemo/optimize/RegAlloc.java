@@ -43,7 +43,6 @@ public class RegAlloc {
             if (!(instruction instanceof InstructionIr.Phi)) {
                 instruction.uses().forEach(operand -> {
                     if (operand.asConcrete() instanceof IrRegister register
-                            && !register.isGlobal()
                             && !block.instructionLiveOut.get(instruction).contains(register)) {
                         // must in colorMap
                         inUseColors.remove(colorMap.get(register));

@@ -74,8 +74,7 @@ public class LiveAnalysis {
         function.body.forEach(block -> block.instructions.forEach(useInst -> {
             useDefs.put(useInst, new HashSet<>());
             useInst.uses().forEach(operand -> {
-                if (operand.asConcrete() instanceof IrRegister register
-                        && !register.isGlobal()) {
+                if (operand.asConcrete() instanceof IrRegister register) {
                     defUses.get(register).add(useInst);
                 }
             });
