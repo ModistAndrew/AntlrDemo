@@ -24,16 +24,12 @@ int z;
 int c = 0;
 int k;
 int main(){
-	//int n,x,y,z,c=0,k;
-	//scanf("%d",&n);
 	n = getInt();
     for(k=0;k<n;k++){
-		//scanf("%d %d %d",&x,&y,&z);
 		x = getInt();
         y = getInt();
         z = getInt();
         if(x+y+z>1)c++;
 	}
     printlnInt(c);
-	//printf("%d\n",c);
 }

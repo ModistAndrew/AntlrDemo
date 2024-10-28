@@ -58,7 +58,7 @@ public class AsmBuilder {
                     }
                 }
             }
-            case InstructionIr.Store store -> add(new InstructionAsm.Sw(get(store.value()), 0, get(store.pointer())));
+            case InstructionIr.Store store -> add(new InstructionAsm.Sw(get(store.value()), 0, get(store.pointer(), Register.T1)));
             case InstructionIr.Jump jump -> add(new InstructionAsm.J(currentFunction.renameLabel(jump.label())));
             case InstructionIr.Br br -> {
                 if (br.nearTrue()) {
