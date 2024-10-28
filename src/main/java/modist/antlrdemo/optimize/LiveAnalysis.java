@@ -36,9 +36,7 @@ public class LiveAnalysis {
                                 this.index = predecessor.instructions.size() - 1;
                                 this.currentRegister = register;
                                 // add phi value to predecessor's live out but not current block's live in
-                                if (addInstructionLiveOut()) {
-                                    spreadUse();
-                                }
+                                spreadUse();
                             }
                         }
                     }
@@ -46,7 +44,7 @@ public class LiveAnalysis {
                         for (IrOperand operand : instruction.uses()) {
                             if (operand.asConcrete() instanceof IrRegister register) {
                                 this.block = block;
-                                this.index = i;
+                                this.index = i - 1; // specially, if -1, then spread to predecessors
                                 this.currentRegister = register;
                                 spreadUse();
                             }
@@ -58,35 +56,20 @@ public class LiveAnalysis {
     }
 
     private void spreadUse() {
-        while (index > 0) {
-            if (getCurrentInstruction().defs().contains(currentRegister)) {
-                return;
+        for (; index >= 0; index--) {
+            InstructionIr instruction = block.instructions.get(index);
+            if (!block.instructionLiveOut.get(instruction).add(currentRegister)) {
+                return; // already spread
             }
-            this.index--;
-            if (!addInstructionLiveOut()) {
-                return;
+            if (instruction.defs().contains(currentRegister)) {
+                return; // reach a definition
             }
         }
-        addLiveIn();
+        block.liveIn.add(currentRegister);
         for (BlockIr predecessor : block.predecessors) {
             this.block = predecessor;
             this.index = predecessor.instructions.size() - 1;
-            if (!addInstructionLiveOut()) {
-                return;
-            }
             spreadUse();
         }
-    }
-
-    private boolean addInstructionLiveOut() {
-        return block.instructionLiveOut.get(getCurrentInstruction()).add(currentRegister);
-    }
-
-    private void addLiveIn() {
-        block.liveIn.add(currentRegister);
-    }
-
-    private InstructionIr getCurrentInstruction() {
-        return block.instructions.get(index);
     }
 }
