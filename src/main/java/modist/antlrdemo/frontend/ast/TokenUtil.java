@@ -26,7 +26,7 @@ public class TokenUtil {
             case MxLexer.IntegerLiteral -> new Constant.Int(Integer.parseInt(token.getText()));
             case MxLexer.StringLiteral -> new Constant.Str(unesacpeString(token));
             case MxLexer.BooleanLiteral -> new Constant.Bool(Boolean.parseBoolean(token.getText()));
-            case MxLexer.NULL -> Constant.Null.INSTANCE;
+            case MxLexer.NULL -> Constant.Null.NULL;
             default -> throw new IllegalArgumentException();
         };
     }

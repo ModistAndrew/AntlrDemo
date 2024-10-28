@@ -20,16 +20,16 @@ public class RegAlloc {
     public void visitProgram(ProgramIr program) {
         program.functions.forEach(function -> {
             this.function = function;
-            this.inUseColors.clear();
-            this.colorMap.clear();
             visitFunction();
-            function.colorMap = new HashMap<>(colorMap);
         });
     }
 
     private void visitFunction() {
+        this.inUseColors.clear();
+        this.colorMap.clear();
         this.block = function.getEntry();
         color();
+        function.colorMap = new HashMap<>(colorMap);
     }
 
     private void color() {
@@ -49,13 +49,13 @@ public class RegAlloc {
                     }
                 });
             }
-            instruction.defs().forEach(register -> {
+            if (instruction.def() != null) {
                 int color = 0;
                 while (!inUseColors.add(color)) {
                     color++;
                 }
-                colorMap.put(register, color);
-            });
+                colorMap.put(instruction.def(), color);
+            }
         });
         for (BlockIr children : block.dominatorTreeChildren) {
             this.block = children;

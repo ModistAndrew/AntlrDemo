@@ -7,23 +7,27 @@ import java.util.ArrayList;
 import java.util.List;
 
 public sealed interface InstructionIr extends Ir {
-    default List<IrRegister> defs() {
-        return List.of();
+    @Nullable
+    default IrRegister def() {
+        return null;
     }
 
     List<IrOperand> uses();
 
     sealed interface Result extends InstructionIr {
+        @Nullable
         IrRegister result();
 
         @Override
-        default List<IrRegister> defs() {
-            IrRegister result = result();
-            return result == null ? List.of() : List.of(result);
+        default IrRegister def() {
+            return result();
         }
     }
 
-    sealed interface End extends InstructionIr {
+    sealed interface Effect extends InstructionIr {
+    }
+
+    sealed interface End extends InstructionIr, Effect {
     }
 
     record Bin(IrRegister result, IrOperator operator, IrType type, IrOperand left,
@@ -57,7 +61,7 @@ public sealed interface InstructionIr extends Ir {
         }
     }
 
-    record Ret(IrType type, @Nullable IrOperand value) implements End {
+    record Ret(IrType type, @Nullable IrOperand value) implements End, Effect {
         public Ret(IrType type) {
             this(type, type.defaultValue);
         }
@@ -75,7 +79,7 @@ public sealed interface InstructionIr extends Ir {
         }
     }
 
-    record Store(IrType type, IrOperand value, IrRegister pointer) implements InstructionIr {
+    record Store(IrType type, IrOperand value, IrRegister pointer) implements InstructionIr, Effect {
         @Override
         public List<IrOperand> uses() {
             return List.of(value, pointer);
@@ -96,7 +100,7 @@ public sealed interface InstructionIr extends Ir {
         }
     }
 
-    sealed interface FunctionCall extends Result {
+    sealed interface FunctionCall extends Result, Effect {
         IrType type();
 
         String function();

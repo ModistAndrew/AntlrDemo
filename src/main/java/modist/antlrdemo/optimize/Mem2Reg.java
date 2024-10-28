@@ -14,25 +14,25 @@ import java.util.*;
 
 public class Mem2Reg {
     private FunctionIr function;
-    public IrNamer irNamer;
+    private IrNamer irNamer;
     private final Map<String, Stack<IrConcrete>> variableStacks = new HashMap<>();
 
     public void visitProgram(ProgramIr program) {
         program.functions.forEach(function -> {
             this.function = function;
-            this.irNamer = new IrNamer();
-            this.variableStacks.clear();
             visitFunction();
         });
     }
 
     private void visitFunction() {
         placePhi();
+        this.variableStacks.clear();
         fillVariables(function.getEntry());
         function.body.forEach(block -> block.phiMap.forEach((name, phi) -> block.instructions.addFirst(phi)));
     }
 
     private void placePhi() {
+        this.irNamer = new IrNamer();
         function.body.forEach(block ->
                 block.variableDefs.forEach(def ->
                         block.dominanceFrontiers.forEach(dominanceFrontier -> insertPhi(dominanceFrontier, def))));

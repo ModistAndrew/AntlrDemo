@@ -28,7 +28,7 @@ public sealed interface IrConstant extends IrConcrete, IrOperand {
     }
 
     enum Null implements IrConstant {
-        INSTANCE;
+        NULL;
 
         @Override
         public String toString() {

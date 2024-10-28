@@ -11,6 +11,6 @@ public sealed interface Constant {
     }
 
     enum Null implements Constant {
-        INSTANCE
+        NULL
     }
 }

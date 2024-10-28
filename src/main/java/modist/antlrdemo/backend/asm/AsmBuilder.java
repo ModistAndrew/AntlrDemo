@@ -122,7 +122,7 @@ public class AsmBuilder {
                     currentFunction.loadIrRegister(register, destination);
             // TODO: use asm for immediate values directly
             case IrConstant constant -> add(new InstructionAsm.Li(destination, constant.asImmediate()));
-            case null -> Register.ZERO; // undefined value. use an arbitrary register
+            case IrUndefined ignored -> Register.ZERO; // undefined value. use an arbitrary register
         };
     }
 
