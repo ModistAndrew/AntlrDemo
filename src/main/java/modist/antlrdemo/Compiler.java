@@ -27,7 +27,7 @@ public class Compiler {
         List<String> argList = Arrays.asList(args);
         try {
             ProgramIr ir = frontend();
-            if (true) { // now can only print IR
+            if (argList.contains("--ir")) {
                 new IrPrinter(System.out).print(ir);
             } else {
                 ProgramAsm asm = backend(ir);

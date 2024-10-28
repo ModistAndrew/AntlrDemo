@@ -47,6 +47,7 @@ public class AsmPrinter {
                     printStream.printf("%s %s, %s, %s", bin.opcode(), bin.result(), bin.left(), bin.right());
             case InstructionAsm.BinImm binImm ->
                     printStream.printf("%s %s, %s, %d", binImm.opcode(), binImm.result(), binImm.left(), binImm.immediate());
+            case InstructionAsm.Mv mv -> printStream.printf("mv %s, %s", mv.result(), mv.operand());
             case InstructionAsm.La la -> printStream.printf("la %s, %s", la.result(), la.label());
             case InstructionAsm.Li li -> printStream.printf("li %s, %d", li.result(), li.immediate());
             case InstructionAsm.Lw lw -> printStream.printf("lw %s, %d(%s)", lw.result(), lw.immediate(), lw.base());

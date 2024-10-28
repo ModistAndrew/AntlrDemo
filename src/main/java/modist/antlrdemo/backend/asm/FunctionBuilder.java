@@ -1,5 +1,6 @@
 package modist.antlrdemo.backend.asm;
 
+import modist.antlrdemo.backend.asm.metadata.Location;
 import modist.antlrdemo.backend.asm.node.BlockAsm;
 import modist.antlrdemo.backend.asm.node.FunctionAsm;
 import modist.antlrdemo.backend.asm.node.InstructionAsm;
@@ -17,95 +18,57 @@ import java.util.*;
 public class FunctionBuilder {
     private static final int STACK_ALIGN = 16;
     private final FunctionAsm current;
-    // every ir register is assigned with a stack location relative to function stack pointer
-    private final List<Register> savedRegisters;
     private final int stackSize;
-    private int stackTop;
-    // the current stack size(in bytes)
-    // saved registers should be pushed to the stack
-    // one ir register occupies one stack slot(including parameters)
-    // function call with too many arguments may enlarge the stack size
-    // stackSize should be aligned
-    // ir registers use the stack from the top to the bottom; function parameters use the stack from the bottom to the top
-    private final Map<IrRegister, Integer> irRegisters = new HashMap<>();
+    private final int savedRegisterCount;
+    private final Map<IrRegister, Location> registerMap = new HashMap<>();
 
     // (new -> add* -> (newBlock -> add* ->)* build)*
     public FunctionBuilder(FunctionIr function) {
         current = new FunctionAsm(IrNamer.removePrefix(function.name));
-        savedRegisters = List.of(Register.RA); // only ra needs to be saved currently: ra may be overwritten
         stackSize = calculateStackSize(function);
-        stackTop = stackSize;
         // push stack pointer
         add(new InstructionAsm.BinImm(Register.SP, Opcode.ADDI, Register.SP, -stackSize));
+        // save RA
+        add(new InstructionAsm.Sw(Register.RA, stackSize - Register.BYTE_SIZE, Register.SP));
         // save saved registers
-        for (int i = 0; i < savedRegisters.size(); i++) {
-            add(new InstructionAsm.Sw(savedRegisters.get(i), stackSize - Register.BYTE_SIZE * (i + 1), Register.SP));
+        savedRegisterCount = Math.min(Register.SAVED_REGISTERS.length, function.colorCount);
+        for (int i = 0; i < savedRegisterCount; i++) {
+            add(new InstructionAsm.Sw(Register.SAVED_REGISTERS[i], stackSize - Register.BYTE_SIZE * (i + 2), Register.SP));
         }
-        stackTop -= Register.BYTE_SIZE * savedRegisters.size(); // the top of the stack is occupied by saved registers
-        // store parameters
-        for (int i = 0; i < function.parameters.size(); i++) {
-            IrRegister parameter = function.parameters.get(i);
-            if (i < Register.ARG_REGISTERS.length) {
-                allocRegister(parameter);
-                storeIrRegister(parameter, Register.ARG_REGISTERS[i]);
-            } else {
-                // a trick here: we needn't allocate a stack slot for the parameter but use the original stack slot
-                // note that sp is already decremented by stackSize; we need to add stackSize back
-                irRegisters.put(parameter, stackSize + IrType.MAX_BYTE_SIZE * (i - Register.ARG_REGISTERS.length));
-            }
-        }
-        // allocate stack slots for ir registers
-        for (BlockIr block : function.body) {
-            for (InstructionIr instruction : block.instructions) {
-                if (instruction instanceof InstructionIr.Result result && result.result() != null) {
-                    allocRegister(result.result());
-                }
-            }
-        }
+        function.colorMap.forEach((irRegister, color) -> registerMap.put(irRegister,
+                color < Register.SAVED_REGISTERS.length ? new Location.Reg(Register.SAVED_REGISTERS[color]) :
+                        new Location.Stack(stackSize - Register.BYTE_SIZE * (savedRegisterCount + 2 + color - Register.SAVED_REGISTERS.length))));
     }
 
     // we have to calculate the stack size before building the function so that stack pointer won't be changed during the process
     // must be careful that this corresponds to calls that change the stack pointer
     private int calculateStackSize(FunctionIr function) {
-        int size = savedRegisters.size() * Register.BYTE_SIZE; // saved registers
-        size += IrType.MAX_BYTE_SIZE * Math.min(Register.ARG_REGISTERS.length, function.parameters.size()); // parameters in arg registers
+        int size = Register.BYTE_SIZE; // RA
+        size += function.colorCount * IrType.MAX_BYTE_SIZE; // ir registers on saved registers or stack. including parameters
         int maxFunctionCallParameters = 0;
-        Set<IrRegister> registers = new HashSet<>();
         for (BlockIr block : function.body) {
             for (InstructionIr instruction : block.instructions) {
-                if (instruction instanceof InstructionIr.Result result && result.result() != null) {
-                    registers.add(result.result());
-                }
                 if (instruction instanceof InstructionIr.FunctionCall functionCall) {
                     maxFunctionCallParameters = Math.max(maxFunctionCallParameters, functionCall.arguments().size());
                 }
             }
         }
-        size += registers.size() * IrType.MAX_BYTE_SIZE; // ir registers
         size += Math.max(maxFunctionCallParameters - Register.ARG_REGISTERS.length, 0) * IrType.MAX_BYTE_SIZE; // space for function call parameters
         size = (size + STACK_ALIGN - 1) / STACK_ALIGN * STACK_ALIGN; // align the stack size
         return size;
     }
 
-    // allocate a stack slot for an ir register if it hasn't been allocated
-    private void allocRegister(IrRegister register) {
-        if (!irRegisters.containsKey(register)) {
-            stackTop -= IrType.MAX_BYTE_SIZE;
-            irRegisters.put(register, stackTop);
-        }
-    }
-
     // may perform some checks, e.g. check immediate range
     public void add(InstructionAsm instruction) {
         if (instruction instanceof InstructionAsm.Immediate immediate && !immediate.isImmInRange()) {
-            Register immediateRegister = add(new InstructionAsm.Li(Register.T6, immediate.immediate()));
+            Register immediateRegister = add(new InstructionAsm.Li(Register.T2, immediate.immediate()));
             switch (immediate) {
                 case InstructionAsm.BinImm binImm ->
                         add(new InstructionAsm.Bin(binImm.result(), Opcode.imm2reg(binImm.opcode()), binImm.left(), immediateRegister));
                 case InstructionAsm.Lw lw -> add(new InstructionAsm.Lw(lw.result(), 0,
-                        add(new InstructionAsm.Bin(Register.T6, Opcode.ADD, immediateRegister, lw.base()))));
+                        add(new InstructionAsm.Bin(Register.T2, Opcode.ADD, immediateRegister, lw.base()))));
                 case InstructionAsm.Sw sw -> add(new InstructionAsm.Sw(sw.value(), 0,
-                        add(new InstructionAsm.Bin(Register.T6, Opcode.ADD, immediateRegister, sw.base()))));
+                        add(new InstructionAsm.Bin(Register.T2, Opcode.ADD, immediateRegister, sw.base()))));
             }
         } else {
             current.blocks.getLast().instructions.add(instruction);
@@ -126,9 +89,11 @@ public class FunctionBuilder {
     }
 
     public void prepareReturn() {
+        // restore RA
+        add(new InstructionAsm.Lw(Register.RA, stackSize - Register.BYTE_SIZE, Register.SP));
         // restore saved registers
-        for (int i = savedRegisters.size() - 1; i >= 0; i--) {
-            add(new InstructionAsm.Lw(savedRegisters.get(i), stackSize - Register.BYTE_SIZE * (i + 1), Register.SP));
+        for (int i = savedRegisterCount - 1; i >= 0; i--) {
+            add(new InstructionAsm.Lw(Register.SAVED_REGISTERS[i], stackSize - Register.BYTE_SIZE * (i + 2), Register.SP));
         }
         // pop stack pointer
         add(new InstructionAsm.BinImm(Register.SP, Opcode.ADDI, Register.SP, stackSize));
@@ -138,12 +103,44 @@ public class FunctionBuilder {
         return current;
     }
 
-    // load an ir register from the stack into a temp register
-    public Register loadIrRegister(IrRegister register, Register destination) {
-        return add(new InstructionAsm.Lw(destination, irRegisters.get(register), Register.SP));
+    public void moveParameter(IrRegister destination, int index) {
+        Location parameterLocation = index < Register.ARG_REGISTERS.length ?
+                new Location.Reg(Register.ARG_REGISTERS[index]) :
+                new Location.Stack(stackSize + IrType.MAX_BYTE_SIZE * (index - Register.ARG_REGISTERS.length));
+        move(getLocation(destination), parameterLocation);
     }
 
-    public void storeIrRegister(IrRegister register, Register value) {
-        add(new InstructionAsm.Sw(value, irRegisters.get(register), Register.SP));
+    public Location getLocation(IrRegister register) {
+        return registerMap.get(register);
+    }
+
+    public Register get(Location source, Register temp) {
+        return switch (source) {
+            case Location.Reg reg -> reg.register();
+            case Location.Stack stack -> add(new InstructionAsm.Lw(temp, stack.offset(), Register.SP));
+        };
+    }
+
+    public void move(Location destination, Location source) {
+        switch (destination) {
+            case Location.Reg destinationReg -> {
+                switch (source) {
+                    case Location.Reg sourceReg ->
+                            add(new InstructionAsm.Mv(destinationReg.register(), sourceReg.register()));
+                    case Location.Stack sourceStack ->
+                            add(new InstructionAsm.Lw(destinationReg.register(), sourceStack.offset(), Register.SP));
+                }
+            }
+            case Location.Stack destinationStack -> {
+                switch (source) {
+                    case Location.Reg sourceReg ->
+                            add(new InstructionAsm.Sw(sourceReg.register(), destinationStack.offset(), Register.SP));
+                    case Location.Stack sourceStack -> {
+                        add(new InstructionAsm.Lw(Register.T0, sourceStack.offset(), Register.SP));
+                        add(new InstructionAsm.Sw(Register.T0, destinationStack.offset(), Register.SP));
+                    }
+                }
+            }
+        }
     }
 }

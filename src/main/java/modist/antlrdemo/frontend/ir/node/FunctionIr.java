@@ -21,6 +21,7 @@ public final class FunctionIr implements Ir {
     public final List<BlockIr> bfsOrder = new ArrayList<>();
     // for RegAlloc
     public Map<IrRegister, Integer> colorMap;
+    public int colorCount;
 
     private FunctionIr(String name, IrType returnType, List<IrRegister> parameters, List<IrType> parameterTypes) {
         this.name = name;
@@ -65,7 +66,9 @@ public final class FunctionIr implements Ir {
         public FunctionIr build() {
             current.body.add(currentBlock.build(new InstructionIr.Ret(current.returnType)));
             BlockIr entry = current.body.getFirst();
-            current.parameters.forEach(parameter -> entry.instructions.addFirst(new InstructionIr.Param(parameter)));
+            for (int i = 0; i < current.parameters.size(); i++) {
+                entry.instructions.addFirst(new InstructionIr.Param(current.parameters.get(i), i));
+            }
             return current;
         }
 

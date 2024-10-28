@@ -1,5 +1,6 @@
 package modist.antlrdemo.backend.asm;
 
+import modist.antlrdemo.backend.asm.metadata.Location;
 import modist.antlrdemo.backend.asm.node.ConstantStringAsm;
 import modist.antlrdemo.backend.asm.node.GlobalVariableAsm;
 import modist.antlrdemo.backend.asm.node.InstructionAsm;
@@ -10,7 +11,6 @@ import modist.antlrdemo.frontend.ir.IrNamer;
 import modist.antlrdemo.frontend.ir.metadata.*;
 import modist.antlrdemo.frontend.ir.node.InstructionIr;
 import modist.antlrdemo.frontend.ir.node.ProgramIr;
-import org.jetbrains.annotations.Nullable;
 
 public class AsmBuilder {
     private ProgramAsm program;
@@ -35,95 +35,123 @@ public class AsmBuilder {
 
     private void visit(InstructionIr ir) {
         switch (ir) {
-            case InstructionIr.Result result -> {
-                Register data = visitResult(result);
-                IrRegister destination = result.result();
-                if (destination != null) {
-                    currentFunction.storeIrRegister(destination, data);
+            case InstructionIr.Param param -> currentFunction.moveParameter(param.result(), param.index());
+            case InstructionIr.FunctionCall functionCall -> {
+                for (int i = 0; i < functionCall.arguments().size(); i++) {
+                    IrOperand argument = functionCall.arguments().get(i);
+                    Location parameterLocation = i < Register.ARG_REGISTERS.length ?
+                            new Location.Reg(Register.ARG_REGISTERS[i]) :
+                            new Location.Stack(IrType.MAX_BYTE_SIZE * (i - Register.ARG_REGISTERS.length));
+                    move(parameterLocation, argument);
+                }
+                add(new InstructionAsm.Call(IrNamer.removePrefix(functionCall.function())));
+                if (functionCall.result() != null) {
+                    currentFunction.move(currentFunction.getLocation(functionCall.result()), new Location.Reg(Register.A0));
                 }
             }
-            case InstructionIr.Store store -> add(new InstructionAsm.Sw(load(store.value()), 0, load(store.pointer())));
+            case InstructionIr.Result result -> {
+                switch (currentFunction.getLocation(result.result())) {
+                    case Location.Reg reg -> visitResult(result, reg.register());
+                    case Location.Stack stack -> {
+                        visitResult(result, Register.T0);
+                        add(new InstructionAsm.Sw(Register.T0, stack.offset(), Register.SP));
+                    }
+                }
+            }
+            case InstructionIr.Store store -> add(new InstructionAsm.Sw(get(store.value()), 0, get(store.pointer())));
             case InstructionIr.Jump jump -> add(new InstructionAsm.J(currentFunction.renameLabel(jump.label())));
             case InstructionIr.Br br -> {
                 if (br.nearTrue()) {
-                    add(new InstructionAsm.Bnez(load(br.condition()), currentFunction.renameLabel(br.trueLabel())));
+                    add(new InstructionAsm.Bnez(get(br.condition()), currentFunction.renameLabel(br.trueLabel())));
                     add(new InstructionAsm.J(currentFunction.renameLabel(br.falseLabel())));
                 } else {
-                    add(new InstructionAsm.Beqz(load(br.condition()), currentFunction.renameLabel(br.falseLabel())));
+                    add(new InstructionAsm.Beqz(get(br.condition()), currentFunction.renameLabel(br.falseLabel())));
                     add(new InstructionAsm.J(currentFunction.renameLabel(br.trueLabel())));
                 }
             }
             case InstructionIr.Ret ret -> {
                 if (ret.value() != null) {
-                    load(ret.value(), Register.A0);
+                    move(new Location.Reg(Register.A0), ret.value());
                 }
                 currentFunction.prepareReturn();
                 add(new InstructionAsm.Ret());
             }
         }
-        Register.resetTempRegisters(); // reset temp register for each instruction
     }
 
-    // return the register that holds the result of the instruction
-    // return null for void function calls
-    @Nullable
-    private Register visitResult(InstructionIr.Result ir) {
-        return switch (ir) {
-            case InstructionIr.Param ignored -> throw new UnsupportedOperationException(); // TODO: handle parameters
-            case InstructionIr.Subscript subscript -> add(new InstructionAsm.Bin(temp(),
-                    Opcode.ADD, load(subscript.pointer()),
-                    add(new InstructionAsm.BinImm(temp(), Opcode.SLLI, load(subscript.index()), IrType.LOG_MAX_BYTE_SIZE))));
-            case InstructionIr.MemberVariable memberVariable -> add(new InstructionAsm.BinImm(temp(),
-                    Opcode.ADDI, load(memberVariable.pointer()), memberVariable.memberIndex() * IrType.MAX_BYTE_SIZE));
-            case InstructionIr.FunctionCall functionCall -> {
-                for (int i = 0; i < functionCall.arguments().size(); i++) {
-                    IrOperand argument = functionCall.arguments().get(i);
-                    if (i < Register.ARG_REGISTERS.length) {
-                        load(argument, Register.ARG_REGISTERS[i]);
-                    } else {
-                        add(new InstructionAsm.Sw(load(argument),
-                                (i - Register.ARG_REGISTERS.length) * IrType.MAX_BYTE_SIZE, Register.SP));
-                    }
-                    Register.resetTempRegisters(); // must reuse temp registers for each argument
-                }
-                add(new InstructionAsm.Call(IrNamer.removePrefix(functionCall.function())));
-                yield functionCall.result() != null ? Register.A0 : null;
+    private void visitResult(InstructionIr.Result ir, Register destination) {
+        switch (ir) {
+            case InstructionIr.Subscript subscript -> {
+                add(new InstructionAsm.BinImm(Register.T0, Opcode.SLLI, get(subscript.index()), IrType.LOG_MAX_BYTE_SIZE));
+                add(new InstructionAsm.Bin(destination, Opcode.ADD, Register.T0, get(subscript.pointer(), Register.T1)));
             }
-            case InstructionIr.Load load -> add(new InstructionAsm.Lw(temp(), 0, load(load.pointer())));
-            case InstructionIr.Phi ignored -> throw new UnsupportedOperationException();
-            case InstructionIr.Bin bin -> add(new InstructionAsm.Bin(temp(),
-                    bin.operator().opcode, load(bin.left()), load(bin.right())));
-            case InstructionIr.Icmp icmp -> switch (icmp.operator()) {
-                case EQ, NE -> add(new InstructionAsm.Un(temp(),
-                        icmp.operator() == IrOperator.EQ ? Opcode.SEQZ : Opcode.SNEZ,
-                        add(new InstructionAsm.Bin(temp(), Opcode.XOR, load(icmp.left()), load(icmp.right())))));
-                case SLT, SGT -> add(new InstructionAsm.Bin(temp(), Opcode.SLT,
-                        load(icmp.operator() == IrOperator.SLT ? icmp.left() : icmp.right()),
-                        load(icmp.operator() == IrOperator.SLT ? icmp.right() : icmp.left())));
-                case SLE, SGE -> add(new InstructionAsm.Un(temp(),
-                        Opcode.SEQZ, add(new InstructionAsm.Bin(temp(), Opcode.SLT,
-                        load(icmp.operator() == IrOperator.SGE ? icmp.left() : icmp.right()),
-                        load(icmp.operator() == IrOperator.SGE ? icmp.right() : icmp.left())))));
-                default -> throw new IllegalArgumentException();
-            };
+            case InstructionIr.MemberVariable memberVariable -> add(new InstructionAsm.BinImm(destination,
+                    Opcode.ADDI, get(memberVariable.pointer()), memberVariable.memberIndex() * IrType.MAX_BYTE_SIZE));
+            case InstructionIr.Load load -> add(new InstructionAsm.Lw(destination, 0, get(load.pointer())));
+            case InstructionIr.Bin bin -> add(new InstructionAsm.Bin(destination,
+                    bin.operator().opcode, get(bin.left()), get(bin.right(), Register.T1)));
+            case InstructionIr.Icmp icmp -> {
+                switch (icmp.operator()) {
+                    case EQ, NE -> {
+                        add(new InstructionAsm.Bin(Register.T0, Opcode.XOR, get(icmp.left()), get(icmp.right(), Register.T1)));
+                        add(new InstructionAsm.Un(destination, icmp.operator() == IrOperator.EQ ? Opcode.SEQZ : Opcode.SNEZ, Register.T0));
+                    }
+                    case SLT, SGT -> add(new InstructionAsm.Bin(destination, Opcode.SLT,
+                            get(icmp.operator() == IrOperator.SLT ? icmp.left() : icmp.right()),
+                            get(icmp.operator() == IrOperator.SLT ? icmp.right() : icmp.left(), Register.T1)));
+                    case SLE, SGE -> {
+                        add(new InstructionAsm.Bin(Register.T0, Opcode.SLT,
+                                get(icmp.operator() == IrOperator.SGE ? icmp.left() : icmp.right()),
+                                get(icmp.operator() == IrOperator.SGE ? icmp.right() : icmp.left(), Register.T1)));
+                        add(new InstructionAsm.Un(destination, Opcode.SEQZ, Register.T0));
+                    }
+                    default -> throw new IllegalArgumentException();
+                }
+            }
+            case InstructionIr.Phi ignored -> throw new UnsupportedOperationException(); // handled specially
+            case InstructionIr.Param ignored -> throw new UnsupportedOperationException(); // handled in visit
+            case InstructionIr.FunctionCall ignored -> throw new UnsupportedOperationException(); // handled in visit
+        }
+    }
+
+    private Register get(IrOperand source, Register temp) {
+        return switch (source.asConcrete()) {
+            case IrGlobal global -> add(new InstructionAsm.La(temp, IrNamer.removePrefix(global.name())));
+            case IrRegister register -> currentFunction.get(currentFunction.getLocation(register), temp);
+            case IrConstant constant -> add(new InstructionAsm.Li(temp, constant.asImmediate()));
+            case IrUndefined ignored -> Register.ZERO;
         };
     }
 
-    // may load from global variables, local variables or constants
-    // specially notice that global variables are addresses in IR while we store the data directly in .data section
-    // as a result, we need to use La instruction to get the address of the global variable
-    private Register load(IrOperand operand, Register destination) {
-        return switch (operand.asConcrete()) {
-            case IrGlobal global -> add(new InstructionAsm.La(destination, IrNamer.removePrefix(global.name())));
-            case IrRegister register -> currentFunction.loadIrRegister(register, destination);
-            // TODO: use asm for immediate values directly
-            case IrConstant constant -> add(new InstructionAsm.Li(destination, constant.asImmediate()));
-            case IrUndefined ignored -> Register.ZERO; // undefined value. use an arbitrary register
-        };
+    private void move(Location destination, IrOperand source) {
+        switch (source.asConcrete()) {
+            case IrGlobal global -> {
+                switch (destination) {
+                    case Location.Reg reg ->
+                            add(new InstructionAsm.La(reg.register(), IrNamer.removePrefix(global.name())));
+                    case Location.Stack stack -> {
+                        add(new InstructionAsm.La(Register.T0, IrNamer.removePrefix(global.name())));
+                        add(new InstructionAsm.Sw(Register.T0, stack.offset(), Register.SP));
+                    }
+                }
+            }
+            case IrRegister register -> currentFunction.move(destination, currentFunction.getLocation(register));
+            case IrConstant constant -> {
+                switch (destination) {
+                    case Location.Reg reg -> add(new InstructionAsm.Li(reg.register(), constant.asImmediate()));
+                    case Location.Stack stack -> {
+                        add(new InstructionAsm.Li(Register.T0, constant.asImmediate()));
+                        add(new InstructionAsm.Sw(Register.T0, stack.offset(), Register.SP));
+                    }
+                }
+            }
+            case IrUndefined ignored -> {
+            }
+        }
     }
 
-    private Register load(IrOperand operand) {
-        return load(operand, temp());
+    private Register get(IrOperand operand) {
+        return get(operand, Register.T0);
     }
 
     private void add(InstructionAsm instruction) {
@@ -132,9 +160,5 @@ public class AsmBuilder {
 
     private Register add(InstructionAsm.Result instruction) {
         return currentFunction.add(instruction);
-    }
-
-    private Register temp() {
-        return Register.newTempRegister();
     }
 }

@@ -25,6 +25,9 @@ public sealed interface InstructionAsm extends Asm {
     record BinImm(Register result, Opcode opcode, Register left, int immediate) implements Result, Immediate {
     }
 
+    record Mv(Register result, Register operand) implements Result {
+    }
+
     record La(Register result, String label) implements Result {
     }
 

@@ -6,10 +6,7 @@ import modist.antlrdemo.frontend.ir.node.FunctionIr;
 import modist.antlrdemo.frontend.ir.node.InstructionIr;
 import modist.antlrdemo.frontend.ir.node.ProgramIr;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class RegAlloc {
     private FunctionIr function;
@@ -28,6 +25,7 @@ public class RegAlloc {
         this.block = function.getEntry();
         color();
         function.colorMap = new HashMap<>(colorMap);
+        function.colorCount = colorMap.isEmpty() ? 0 : Collections.max(colorMap.values()) + 1;
     }
 
     private void color() {
