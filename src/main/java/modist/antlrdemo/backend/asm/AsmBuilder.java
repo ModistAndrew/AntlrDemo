@@ -9,12 +9,19 @@ import modist.antlrdemo.backend.asm.metadata.Opcode;
 import modist.antlrdemo.backend.asm.metadata.Register;
 import modist.antlrdemo.frontend.ir.IrNamer;
 import modist.antlrdemo.frontend.ir.metadata.*;
+import modist.antlrdemo.frontend.ir.node.BlockIr;
+import modist.antlrdemo.frontend.ir.node.FunctionIr;
 import modist.antlrdemo.frontend.ir.node.InstructionIr;
 import modist.antlrdemo.frontend.ir.node.ProgramIr;
 
+import java.util.List;
+import java.util.Map;
+
 public class AsmBuilder {
     private ProgramAsm program;
-    private FunctionBuilder currentFunction;
+    private FunctionBuilder functionBuilder;
+    private FunctionIr function;
+    private BlockIr block;
 
     public ProgramAsm visitProgram(ProgramIr programIr) {
         program = new ProgramAsm();
@@ -23,19 +30,21 @@ public class AsmBuilder {
         programIr.constantStrings.forEach(constantString ->
                 program.rodata.add(new ConstantStringAsm(IrNamer.removePrefix(constantString.result().name()), constantString.value())));
         programIr.functions.forEach(function -> {
-            currentFunction = new FunctionBuilder(function);
+            this.function = function;
+            functionBuilder = new FunctionBuilder(function);
             function.body.forEach(block -> {
-                currentFunction.newBlock(block.label);
+                this.block = block;
+                functionBuilder.newBlock(functionBuilder.renameLabel(block.label));
                 block.instructions.forEach(this::visit);
             });
-            program.text.add(currentFunction.build());
+            program.text.add(functionBuilder.build());
         });
         return program;
     }
 
     private void visit(InstructionIr ir) {
         switch (ir) {
-            case InstructionIr.Param param -> currentFunction.moveParameter(param.result(), param.index());
+            case InstructionIr.Param param -> functionBuilder.moveParameter(param.result(), param.index());
             case InstructionIr.FunctionCall functionCall -> {
                 for (int i = 0; i < functionCall.arguments().size(); i++) {
                     IrOperand argument = functionCall.arguments().get(i);
@@ -46,11 +55,11 @@ public class AsmBuilder {
                 }
                 add(new InstructionAsm.Call(IrNamer.removePrefix(functionCall.function())));
                 if (functionCall.result() != null) {
-                    currentFunction.move(currentFunction.getLocation(functionCall.result()), new Location.Reg(Register.A0));
+                    functionBuilder.move(functionBuilder.getLocation(functionCall.result()), new Location.Reg(Register.A0));
                 }
             }
             case InstructionIr.Result result -> {
-                switch (currentFunction.getLocation(result.result())) {
+                switch (functionBuilder.getLocation(result.result())) {
                     case Location.Reg reg -> visitResult(result, reg.register());
                     case Location.Stack stack -> {
                         visitResult(result, Register.T0);
@@ -58,22 +67,47 @@ public class AsmBuilder {
                     }
                 }
             }
-            case InstructionIr.Store store -> add(new InstructionAsm.Sw(get(store.value()), 0, get(store.pointer(), Register.T1)));
-            case InstructionIr.Jump jump -> add(new InstructionAsm.J(currentFunction.renameLabel(jump.label())));
+            case InstructionIr.Store store ->
+                    add(new InstructionAsm.Sw(get(store.value()), 0, get(store.pointer(), Register.T1)));
+            case InstructionIr.Jump jump -> {
+                String currentLabel = block.label;
+                Map<String, InstructionIr.Phi> toPhis = function.blockMap.get(jump.label()).phiMap;
+                addPhis(currentLabel, toPhis);
+                add(new InstructionAsm.J(functionBuilder.renameLabel(jump.label())));
+            }
             case InstructionIr.Br br -> {
+                String currentLabel = block.label;
+                Map<String, InstructionIr.Phi> truePhis = function.blockMap.get(br.trueLabel()).phiMap;
+                Map<String, InstructionIr.Phi> falsePhis = function.blockMap.get(br.falseLabel()).phiMap;
+                boolean truePhiPresent = !truePhis.isEmpty();
+                boolean falsePhiPresent = !falsePhis.isEmpty();
+                String brTrueLabel = functionBuilder.renameLabel(br.trueLabel());
+                String brFalseLabel = functionBuilder.renameLabel(br.falseLabel());
+                String trueLabel = truePhiPresent ? functionBuilder.renameLabel(currentLabel) + ".true_phi" : brTrueLabel;
+                String falseLabel = falsePhiPresent ? functionBuilder.renameLabel(currentLabel) + ".false_phi" : brFalseLabel;
                 if (br.nearTrue()) {
-                    add(new InstructionAsm.Bnez(get(br.condition()), currentFunction.renameLabel(br.trueLabel())));
-                    add(new InstructionAsm.J(currentFunction.renameLabel(br.falseLabel())));
+                    add(new InstructionAsm.Bnez(get(br.condition()), trueLabel));
+                    add(new InstructionAsm.J(falseLabel));
                 } else {
-                    add(new InstructionAsm.Beqz(get(br.condition()), currentFunction.renameLabel(br.falseLabel())));
-                    add(new InstructionAsm.J(currentFunction.renameLabel(br.trueLabel())));
+                    add(new InstructionAsm.Beqz(get(br.condition()), falseLabel));
+                    add(new InstructionAsm.J(trueLabel));
+                }
+                if (truePhiPresent) {
+                    functionBuilder.newBlock(trueLabel);
+                    addPhis(currentLabel, truePhis);
+                    add(new InstructionAsm.J(brTrueLabel));
+                }
+                if (falsePhiPresent) {
+                    functionBuilder.newBlock(falseLabel);
+                    addPhis(currentLabel, falsePhis);
+                    add(new InstructionAsm.J(brFalseLabel));
                 }
             }
             case InstructionIr.Ret ret -> {
                 if (ret.value() != null) {
                     move(new Location.Reg(Register.A0), ret.value());
                 }
-                currentFunction.prepareReturn();
+                functionBuilder.prepareReturn();
                 add(new InstructionAsm.Ret());
             }
         }
@@ -108,7 +142,8 @@ public class AsmBuilder {
                     default -> throw new IllegalArgumentException();
                 }
             }
-            case InstructionIr.Phi ignored -> throw new UnsupportedOperationException(); // handled specially
+            case InstructionIr.Phi ignored -> { // handled specially
+            }
             case InstructionIr.Param ignored -> throw new UnsupportedOperationException(); // handled in visit
             case InstructionIr.FunctionCall ignored -> throw new UnsupportedOperationException(); // handled in visit
         }
@@ -117,7 +152,7 @@ public class AsmBuilder {
     private Register get(IrOperand source, Register temp) {
         return switch (source.asConcrete()) {
             case IrGlobal global -> add(new InstructionAsm.La(temp, IrNamer.removePrefix(global.name())));
-            case IrRegister register -> currentFunction.get(currentFunction.getLocation(register), temp);
+            case IrRegister register -> functionBuilder.get(functionBuilder.getLocation(register), temp);
             case IrConstant constant -> add(new InstructionAsm.Li(temp, constant.asImmediate()));
             case IrUndefined ignored -> Register.ZERO;
         };
@@ -135,7 +170,7 @@ public class AsmBuilder {
                     }
                 }
             }
-            case IrRegister register -> currentFunction.move(destination, currentFunction.getLocation(register));
+            case IrRegister register -> functionBuilder.move(destination, functionBuilder.getLocation(register));
             case IrConstant constant -> {
                 switch (destination) {
                     case Location.Reg reg -> add(new InstructionAsm.Li(reg.register(), constant.asImmediate()));
@@ -155,10 +190,20 @@ public class AsmBuilder {
     }
 
     private void add(InstructionAsm instruction) {
-        currentFunction.add(instruction);
+        functionBuilder.add(instruction);
     }
 
     private Register add(InstructionAsm.Result instruction) {
-        return currentFunction.add(instruction);
+        return functionBuilder.add(instruction);
+    }
+
+    private void addPhis(String fromLabel, Map<String, InstructionIr.Phi> toPhis) {
+        List<IrRegister> destinations = toPhis.values().stream().map(InstructionIr.Phi::result).toList();
+        List<IrOperand> sources = toPhis.values().stream().map(phi -> phi.values().get(phi.labels().indexOf(fromLabel))).toList();
+        for (int i = 0; i < destinations.size(); i++) {
+            IrRegister destination = destinations.get(i);
+            IrOperand source = sources.get(i);
+            move(functionBuilder.getLocation(destination), source);
+        }
     }
 }

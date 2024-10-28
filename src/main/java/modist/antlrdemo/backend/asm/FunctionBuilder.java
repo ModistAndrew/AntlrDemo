@@ -81,7 +81,7 @@ public class FunctionBuilder {
     }
 
     public void newBlock(String name) {
-        current.blocks.add(new BlockAsm(renameLabel(name)));
+        current.blocks.add(new BlockAsm(name));
     }
 
     public String renameLabel(String name) {
