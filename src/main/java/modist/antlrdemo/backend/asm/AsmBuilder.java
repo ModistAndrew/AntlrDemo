@@ -153,7 +153,8 @@ public class AsmBuilder {
         return switch (source.asConcrete()) {
             case IrGlobal global -> add(new InstructionAsm.La(temp, IrNamer.removePrefix(global.name())));
             case IrRegister register -> functionBuilder.get(functionBuilder.getLocation(register), temp);
-            case IrConstant constant -> add(new InstructionAsm.Li(temp, constant.asImmediate()));
+            case IrConstant constant -> constant.asImmediate() == 0 ? Register.ZERO :
+                    add(new InstructionAsm.Li(temp, constant.asImmediate()));
             case IrUndefined ignored -> Register.ZERO;
         };
     }

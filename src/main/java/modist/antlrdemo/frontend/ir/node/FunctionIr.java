@@ -19,7 +19,7 @@ public final class FunctionIr implements Ir {
     // for RegAlloc
     public final Map<IrRegister, Integer> registerMap = new HashMap<>();
     public int persistentRegisterCount;
-    public List<InstructionIr.Param> usefulParams = new ArrayList<>();
+    public Set<InstructionIr.Param> usefulParams = new HashSet<>();
     // for LiveAnalysis
     public final Set<IrRegister> persistentRegisters = new HashSet<>();
 

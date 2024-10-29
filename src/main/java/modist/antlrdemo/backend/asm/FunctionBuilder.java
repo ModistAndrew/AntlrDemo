@@ -35,8 +35,26 @@ public class FunctionBuilder {
         for (int i = 0; i < savedRegisterCount; i++) {
             add(new InstructionAsm.Sw(Register.SAVED_REGISTERS[i], stackSize - Register.BYTE_SIZE * (i + 2), Register.SP));
         }
+        // minimize mv between arg and temp registers
+        Map<Integer, Register> color2Temp = new HashMap<>();
+        for (InstructionIr.Param param : function.usefulParams) {
+            int color = function.registerMap.get(param.result());
+            int index = param.index();
+            if (color < 0 && index < Register.ARG_REGISTERS.length) {
+                color2Temp.put(color, Register.ARG_REGISTERS[index]);
+            }
+        }
+        for (int i = -Register.TEMP_REGISTERS.length; i < 0; i++) {
+            if (!color2Temp.containsKey(i)) {
+                for (int j = 0; j < Register.TEMP_REGISTERS.length; j++) {
+                    if (!color2Temp.containsValue(Register.TEMP_REGISTERS[j])) {
+                        color2Temp.put(i, Register.TEMP_REGISTERS[j]);
+                    }
+                }
+            }
+        }
         function.registerMap.forEach((irRegister, color) -> registerMap.put(irRegister,
-                color < 0 ? new Location.Reg(Register.TEMP_REGISTERS[Register.TEMP_REGISTERS.length + color]) :
+                color < 0 ? new Location.Reg(color2Temp.get(color)) :
                         color < Register.SAVED_REGISTERS.length ? new Location.Reg(Register.SAVED_REGISTERS[color]) :
                                 new Location.Stack(stackSize - Register.BYTE_SIZE * (savedRegisterCount + 2 + color - Register.SAVED_REGISTERS.length))));
     }
@@ -122,6 +140,9 @@ public class FunctionBuilder {
     }
 
     public void move(Location destination, Location source) {
+        if (destination.equals(source)) {
+            return;
+        }
         switch (destination) {
             case Location.Reg destinationReg -> {
                 switch (source) {
