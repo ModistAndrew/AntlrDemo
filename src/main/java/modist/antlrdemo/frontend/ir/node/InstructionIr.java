@@ -129,10 +129,6 @@ public sealed interface InstructionIr extends Ir {
 
     // elements in values may be null which represents an undefined value
     record Phi(IrRegister result, IrType type, List<IrOperand> values, List<String> labels) implements Result {
-        public Phi(IrRegister result, IrType type, IrOperand value1, String label1, IrOperand value2, String label2) {
-            this(result, type, List.of(value1, value2), List.of(label1, label2));
-        }
-
         public Phi(IrRegister result, IrType type) {
             this(result, type, new ArrayList<>(), new ArrayList<>());
         }

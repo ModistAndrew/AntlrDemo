@@ -66,7 +66,7 @@ for testcase in test_file:
         temp.write(output_data)
         temp.flush()
         os.chdir('..')
-        commands = f'gradlew run --no-rebuild < {testcase} > {temp_folder}test.s'
+        commands = f'gradlew run --no-rebuild --args="--Xss8192m" < {testcase} > {temp_folder}test.s'
         process = subprocess.run(commands, shell=True)
         if process.returncode != 0:
             raise Exception("Compile Error")

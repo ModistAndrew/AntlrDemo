@@ -10,7 +10,7 @@ build:
 	find $(GENERATED_SRC) $(SRC) -name '*.java' | xargs javac -d $(OUTPUT) -cp $(ANNOTATIONS_JAR):$(ANTLR_JAR)
 .PHONY: run
 run:
-	java -cp $(OUTPUT):$(ANTLR_JAR) $(MAIN_CLASS)
+	java -Xss1024m -cp $(OUTPUT):$(ANTLR_JAR) $(MAIN_CLASS)
 	if [ $$? -eq 0 ]; then \
 			cat $(CLANG_GENERATED)builtin.s; \
 	fi

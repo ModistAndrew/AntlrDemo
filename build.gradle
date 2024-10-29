@@ -21,6 +21,7 @@ generateGrammarSource {
 
 application {
     mainClass = 'modist.antlrdemo.Compiler'
+    applicationDefaultJvmArgs = ["-Xss1024m"]
 }
 
 run {

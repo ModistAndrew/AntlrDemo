@@ -107,26 +107,11 @@ public class LiveAnalysis {
                 return; // reach a definition
             }
         }
-        spreadBlock();
-    }
-
-    private void spreadBlock() {
-        Queue<BlockIr> queue = new ArrayDeque<>();
-        queue.add(this.block);
-        outer:
-        while (!queue.isEmpty()) {
-            BlockIr block = queue.poll();
-            block.liveIn.add(currentRegister);
-            for (int index = block.instructions.size() - 1; index >= 0; index--) {
-                InstructionIr instruction = block.instructions.get(index);
-                if (!block.instructionLiveOut.get(instruction).add(currentRegister)) {
-                    continue outer;
-                }
-                if (currentRegister.equals(instruction.def())) {
-                    continue outer;
-                }
-            }
-            queue.addAll(block.predecessors);
+        block.liveIn.add(currentRegister);
+        for (BlockIr predecessor : block.predecessors) {
+            this.block = predecessor;
+            this.index = predecessor.instructions.size() - 1;
+            spreadUse();
         }
     }
 }
