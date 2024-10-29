@@ -13,8 +13,10 @@ import modist.antlrdemo.frontend.ir.node.BlockIr;
 import modist.antlrdemo.frontend.ir.node.FunctionIr;
 import modist.antlrdemo.frontend.ir.node.InstructionIr;
 import modist.antlrdemo.frontend.ir.node.ProgramIr;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.stream.IntStream;
 
 public class AsmBuilder {
     private ProgramAsm program;
@@ -31,6 +33,8 @@ public class AsmBuilder {
         programIr.functions.forEach(function -> {
             this.function = function;
             functionBuilder = new FunctionBuilder(function);
+            swap(function.usefulParams.stream().map(param -> functionBuilder.getLocation(param.result())).toList(),
+                    function.usefulParams.stream().map(param -> new Movable.Loc(functionBuilder.getParameterLocation(param.index(), true))).toList());
             function.body.forEach(block -> {
                 this.block = block;
                 functionBuilder.newBlock(functionBuilder.renameLabel(block.label));
@@ -43,15 +47,11 @@ public class AsmBuilder {
 
     private void visit(InstructionIr ir) {
         switch (ir) {
-            case InstructionIr.Param param -> functionBuilder.moveParameter(param.result(), param.index());
+            case InstructionIr.Param ignored -> { // handled specially
+            }
             case InstructionIr.FunctionCall functionCall -> {
-                for (int i = 0; i < functionCall.arguments().size(); i++) {
-                    IrOperand argument = functionCall.arguments().get(i);
-                    Location parameterLocation = i < Register.ARG_REGISTERS.length ?
-                            new Location.Reg(Register.ARG_REGISTERS[i]) :
-                            new Location.Stack(IrType.MAX_BYTE_SIZE * (i - Register.ARG_REGISTERS.length));
-                    move(parameterLocation, argument);
-                }
+                swap(IntStream.range(0, functionCall.arguments().size()).mapToObj(i -> functionBuilder.getParameterLocation(i, false)).toList(),
+                        functionCall.arguments().stream().map(Movable.Op::new).toList());
                 add(new InstructionAsm.Call(IrNamer.removePrefix(functionCall.function())));
                 if (functionCall.result() != null) {
                     functionBuilder.move(functionBuilder.getLocation(functionCall.result()), new Location.Reg(Register.A0));
@@ -106,7 +106,7 @@ public class AsmBuilder {
             }
             case InstructionIr.Ret ret -> {
                 if (ret.value() != null) {
-                    move(new Location.Reg(Register.A0), ret.value());
+                    move(new Location.Reg(Register.A0), new Movable.Op(ret.value()));
                 }
                 functionBuilder.prepareReturn();
                 add(new InstructionAsm.Ret());
@@ -158,29 +158,35 @@ public class AsmBuilder {
         };
     }
 
-    private void move(Location destination, IrOperand source) {
-        switch (source.asConcrete()) {
-            case IrGlobal global -> {
-                switch (destination) {
-                    case Location.Reg reg ->
-                            add(new InstructionAsm.La(reg.register(), IrNamer.removePrefix(global.name())));
-                    case Location.Stack stack -> {
-                        add(new InstructionAsm.La(Register.T0, IrNamer.removePrefix(global.name())));
-                        add(new InstructionAsm.Sw(Register.T0, stack.offset(), Register.SP));
+    private void move(Location destination, Movable source) {
+        switch (source) {
+            case Movable.Loc loc -> functionBuilder.move(destination, loc.location());
+            case Movable.Op op -> {
+                switch (op.operand().asConcrete()) {
+                    case IrGlobal global -> {
+                        switch (destination) {
+                            case Location.Reg reg ->
+                                    add(new InstructionAsm.La(reg.register(), IrNamer.removePrefix(global.name())));
+                            case Location.Stack stack -> {
+                                add(new InstructionAsm.La(Register.T0, IrNamer.removePrefix(global.name())));
+                                add(new InstructionAsm.Sw(Register.T0, stack.offset(), Register.SP));
+                            }
+                        }
+                    }
+                    case IrRegister register ->
+                            functionBuilder.move(destination, functionBuilder.getLocation(register));
+                    case IrConstant constant -> {
+                        switch (destination) {
+                            case Location.Reg reg -> add(new InstructionAsm.Li(reg.register(), constant.asImmediate()));
+                            case Location.Stack stack -> {
+                                add(new InstructionAsm.Li(Register.T0, constant.asImmediate()));
+                                add(new InstructionAsm.Sw(Register.T0, stack.offset(), Register.SP));
+                            }
+                        }
+                    }
+                    case IrUndefined ignored -> {
                     }
                 }
-            }
-            case IrRegister register -> functionBuilder.move(destination, functionBuilder.getLocation(register));
-            case IrConstant constant -> {
-                switch (destination) {
-                    case Location.Reg reg -> add(new InstructionAsm.Li(reg.register(), constant.asImmediate()));
-                    case Location.Stack stack -> {
-                        add(new InstructionAsm.Li(Register.T0, constant.asImmediate()));
-                        add(new InstructionAsm.Sw(Register.T0, stack.offset(), Register.SP));
-                    }
-                }
-            }
-            case IrUndefined ignored -> {
             }
         }
     }
@@ -198,26 +204,27 @@ public class AsmBuilder {
     }
 
     private void addPhis(String fromLabel, Map<String, InstructionIr.Phi> toPhis) {
-        List<IrRegister> destinations = toPhis.values().stream().map(InstructionIr.Phi::result).toList();
-        List<IrOperand> sources = toPhis.values().stream().map(phi -> phi.values().get(phi.labels().indexOf(fromLabel))).toList();
+        List<Location> destinations = toPhis.values().stream().map(phi -> functionBuilder.getLocation(phi.result())).toList();
+        List<Movable.Op> sources = toPhis.values().stream().map(phi -> new Movable.Op(phi.values().get(phi.labels().indexOf(fromLabel)))).toList();
+        swap(destinations, sources);
+    }
+
+    private void swap(List<Location> destinations, List<? extends Movable> sources) {
         Map<Location, Set<Location>> destinationMap = new HashMap<>(); // only present for locations which are also destinations of other moves
-        Map<Location, IrOperand> sourceMap = new HashMap<>();
-        destinations.forEach(destination -> destinationMap.put(functionBuilder.getLocation(destination), new HashSet<>()));
+        Map<Location, Movable> sourceMap = new HashMap<>();
+        destinations.forEach(destination -> destinationMap.put(destination, new HashSet<>()));
         for (int i = 0; i < destinations.size(); i++) {
-            IrRegister destination = destinations.get(i);
-            IrOperand source = sources.get(i);
-            Location destinationLocation = functionBuilder.getLocation(destination);
-            sourceMap.put(destinationLocation, source);
-            if (source.asConcrete() instanceof IrRegister sourceRegister) {
-                Location sourceLocation = functionBuilder.getLocation(sourceRegister);
-                if (destinationMap.containsKey(sourceLocation)) {
-                    destinationMap.get(sourceLocation).add(destinationLocation);
-                }
+            Location destination = destinations.get(i);
+            Movable source = sources.get(i);
+            sourceMap.put(destination, source);
+            Location sourceLocation = asLocation(source);
+            if (destinationMap.containsKey(sourceLocation)) {
+                destinationMap.get(sourceLocation).add(destination);
             }
         }
         while (!sourceMap.isEmpty()) {
             Location destinationLocation = sourceMap.keySet().iterator().next();
-            IrOperand source = sourceMap.get(destinationLocation);
+            Movable source = sourceMap.get(destinationLocation);
             Stack<Location> visited = new Stack<>();
             Location current = destinationLocation;
             boolean hasEnd = false;
@@ -239,11 +246,9 @@ public class AsmBuilder {
                 }
                 move(destinationLocation, source);
                 sourceMap.remove(destinationLocation);
-                if (source.asConcrete() instanceof IrRegister sourceRegister) {
-                    Location sourceLocation = functionBuilder.getLocation(sourceRegister);
-                    if (destinationMap.containsKey(sourceLocation)) {
-                        destinationMap.get(sourceLocation).remove(destinationLocation);
-                    }
+                Location sourceLocation = asLocation(source);
+                if (destinationMap.containsKey(sourceLocation)) {
+                    destinationMap.get(sourceLocation).remove(destinationLocation);
                 }
             } else {
                 sourceMap.remove(current);
@@ -262,6 +267,25 @@ public class AsmBuilder {
                     functionBuilder.move(current, new Location.Reg(Register.T1));
                 }
             }
+        }
+    }
+
+    @Nullable
+    private Location asLocation(Movable movable) {
+        return switch (movable) {
+            case Movable.Loc loc -> loc.location();
+            case Movable.Op op -> switch (op.operand().asConcrete()) {
+                case IrRegister register -> functionBuilder.getLocation(register);
+                default -> null;
+            };
+        };
+    }
+
+    private sealed interface Movable {
+        record Loc(Location location) implements Movable {
+        }
+
+        record Op(IrOperand operand) implements Movable {
         }
     }
 }

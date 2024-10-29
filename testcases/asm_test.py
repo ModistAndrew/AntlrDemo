@@ -53,7 +53,7 @@ green_msg = "\033[32m{msg}\033[0m"
 blue_msg = "\033[34m{msg}\033[0m"
 pass_cnt = 0;
 
-test_file = ['testcases/optim-new/efficiency.mx']
+test_file = ['testcases/codegen/t1.mx']
 for testcase in test_file:
     try:
         os.chdir(current_dir)
@@ -71,7 +71,7 @@ for testcase in test_file:
         if process.returncode != 0:
             raise Exception("Compile Error")
         os.chdir(temp_folder)
-        commands = f'wsl reimu -i test.in -o test.out'
+        commands = f'wsl reimu -i test.in -o test.out --cache --predictor'
         process = subprocess.run(commands, shell=True, capture_output=True)
         ans_output = output_data
         program_output = open('test.out', 'r', encoding='utf-8').read().strip()

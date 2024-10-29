@@ -64,9 +64,5 @@ public final class BlockIr implements Ir {
             current = new BlockIr(label);
             finished = false;
         }
-
-        public String currentLabel() {
-            return current.label;
-        }
     }
 }

@@ -5,10 +5,7 @@ import modist.antlrdemo.frontend.ir.metadata.IrType;
 import modist.antlrdemo.frontend.ir.metadata.IrRegister;
 import modist.antlrdemo.frontend.ir.metadata.VariableReference;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public final class FunctionIr implements Ir {
     public final String name;
@@ -20,8 +17,11 @@ public final class FunctionIr implements Ir {
     public final Map<String, BlockIr> blockMap = new HashMap<>();
     public final List<BlockIr> bfsOrder = new ArrayList<>();
     // for RegAlloc
-    public Map<IrRegister, Integer> colorMap;
-    public int colorCount;
+    public final Map<IrRegister, Integer> registerMap = new HashMap<>();
+    public int persistentRegisterCount;
+    public List<InstructionIr.Param> usefulParams = new ArrayList<>();
+    // for LiveAnalysis
+    public final Set<IrRegister> persistentRegisters = new HashSet<>();
 
     private FunctionIr(String name, IrType returnType, List<IrRegister> parameters, List<IrType> parameterTypes) {
         this.name = name;
@@ -55,12 +55,9 @@ public final class FunctionIr implements Ir {
             currentBlock.addVariableReference(variableReference);
         }
 
-        // returns the label of the previous block
-        public String newBlock(InstructionIr.End end, String name) {
-            String currentLabel = currentBlock.currentLabel();
+        public void newBlock(InstructionIr.End end, String name) {
             current.body.add(currentBlock.build(end));
             currentBlock.begin(name);
-            return currentLabel;
         }
 
         public FunctionIr build() {

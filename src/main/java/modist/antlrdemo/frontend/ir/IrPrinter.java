@@ -65,7 +65,7 @@ public class IrPrinter {
             case FunctionIr function -> {
                 // print RegAlloc information
                 printStream.println("; Color map:");
-                function.colorMap.forEach((register, color) -> printStream.printf("; %s: %d%n", register, color));
+                function.registerMap.forEach((register, color) -> printStream.printf("; %s: %d%n", register, color));
                 printStream.println();
                 printStream.printf("define %s %s(%s) {%n",
                         function.returnType, function.name, toStringArguments(function.parameterTypes, function.parameters));

@@ -1,5 +1,6 @@
 package modist.antlrdemo.optimize;
 
+import modist.antlrdemo.backend.asm.metadata.Register;
 import modist.antlrdemo.frontend.ir.metadata.IrRegister;
 import modist.antlrdemo.frontend.ir.node.BlockIr;
 import modist.antlrdemo.frontend.ir.node.FunctionIr;
@@ -10,7 +11,6 @@ import java.util.*;
 
 public class RegAlloc {
     private FunctionIr function;
-    private final Map<IrRegister, Integer> colorMap = new HashMap<>();
     private BlockIr block;
 
     public void visitProgram(ProgramIr program) {
@@ -21,18 +21,22 @@ public class RegAlloc {
     }
 
     private void visitFunction() {
-        this.colorMap.clear();
         this.block = function.getEntry();
         color();
-        function.colorMap = new HashMap<>(colorMap);
-        function.colorCount = colorMap.isEmpty() ? 0 : Collections.max(colorMap.values()) + 1;
+        function.registerMap.values().forEach(i ->
+                function.persistentRegisterCount = Math.max(function.persistentRegisterCount, i + 1));
+        function.getEntry().instructions.forEach(instruction -> {
+            if (instruction instanceof InstructionIr.Param param) {
+                function.usefulParams.add(param);
+            }
+        });
     }
 
     private void color() {
         Set<Integer> inUseColors = new HashSet<>();
         block.liveIn.forEach(register -> {
-            if (colorMap.containsKey(register)) { // all liveIn registers must be in colorMap or defined in the current block
-                inUseColors.add(colorMap.get(register));
+            if (function.registerMap.containsKey(register)) { // all liveIn registers must be in colorMap or defined in the current block
+                inUseColors.add(function.registerMap.get(register));
             }
         });
         block.instructions.forEach(instruction -> {
@@ -42,16 +46,17 @@ public class RegAlloc {
                     if (operand.asConcrete() instanceof IrRegister register
                             && !block.instructionLiveOut.get(instruction).contains(register)) {
                         // defined var must in colorMap (except for phi)
-                        inUseColors.remove(colorMap.get(register));
+                        inUseColors.remove(function.registerMap.get(register));
                     }
                 });
             }
             if (instruction.def() != null) {
-                int color = 0;
+                int color = function.persistentRegisters.contains(instruction.def()) ?
+                        0 : -Register.TEMP_REGISTERS.length;
                 while (!inUseColors.add(color)) {
                     color++;
                 }
-                colorMap.put(instruction.def(), color);
+                function.registerMap.put(instruction.def(), color);
             }
         });
         for (BlockIr children : block.dominatorTreeChildren) {

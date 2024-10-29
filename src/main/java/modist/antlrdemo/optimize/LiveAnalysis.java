@@ -106,6 +106,9 @@ public class LiveAnalysis {
             if (currentRegister.equals(instruction.def())) {
                 return; // reach a definition
             }
+            if (instruction instanceof InstructionIr.FunctionCall) {
+                function.persistentRegisters.add(currentRegister); // registers which live through function calls should be persistent
+            }
         }
         block.liveIn.add(currentRegister);
         for (BlockIr predecessor : block.predecessors) {
