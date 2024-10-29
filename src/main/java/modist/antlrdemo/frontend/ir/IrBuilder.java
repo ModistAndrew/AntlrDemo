@@ -341,7 +341,7 @@ public class IrBuilder {
     }
 
     // used in format string
-    private IrRegister toStringExpression(ExpressionOrArrayAst expression) {
+    private IrDynamic toStringExpression(ExpressionOrArrayAst expression) {
         IrOperand expressionResult = visitExpression(expression);
         if (expression.type.isInt()) {
             return callGlobalFunction(BuiltinFeatures.TO_STRING, expressionResult);
@@ -349,7 +349,7 @@ public class IrBuilder {
         if (expression.type.isBool()) {
             return callGlobalFunction(BuiltinFeatures.TO_STRING_BOOL, expressionResult);
         }
-        return (IrRegister) expressionResult;
+        return (IrDynamic) expressionResult;
     }
 
     private IrDynamic loadPointer(IrType type, IrDynamic pointer) {
