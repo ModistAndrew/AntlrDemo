@@ -23,9 +23,11 @@ public class AsmBuilder {
     private FunctionBuilder functionBuilder;
     private FunctionIr function;
     private BlockIr block;
+    private HashMap<IrGlobal, Integer> globalRegisterMap;
 
     public ProgramAsm visitProgram(ProgramIr programIr) {
         program = new ProgramAsm();
+        globalRegisterMap = programIr.globalRegisterMap;
         programIr.globalVariables.forEach(globalVariable ->
                 program.data.add(new GlobalVariableAsm(IrNamer.removePrefix(globalVariable.result().name()))));
         programIr.constantStrings.forEach(constantString ->
@@ -68,8 +70,14 @@ public class AsmBuilder {
                     }
                 }
             }
-            case InstructionIr.Store store ->
+            case InstructionIr.Store store -> {
+                if (store.pointer().asConcrete() instanceof IrGlobal global
+                        && globalRegisterMap.containsKey(global)) {
+                    add(new InstructionAsm.Mv(Register.SAVED_REGISTERS[globalRegisterMap.get(global)], get(store.value())));
+                } else {
                     add(new InstructionAsm.Sw(get(store.value()), 0, get(store.pointer(), Register.T1)));
+                }
+            }
             case InstructionIr.Jump jump -> {
                 String currentLabel = block.label;
                 Map<String, InstructionIr.Phi> toPhis = function.blockMap.get(jump.label()).phiMap;
@@ -122,7 +130,14 @@ public class AsmBuilder {
             }
             case InstructionIr.MemberVariable memberVariable -> add(new InstructionAsm.BinImm(destination,
                     Opcode.ADDI, get(memberVariable.pointer()), memberVariable.memberIndex() * IrType.MAX_BYTE_SIZE));
-            case InstructionIr.Load load -> add(new InstructionAsm.Lw(destination, 0, get(load.pointer())));
+            case InstructionIr.Load load -> {
+                if (load.pointer().asConcrete() instanceof IrGlobal global
+                        && globalRegisterMap.containsKey(global)) {
+                    add(new InstructionAsm.Mv(destination, Register.SAVED_REGISTERS[globalRegisterMap.get(global)]));
+                } else {
+                    add(new InstructionAsm.Lw(destination, 0, get(load.pointer())));
+                }
+            }
             case InstructionIr.Bin bin -> add(new InstructionAsm.Bin(destination,
                     bin.operator().opcode, get(bin.left()), get(bin.right(), Register.T1)));
             case InstructionIr.Icmp icmp -> {

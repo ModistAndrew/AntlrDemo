@@ -24,7 +24,7 @@ public final class BlockIr implements Ir {
     public BlockIr immediateDominator;
     public final Set<BlockIr> dominatorTreeChildren = new HashSet<>();
     public final Set<BlockIr> dominanceFrontiers = new HashSet<>();
-    // for LiveAnalysis
+    // for RegAlloc
     public final Set<IrRegister> liveIn = new HashSet<>();
     public final Map<InstructionIr, Set<IrRegister>> instructionLiveOut = new HashMap<>();
 

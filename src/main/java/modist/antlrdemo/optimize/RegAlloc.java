@@ -1,6 +1,7 @@
 package modist.antlrdemo.optimize;
 
 import modist.antlrdemo.backend.asm.metadata.Register;
+import modist.antlrdemo.frontend.ir.metadata.IrGlobal;
 import modist.antlrdemo.frontend.ir.metadata.IrRegister;
 import modist.antlrdemo.frontend.ir.node.BlockIr;
 import modist.antlrdemo.frontend.ir.node.FunctionIr;
@@ -14,10 +15,29 @@ public class RegAlloc {
     private BlockIr block;
 
     public void visitProgram(ProgramIr program) {
-        program.functions.forEach(function -> {
+        Map<IrGlobal, Integer> globalUseCount = new HashMap<>();
+        int maxRegisterTop = 0;
+        for (FunctionIr function : program.functions) {
+            function.body.forEach(block -> block.instructions.forEach(instruction -> {
+                if (instruction instanceof InstructionIr.Load load &&
+                        load.pointer().asConcrete() instanceof IrGlobal global) {
+                    globalUseCount.put(global, globalUseCount.getOrDefault(global, 0) + 1);
+                }
+                if (instruction instanceof InstructionIr.Store store &&
+                        store.pointer().asConcrete() instanceof IrGlobal global) {
+                    globalUseCount.put(global, globalUseCount.getOrDefault(global, 0) + 1);
+                }
+            }));
             this.function = function;
             visitFunction();
-        });
+            maxRegisterTop = Math.max(maxRegisterTop, function.persistentRegisterCount);
+        }
+        List<Map.Entry<IrGlobal, Integer>> globalUseCountList = new ArrayList<>(globalUseCount.entrySet());
+        globalUseCountList.sort(Map.Entry.<IrGlobal, Integer>comparingByValue().reversed());
+        for (int i = maxRegisterTop; i < Register.SAVED_REGISTERS.length && i < globalUseCountList.size(); i++) {
+            Map.Entry<IrGlobal, Integer> entry = globalUseCountList.get(i);
+            program.globalRegisterMap.put(entry.getKey(), i);
+        }
     }
 
     private void visitFunction() {

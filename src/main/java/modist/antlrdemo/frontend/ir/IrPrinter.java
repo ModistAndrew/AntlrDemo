@@ -35,6 +35,9 @@ public class IrPrinter {
         }
         switch (ir) {
             case ProgramIr program -> {
+                // print global register map
+                printStream.println("; Global register map:");
+                program.globalRegisterMap.forEach((global, color) -> printStream.printf("; %s: %d%n", global, color));
                 if (!program.classDefinitions.isEmpty()) {
                     program.classDefinitions.forEach(this::println);
                     printStream.println();
@@ -54,7 +57,7 @@ public class IrPrinter {
             case ClassDefinitionIr classDefinition -> printStream.printf("%s = type { %s }",
                     classDefinition.name(), toStringTypes(classDefinition.members()));
             case GlobalVariableIr globalVariable -> printStream.printf("%s = global %s %s",
-                    globalVariable.result(), globalVariable.type(), globalVariable.value());
+                    globalVariable.result(), globalVariable.type(), globalVariable.type().defaultValue);
             case ConstantStringIr constantString -> printStream.printf("%s = constant [%d x i8] c\"%s\"",
                     constantString.result(), constantString.value().length() + 1, escape(constantString.value()) + "\\00");
             case FunctionDeclarationIr functionDeclaration -> printStream.printf("declare %s %s(%s)",

@@ -20,7 +20,6 @@ public final class FunctionIr implements Ir {
     public final Map<IrRegister, Integer> registerMap = new HashMap<>();
     public int persistentRegisterCount;
     public Set<InstructionIr.Param> usefulParams = new HashSet<>();
-    // for LiveAnalysis
     public final Set<IrRegister> persistentRegisters = new HashSet<>();
 
     private FunctionIr(String name, IrType returnType, List<IrRegister> parameters, List<IrType> parameterTypes) {
