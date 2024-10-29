@@ -12,6 +12,7 @@ import modist.antlrdemo.frontend.ir.metadata.IrType;
 import modist.antlrdemo.frontend.ir.node.BlockIr;
 import modist.antlrdemo.frontend.ir.node.FunctionIr;
 import modist.antlrdemo.frontend.ir.node.InstructionIr;
+import modist.antlrdemo.frontend.ir.node.ProgramIr;
 
 import java.util.*;
 
@@ -23,7 +24,7 @@ public class FunctionBuilder {
     private final Map<IrRegister, Location> registerMap = new HashMap<>();
 
     // (new -> add* -> (newBlock -> add* ->)* build)*
-    public FunctionBuilder(FunctionIr function) {
+    public FunctionBuilder(ProgramIr program, FunctionIr function) {
         current = new FunctionAsm(IrNamer.removePrefix(function.name));
         stackSize = calculateStackSize(function);
         // push stack pointer
@@ -57,6 +58,12 @@ public class FunctionBuilder {
                 color < 0 ? new Location.Reg(color2Temp.get(color)) :
                         color < Register.SAVED_REGISTERS.length ? new Location.Reg(Register.SAVED_REGISTERS[color]) :
                                 new Location.Stack(stackSize - Register.BYTE_SIZE * (savedRegisterCount + 2 + color - Register.SAVED_REGISTERS.length))));
+        // map global load registers
+        function.globalLoadRegisterMap.forEach((irRegister, global) -> {
+            if (program.globalRegisterMap.containsKey(global)) {
+                registerMap.put(irRegister, new Location.Reg(Register.SAVED_REGISTERS[program.globalRegisterMap.get(global)]));
+            }
+        });
     }
 
     // we have to calculate the stack size before building the function so that stack pointer won't be changed during the process

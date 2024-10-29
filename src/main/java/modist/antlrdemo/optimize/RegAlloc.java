@@ -22,6 +22,7 @@ public class RegAlloc {
                 if (instruction instanceof InstructionIr.Load load &&
                         load.pointer().asConcrete() instanceof IrGlobal global) {
                     globalUseCount.put(global, globalUseCount.getOrDefault(global, 0) + 1);
+                    function.globalLoadRegisterMap.put(load.result(), global);
                 }
                 if (instruction instanceof InstructionIr.Store store &&
                         store.pointer().asConcrete() instanceof IrGlobal global) {
@@ -33,9 +34,12 @@ public class RegAlloc {
             maxRegisterTop = Math.max(maxRegisterTop, function.persistentRegisterCount);
         }
         List<Map.Entry<IrGlobal, Integer>> globalUseCountList = new ArrayList<>(globalUseCount.entrySet());
-        globalUseCountList.sort(Map.Entry.<IrGlobal, Integer>comparingByValue().reversed());
-        for (int i = maxRegisterTop; i < Register.SAVED_REGISTERS.length && i < globalUseCountList.size(); i++) {
-            Map.Entry<IrGlobal, Integer> entry = globalUseCountList.get(i);
+        globalUseCountList.sort(Map.Entry.comparingByValue());
+        for (int i = maxRegisterTop; i < Register.SAVED_REGISTERS.length; i++) {
+            if (globalUseCountList.isEmpty()) {
+                break;
+            }
+            Map.Entry<IrGlobal, Integer> entry = globalUseCountList.removeLast();
             program.globalRegisterMap.put(entry.getKey(), i);
         }
     }

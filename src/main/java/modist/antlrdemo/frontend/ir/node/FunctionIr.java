@@ -1,6 +1,7 @@
 package modist.antlrdemo.frontend.ir.node;
 
 import modist.antlrdemo.frontend.ir.IrNamer;
+import modist.antlrdemo.frontend.ir.metadata.IrGlobal;
 import modist.antlrdemo.frontend.ir.metadata.IrType;
 import modist.antlrdemo.frontend.ir.metadata.IrRegister;
 import modist.antlrdemo.frontend.ir.metadata.VariableReference;
@@ -21,6 +22,7 @@ public final class FunctionIr implements Ir {
     public int persistentRegisterCount;
     public Set<InstructionIr.Param> usefulParams = new HashSet<>();
     public final Set<IrRegister> persistentRegisters = new HashSet<>();
+    public final HashMap<IrRegister, IrGlobal> globalLoadRegisterMap = new HashMap<>();
 
     private FunctionIr(String name, IrType returnType, List<IrRegister> parameters, List<IrType> parameterTypes) {
         this.name = name;

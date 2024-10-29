@@ -23,18 +23,18 @@ public class AsmBuilder {
     private FunctionBuilder functionBuilder;
     private FunctionIr function;
     private BlockIr block;
-    private HashMap<IrGlobal, Integer> globalRegisterMap;
+    private ProgramIr programIr;
 
     public ProgramAsm visitProgram(ProgramIr programIr) {
         program = new ProgramAsm();
-        globalRegisterMap = programIr.globalRegisterMap;
+        this.programIr = programIr;
         programIr.globalVariables.forEach(globalVariable ->
                 program.data.add(new GlobalVariableAsm(IrNamer.removePrefix(globalVariable.result().name()))));
         programIr.constantStrings.forEach(constantString ->
                 program.rodata.add(new ConstantStringAsm(IrNamer.removePrefix(constantString.result().name()), constantString.value())));
         programIr.functions.forEach(function -> {
             this.function = function;
-            functionBuilder = new FunctionBuilder(function);
+            functionBuilder = new FunctionBuilder(programIr, function);
             swap(function.usefulParams.stream().map(param -> functionBuilder.getLocation(param.result())).toList(),
                     function.usefulParams.stream().map(param -> new Movable.Loc(functionBuilder.getParameterLocation(param.index(), true))).toList());
             function.body.forEach(block -> {
@@ -51,29 +51,23 @@ public class AsmBuilder {
         switch (ir) {
             case InstructionIr.Param ignored -> { // handled specially
             }
-            case InstructionIr.FunctionCall functionCall -> {
-                swap(IntStream.range(0, functionCall.arguments().size()).mapToObj(i -> functionBuilder.getParameterLocation(i, false)).toList(),
-                        functionCall.arguments().stream().map(Movable.Op::new).toList());
-                add(new InstructionAsm.Call(IrNamer.removePrefix(functionCall.function())));
-                if (functionCall.result() != null) {
-                    functionBuilder.move(functionBuilder.getLocation(functionCall.result()), new Location.Reg(Register.A0));
-                }
-            }
             case InstructionIr.Phi ignored -> { // handled specially
             }
             case InstructionIr.Result result -> {
                 switch (functionBuilder.getLocation(result.result())) {
                     case Location.Reg reg -> visitResult(result, reg.register());
                     case Location.Stack stack -> {
-                        visitResult(result, Register.T0);
-                        add(new InstructionAsm.Sw(Register.T0, stack.offset(), Register.SP));
+                        if (visitResult(result, Register.T0)) {
+                            add(new InstructionAsm.Sw(Register.T0, stack.offset(), Register.SP));
+                        }
                     }
+                    case null -> visitResult(result, Register.T0);
                 }
             }
             case InstructionIr.Store store -> {
                 if (store.pointer().asConcrete() instanceof IrGlobal global
-                        && globalRegisterMap.containsKey(global)) {
-                    add(new InstructionAsm.Mv(Register.SAVED_REGISTERS[globalRegisterMap.get(global)], get(store.value())));
+                        && programIr.globalRegisterMap.containsKey(global)) {
+                    add(new InstructionAsm.Mv(Register.SAVED_REGISTERS[programIr.globalRegisterMap.get(global)], get(store.value())));
                 } else {
                     add(new InstructionAsm.Sw(get(store.value()), 0, get(store.pointer(), Register.T1)));
                 }
@@ -122,7 +116,8 @@ public class AsmBuilder {
         }
     }
 
-    private void visitResult(InstructionIr.Result ir, Register destination) {
+    // return false if nothing to do
+    private boolean visitResult(InstructionIr.Result ir, Register destination) {
         switch (ir) {
             case InstructionIr.Subscript subscript -> {
                 add(new InstructionAsm.BinImm(Register.T0, Opcode.SLLI, get(subscript.index()), IrType.LOG_MAX_BYTE_SIZE));
@@ -132,11 +127,10 @@ public class AsmBuilder {
                     Opcode.ADDI, get(memberVariable.pointer()), memberVariable.memberIndex() * IrType.MAX_BYTE_SIZE));
             case InstructionIr.Load load -> {
                 if (load.pointer().asConcrete() instanceof IrGlobal global
-                        && globalRegisterMap.containsKey(global)) {
-                    add(new InstructionAsm.Mv(destination, Register.SAVED_REGISTERS[globalRegisterMap.get(global)]));
-                } else {
-                    add(new InstructionAsm.Lw(destination, 0, get(load.pointer())));
+                        && programIr.globalRegisterMap.containsKey(global)) {
+                    return false; // load registers are already mapped to the global registers
                 }
+                add(new InstructionAsm.Lw(destination, 0, get(load.pointer())));
             }
             case InstructionIr.Bin bin -> add(new InstructionAsm.Bin(destination,
                     bin.operator().opcode, get(bin.left()), get(bin.right(), Register.T1)));
@@ -158,10 +152,19 @@ public class AsmBuilder {
                     default -> throw new IllegalArgumentException();
                 }
             }
-            case InstructionIr.Phi ignored -> throw new UnsupportedOperationException(); // handled in visit
-            case InstructionIr.Param ignored -> throw new UnsupportedOperationException(); // handled in visit
-            case InstructionIr.FunctionCall ignored -> throw new UnsupportedOperationException(); // handled in visit
+            case InstructionIr.Phi ignored -> throw new UnsupportedOperationException(); // handled specially
+            case InstructionIr.Param ignored -> throw new UnsupportedOperationException(); // handled specially
+            case InstructionIr.FunctionCall functionCall -> {
+                swap(IntStream.range(0, functionCall.arguments().size()).mapToObj(i -> functionBuilder.getParameterLocation(i, false)).toList(),
+                        functionCall.arguments().stream().map(Movable.Op::new).toList());
+                add(new InstructionAsm.Call(IrNamer.removePrefix(functionCall.function())));
+                if (functionCall.result() == null) {
+                    return false;
+                }
+                add(new InstructionAsm.Mv(destination, Register.A0));
+            }
         }
+        return true;
     }
 
     private Register get(IrOperand source, Register temp) {
