@@ -7,10 +7,7 @@ import modist.antlrdemo.frontend.ir.node.FunctionIr;
 import modist.antlrdemo.frontend.ir.node.InstructionIr;
 import modist.antlrdemo.frontend.ir.node.ProgramIr;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class LiveAnalysis {
     private FunctionIr function;
@@ -110,11 +107,26 @@ public class LiveAnalysis {
                 return; // reach a definition
             }
         }
-        block.liveIn.add(currentRegister);
-        for (BlockIr predecessor : block.predecessors) {
-            this.block = predecessor;
-            this.index = predecessor.instructions.size() - 1;
-            spreadUse();
+        spreadBlock();
+    }
+
+    private void spreadBlock() {
+        Queue<BlockIr> queue = new ArrayDeque<>();
+        queue.add(this.block);
+        outer:
+        while (!queue.isEmpty()) {
+            BlockIr block = queue.poll();
+            block.liveIn.add(currentRegister);
+            for (int index = block.instructions.size() - 1; index >= 0; index--) {
+                InstructionIr instruction = block.instructions.get(index);
+                if (!block.instructionLiveOut.get(instruction).add(currentRegister)) {
+                    continue outer;
+                }
+                if (currentRegister.equals(instruction.def())) {
+                    continue outer;
+                }
+            }
+            queue.addAll(block.predecessors);
         }
     }
 }

@@ -230,9 +230,9 @@ public class AsmBuilder {
                 current = destinationMap.get(current).iterator().next();
             }
             if (hasEnd) {
-                for (int i = visited.size() - 1; i > 0; i--) {
-                    Location d = visited.get(i);
-                    Location s = visited.get(i - 1);
+                while (!visited.peek().equals(destinationLocation)) {
+                    Location d = visited.pop();
+                    Location s = visited.peek();
                     functionBuilder.move(d, s);
                     sourceMap.remove(d);
                     destinationMap.get(s).remove(d);
