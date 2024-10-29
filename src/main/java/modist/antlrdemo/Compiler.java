@@ -59,7 +59,9 @@ public class Compiler {
     }
 
     private static ProgramAsm backend(ProgramIr ir) {
-        return new AsmBuilder().visitProgram(ir);
+        ProgramAsm asm = new AsmBuilder().visitProgram(ir);
+        new JumpCleanup().visitProgram(asm);
+        return asm;
     }
 
     private static <T extends Recognizer<?, ?>> T withFastFailErrorListener(T recognizer) {
