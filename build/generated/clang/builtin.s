@@ -236,8 +236,8 @@ _mallocArray:                           # @_mallocArray
 	addi	sp, sp, -16
 	sw	ra, 12(sp)                      # 4-byte Folded Spill
 	sw	s0, 8(sp)                       # 4-byte Folded Spill
-	mv	s0, a1
-	mul	a0, a1, a0
+	mv	s0, a0
+	slli	a0, a0, 2
 	addi	a0, a0, 4
 	call	malloc
 	addi	a1, a0, 4
@@ -399,58 +399,38 @@ v_mallocArrayMulti:                     # @v_mallocArrayMulti
 	sw	s2, 16(sp)                      # 4-byte Folded Spill
 	sw	s3, 12(sp)                      # 4-byte Folded Spill
 	sw	s4, 8(sp)                       # 4-byte Folded Spill
-	sw	s5, 4(sp)                       # 4-byte Folded Spill
-	sw	s6, 0(sp)                       # 4-byte Folded Spill
-	lw	s1, 0(a3)
-	li	s4, 1
-	mv	s3, a0
-	bne	a1, s4, .LBB18_2
-# %bb.1:
-	mul	a0, s1, s3
-	addi	a0, a0, 4
-	call	malloc
-	sw	s1, 0(a0)
-	addi	a0, a0, 4
-	j	.LBB18_7
-.LBB18_2:
-	mv	s2, a2
-	mv	s0, a1
-	mv	s5, a3
+	mv	s3, a1
+	lw	s1, 0(a1)
+	mv	s0, a0
 	slli	a0, s1, 2
 	addi	a0, a0, 4
 	call	malloc
 	sw	s1, 0(a0)
-	addi	a0, a0, 4
-	beq	s2, s4, .LBB18_7
-# %bb.3:
-	beqz	s1, .LBB18_7
-# %bb.4:
-	addi	s4, s5, 4
-	addi	s6, s0, -1
-	addi	s2, s2, -1
-	mv	s5, a0
-	mv	s0, a0
-.LBB18_5:                               # =>This Inner Loop Header: Depth=1
-	mv	a0, s3
-	mv	a1, s6
-	mv	a2, s2
-	mv	a3, s4
+	li	a1, 1
+	addi	s2, a0, 4
+	beq	s0, a1, .LBB18_4
+# %bb.1:
+	beqz	s1, .LBB18_4
+# %bb.2:
+	addi	s3, s3, 4
+	addi	s4, s0, -1
+	mv	s0, s2
+.LBB18_3:                               # =>This Inner Loop Header: Depth=1
+	mv	a0, s4
+	mv	a1, s3
 	call	v_mallocArrayMulti
 	sw	a0, 0(s0)
 	addi	s1, s1, -1
 	addi	s0, s0, 4
-	bnez	s1, .LBB18_5
-# %bb.6:
-	mv	a0, s5
-.LBB18_7:                               # %.loopexit
+	bnez	s1, .LBB18_3
+.LBB18_4:                               # %.loopexit
+	mv	a0, s2
 	lw	ra, 28(sp)                      # 4-byte Folded Reload
 	lw	s0, 24(sp)                      # 4-byte Folded Reload
 	lw	s1, 20(sp)                      # 4-byte Folded Reload
 	lw	s2, 16(sp)                      # 4-byte Folded Reload
 	lw	s3, 12(sp)                      # 4-byte Folded Reload
 	lw	s4, 8(sp)                       # 4-byte Folded Reload
-	lw	s5, 4(sp)                       # 4-byte Folded Reload
-	lw	s6, 0(sp)                       # 4-byte Folded Reload
 	addi	sp, sp, 32
 	ret
 .Lfunc_end18:
@@ -461,18 +441,20 @@ v_mallocArrayMulti:                     # @v_mallocArrayMulti
 	.type	_mallocArrayMulti,@function
 _mallocArrayMulti:                      # @_mallocArrayMulti
 # %bb.0:
-	addi	sp, sp, -32
-	sw	ra, 4(sp)                       # 4-byte Folded Spill
-	sw	a7, 28(sp)
-	sw	a6, 24(sp)
-	sw	a5, 20(sp)
-	sw	a4, 16(sp)
-	sw	a3, 12(sp)
-	addi	a3, sp, 12
-	sw	a3, 0(sp)
+	addi	sp, sp, -48
+	sw	ra, 12(sp)                      # 4-byte Folded Spill
+	sw	a7, 44(sp)
+	sw	a6, 40(sp)
+	sw	a5, 36(sp)
+	sw	a4, 32(sp)
+	sw	a3, 28(sp)
+	sw	a2, 24(sp)
+	sw	a1, 20(sp)
+	addi	a1, sp, 20
+	sw	a1, 8(sp)
 	call	v_mallocArrayMulti
-	lw	ra, 4(sp)                       # 4-byte Folded Reload
-	addi	sp, sp, 32
+	lw	ra, 12(sp)                      # 4-byte Folded Reload
+	addi	sp, sp, 48
 	ret
 .Lfunc_end19:
 	.size	_mallocArrayMulti, .Lfunc_end19-_mallocArrayMulti

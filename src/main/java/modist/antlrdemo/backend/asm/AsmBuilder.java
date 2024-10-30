@@ -132,8 +132,12 @@ public class AsmBuilder {
                 }
                 add(new InstructionAsm.Lw(destination, 0, get(load.pointer())));
             }
-            case InstructionIr.Bin bin -> add(new InstructionAsm.Bin(destination,
-                    bin.operator().opcode, get(bin.left()), get(bin.right(), Register.T1)));
+            case InstructionIr.Bin bin -> {
+                if (addImmediate(bin, destination)) {
+                    return true;
+                }
+                add(new InstructionAsm.Bin(destination, bin.operator().opcode, get(bin.left()), get(bin.right(), Register.T1)));
+            }
             case InstructionIr.Icmp icmp -> {
                 switch (icmp.operator()) {
                     case EQ, NE -> {
@@ -155,6 +159,9 @@ public class AsmBuilder {
             case InstructionIr.Phi ignored -> throw new UnsupportedOperationException(); // handled specially
             case InstructionIr.Param ignored -> throw new UnsupportedOperationException(); // handled specially
             case InstructionIr.FunctionCall functionCall -> {
+                if (addBuiltin(functionCall, destination)) {
+                    return true;
+                }
                 swap(IntStream.range(0, functionCall.arguments().size()).mapToObj(i -> functionBuilder.getParameterLocation(i, false)).toList(),
                         functionCall.arguments().stream().map(Movable.Op::new).toList());
                 add(new InstructionAsm.Call(IrNamer.removePrefix(functionCall.function())));
@@ -165,6 +172,46 @@ public class AsmBuilder {
             }
         }
         return true;
+    }
+
+    // needn't check if immediate is in range as it's already done in functionBuilder.add
+    private boolean addImmediate(InstructionIr.Bin bin, Register destination) {
+        Opcode opcode = bin.operator().opcode;
+        switch (opcode) {
+            case ADD, AND, OR, XOR -> {
+                if (bin.leftImmediate() != null) {
+                    add(new InstructionAsm.BinImm(destination, Opcode.reg2imm(opcode), get(bin.right()), bin.leftImmediate().asImmediate()));
+                    return true;
+                }
+                if (bin.rightImmediate() != null) {
+                    add(new InstructionAsm.BinImm(destination, Opcode.reg2imm(opcode), get(bin.left()), bin.rightImmediate().asImmediate()));
+                    return true;
+                }
+            }
+            case SUB -> {
+                if (bin.rightImmediate() != null) {
+                    add(new InstructionAsm.BinImm(destination, Opcode.ADDI, get(bin.left()), -bin.rightImmediate().asImmediate()));
+                    return true;
+                }
+            }
+            case SLL, SRA, SLT -> {
+                if (bin.rightImmediate() != null) {
+                    add(new InstructionAsm.BinImm(destination, Opcode.reg2imm(opcode), get(bin.left()), bin.rightImmediate().asImmediate()));
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean addBuiltin(InstructionIr.FunctionCall functionCall, Register destination) {
+        switch (IrNamer.removePrefix(functionCall.function())) {
+            case "_array.size" -> {
+                add(new InstructionAsm.Lw(destination, -4, get(functionCall.arguments().getFirst())));
+                return true;
+            }
+        }
+        return false;
     }
 
     private Register get(IrOperand source, Register temp) {

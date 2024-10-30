@@ -36,6 +36,16 @@ public sealed interface InstructionIr extends Ir {
         public List<IrOperand> uses() {
             return List.of(left, right);
         }
+
+        @Nullable
+        public IrConstant leftImmediate() {
+            return left instanceof IrConstant constant ? constant : null;
+        }
+
+        @Nullable
+        public IrConstant rightImmediate() {
+            return right instanceof IrConstant constant ? constant : null;
+        }
     }
 
     record Icmp(IrRegister result, IrOperator operator, IrType type, IrOperand left,

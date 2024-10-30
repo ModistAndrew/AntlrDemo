@@ -120,8 +120,7 @@ public class IrBuilder {
     private IrOperand visitExpression(ExpressionOrArrayAst expression) {
         return switch (expression) {
             case ArrayAst array -> {
-                IrRegister result = callGlobalFunction(BuiltinFeatures.MALLOC_ARRAY,
-                        new IrConstant.Int(IrType.MAX_BYTE_SIZE), new IrConstant.Int(array.elements.size()));
+                IrRegister result = callGlobalFunction(BuiltinFeatures.MALLOC_ARRAY, new IrConstant.Int(array.elements.size()));
                 for (int i = 0; i < array.elements.size(); i++) {
                     ExpressionOrArrayAst element = array.elements.get(i);
                     IrRegister pointer = add(new InstructionIr.Subscript(temp("element"),
@@ -166,12 +165,11 @@ public class IrBuilder {
                 if (arrayCreator.initializer != null) {
                     yield visitExpression(arrayCreator.initializer); // treat array itself as new
                 } else {
+                    if (arrayCreator.presentDimensions.size() == 1) {
+                        yield callGlobalFunction(BuiltinFeatures.MALLOC_ARRAY, visitExpression(arrayCreator.presentDimensions.getFirst()));
+                    }
                     List<IrType> argumentTypes = new ArrayList<>();
                     List<IrOperand> arguments = new ArrayList<>();
-                    argumentTypes.add(IrType.I32);
-                    arguments.add(new IrConstant.Int(IrType.MAX_BYTE_SIZE));
-                    argumentTypes.add(IrType.I32);
-                    arguments.add(new IrConstant.Int(arrayCreator.dimensions.size()));
                     argumentTypes.add(IrType.I32);
                     arguments.add(new IrConstant.Int(arrayCreator.presentDimensions.size()));
                     arrayCreator.presentDimensions.forEach(dimension -> {

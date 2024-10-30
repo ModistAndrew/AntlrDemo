@@ -140,13 +140,13 @@ define dso_local noalias noundef ptr @_mallocClass(i32 noundef %0) local_unnamed
 }
 
 ; Function Attrs: mustprogress nofree nounwind willreturn memory(write, argmem: none, inaccessiblemem: readwrite)
-define dso_local noalias nonnull ptr @_mallocArray(i32 noundef %0, i32 noundef %1) local_unnamed_addr #9 {
-  %3 = mul i32 %1, %0
-  %4 = add i32 %3, 4
-  %5 = tail call ptr @malloc(i32 noundef %4) #13
-  store i32 %1, ptr %5, align 4, !tbaa !6
-  %6 = getelementptr inbounds i32, ptr %5, i32 1
-  ret ptr %6
+define dso_local noalias nonnull ptr @_mallocArray(i32 noundef %0) local_unnamed_addr #9 {
+  %2 = shl i32 %0, 2
+  %3 = add i32 %2, 4
+  %4 = tail call ptr @malloc(i32 noundef %3) #13
+  store i32 %0, ptr %4, align 4, !tbaa !6
+  %5 = getelementptr inbounds i32, ptr %4, i32 1
+  ret ptr %5
 }
 
 ; Function Attrs: mustprogress nofree nounwind willreturn memory(argmem: read)
@@ -240,60 +240,46 @@ declare void @llvm.va_start(ptr) #10
 declare void @llvm.va_end(ptr) #10
 
 ; Function Attrs: nofree nounwind memory(write, argmem: read, inaccessiblemem: readwrite)
-define dso_local noalias nonnull ptr @v_mallocArrayMulti(i32 noundef %0, i32 noundef %1, i32 noundef %2, ptr nocapture noundef readonly %3) local_unnamed_addr #11 {
-  %5 = getelementptr inbounds i8, ptr %3, i32 4
-  %6 = load i32, ptr %3, align 4
-  %7 = icmp eq i32 %1, 1
-  br i1 %7, label %8, label %13
+define dso_local noalias nonnull ptr @v_mallocArrayMulti(i32 noundef %0, ptr nocapture noundef readonly %1) local_unnamed_addr #11 {
+  %3 = getelementptr inbounds i8, ptr %1, i32 4
+  %4 = load i32, ptr %1, align 4
+  %5 = shl i32 %4, 2
+  %6 = add i32 %5, 4
+  %7 = tail call ptr @malloc(i32 noundef %6) #13
+  store i32 %4, ptr %7, align 4, !tbaa !6
+  %8 = getelementptr inbounds i32, ptr %7, i32 1
+  %9 = icmp ne i32 %0, 1
+  %10 = icmp ne i32 %4, 0
+  %11 = and i1 %9, %10
+  br i1 %11, label %12, label %20
 
-8:                                                ; preds = %4
-  %9 = mul i32 %6, %0
-  %10 = add i32 %9, 4
-  %11 = tail call ptr @malloc(i32 noundef %10) #13
-  store i32 %6, ptr %11, align 4, !tbaa !6
-  %12 = getelementptr inbounds i32, ptr %11, i32 1
-  br label %30
+12:                                               ; preds = %2
+  %13 = add i32 %0, -1
+  br label %14
 
-13:                                               ; preds = %4
-  %14 = shl i32 %6, 2
-  %15 = add i32 %14, 4
-  %16 = tail call ptr @malloc(i32 noundef %15) #13
-  store i32 %6, ptr %16, align 4, !tbaa !6
-  %17 = getelementptr inbounds i32, ptr %16, i32 1
-  %18 = icmp ne i32 %2, 1
-  %19 = icmp ne i32 %6, 0
-  %20 = select i1 %18, i1 %19, i1 false
-  br i1 %20, label %21, label %30
+14:                                               ; preds = %12, %14
+  %15 = phi i32 [ 0, %12 ], [ %18, %14 ]
+  %16 = tail call ptr @v_mallocArrayMulti(i32 noundef %13, ptr noundef nonnull %3)
+  %17 = getelementptr inbounds ptr, ptr %8, i32 %15
+  store ptr %16, ptr %17, align 4, !tbaa !14
+  %18 = add nuw i32 %15, 1
+  %19 = icmp eq i32 %18, %4
+  br i1 %19, label %20, label %14, !llvm.loop !16
 
-21:                                               ; preds = %13
-  %22 = add i32 %1, -1
-  %23 = add i32 %2, -1
-  br label %24
-
-24:                                               ; preds = %21, %24
-  %25 = phi i32 [ 0, %21 ], [ %28, %24 ]
-  %26 = tail call ptr @v_mallocArrayMulti(i32 noundef %0, i32 noundef %22, i32 noundef %23, ptr noundef nonnull %5)
-  %27 = getelementptr inbounds ptr, ptr %17, i32 %25
-  store ptr %26, ptr %27, align 4, !tbaa !14
-  %28 = add nuw i32 %25, 1
-  %29 = icmp eq i32 %28, %6
-  br i1 %29, label %30, label %24, !llvm.loop !16
-
-30:                                               ; preds = %24, %13, %8
-  %31 = phi ptr [ %12, %8 ], [ %17, %13 ], [ %17, %24 ]
-  ret ptr %31
+20:                                               ; preds = %14, %2
+  ret ptr %8
 }
 
 ; Function Attrs: nofree nounwind
-define dso_local noalias nonnull ptr @_mallocArrayMulti(i32 noundef %0, i32 noundef %1, i32 noundef %2, ...) local_unnamed_addr #6 {
-  %4 = alloca ptr, align 4
-  call void @llvm.lifetime.start.p0(i64 4, ptr nonnull %4) #14
-  call void @llvm.va_start(ptr nonnull %4)
-  %5 = load ptr, ptr %4, align 4, !tbaa !14
-  %6 = call ptr @v_mallocArrayMulti(i32 noundef %0, i32 noundef %1, i32 noundef %2, ptr noundef %5)
-  call void @llvm.va_end(ptr nonnull %4)
-  call void @llvm.lifetime.end.p0(i64 4, ptr nonnull %4) #14
-  ret ptr %6
+define dso_local noalias nonnull ptr @_mallocArrayMulti(i32 noundef %0, ...) local_unnamed_addr #6 {
+  %2 = alloca ptr, align 4
+  call void @llvm.lifetime.start.p0(i64 4, ptr nonnull %2) #14
+  call void @llvm.va_start(ptr nonnull %2)
+  %3 = load ptr, ptr %2, align 4, !tbaa !14
+  %4 = call ptr @v_mallocArrayMulti(i32 noundef %0, ptr noundef %3)
+  call void @llvm.va_end(ptr nonnull %2)
+  call void @llvm.lifetime.end.p0(i64 4, ptr nonnull %2) #14
+  ret ptr %4
 }
 
 ; Function Attrs: nofree nounwind

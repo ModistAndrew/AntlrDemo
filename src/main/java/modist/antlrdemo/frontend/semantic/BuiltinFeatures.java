@@ -37,8 +37,8 @@ public class BuiltinFeatures {
     public static final Symbol.Function TO_STRING_BOOL = new Symbol.Function("_toStringBool", STRING, BOOL);
     public static final Symbol.Function CONCAT_STRING_MULTI = new Symbol.Function("_concatStringMulti", STRING, INT);
     public static final Symbol.Function MALLOC_CLASS = new Symbol.Function("_mallocClass", PTR, INT);
-    public static final Symbol.Function MALLOC_ARRAY = new Symbol.Function("_mallocArray", PTR, INT, INT);
-    public static final Symbol.Function MALLOC_ARRAY_MULTI = new Symbol.Function("_mallocArrayMulti", PTR, INT, INT, INT);
+    public static final Symbol.Function MALLOC_ARRAY = new Symbol.Function("_mallocArray", PTR, INT);
+    public static final Symbol.Function MALLOC_ARRAY_MULTI = new Symbol.Function("_mallocArrayMulti", PTR, INT);
     public static final Symbol.Function COMPARE_STRING = new Symbol.Function("_compareString", INT, STRING, STRING);
     public static final Symbol.Function CONCAT_STRING = new Symbol.Function("_concatString", STRING, STRING, STRING);
 

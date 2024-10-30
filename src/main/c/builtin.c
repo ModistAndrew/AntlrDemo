@@ -1,5 +1,6 @@
 #define MAX_INPUT_LENGTH 1024
 #define MAX_INT_STR_LENGTH 12
+#define MAX_BYTE_SIZE 4
 
 typedef _Bool bool;
 typedef __SIZE_TYPE__ size_t;
@@ -96,8 +97,8 @@ void *_mallocClass(size_t size) {
   return malloc(size);
 }
 
-void *_mallocArray(size_t size, size_t length) {
-  size_t *a = (size_t *) malloc(size * length + sizeof(size_t));
+void *_mallocArray(size_t length) {
+  size_t *a = (size_t *) malloc(MAX_BYTE_SIZE * length + sizeof(size_t));
   a[0] = length;
   return a + 1; // store the length before the first element
 }
@@ -141,28 +142,23 @@ char *_concatStringMulti(size_t num, ...) {
 }
 
 // use recursive function to allocate multi-dimensional array
-void *v_mallocArrayMulti(size_t size, size_t depth, size_t num, va_list dimensions) {
+void *v_mallocArrayMulti(size_t num, va_list dimensions) {
   size_t dimension = va_arg(dimensions, size_t);
-  if (depth == 1) {
-    return _mallocArray(size, dimension);
-  }
-  void *array = _mallocArray(sizeof(void *), dimension);
+  void *array = _mallocArray(dimension);
   if (num == 1) {
     return array;
   }
   for (size_t i = 0; i < dimension; i++) {
-    void *subArray = v_mallocArrayMulti(size, depth - 1, num - 1, dimensions);
+    void *subArray = v_mallocArrayMulti(num - 1, dimensions);
     ((void **) array)[i] = subArray;
   }
   return array;
 }
 
-// depth is used to determine whether we should allocate a sub-array or the actual data
-// in fact in both situations the size is 4 as we are on a 32-bit machine and all the types are assumed to have size 4
-void *_mallocArrayMulti(size_t size, size_t depth, size_t num, ...) {
+void *_mallocArrayMulti(size_t num, ...) {
   va_list ap;
   va_start(ap, num);
-  void *array = v_mallocArrayMulti(size, depth, num, ap);
+  void *array = v_mallocArrayMulti(num, ap);
   va_end(ap);
   return array;
 }

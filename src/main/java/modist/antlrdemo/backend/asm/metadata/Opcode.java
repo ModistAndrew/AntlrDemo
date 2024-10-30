@@ -28,4 +28,17 @@ public enum Opcode {
             default -> throw new IllegalArgumentException();
         };
     }
+
+    public static Opcode reg2imm(Opcode opcode) {
+        return switch (opcode) {
+            case ADD -> ADDI;
+            case SLL -> SLLI;
+            case SRA -> SRAI;
+            case AND -> ANDI;
+            case OR -> ORI;
+            case XOR -> XORI;
+            case SLT -> SLTI;
+            default -> throw new IllegalArgumentException();
+        };
+    }
 }
